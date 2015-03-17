@@ -1,0 +1,321 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent"  tools:context=".HXGSEMainActivity"
+    android:background="@android:color/background_dark"
+    android:padding="10dp"
+    android:id="@+id/hxgse_demo_layout">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/hxgse_demo_main_conatainer">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SONG LIST"
+            android:id="@+id/song_list_header"
+            android:textSize="10sp"
+            android:typeface="sans"
+            android:textColor="@android:color/white"
+            android:background="@android:drawable/dialog_frame"
+            android:gravity="center"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:layout_gravity="center_horizontal" />
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/song_list_container"
+            android:background="@android:drawable/editbox_dropdown_dark_frame"
+            android:layout_gravity="center_horizontal"
+            android:padding="4dp"
+            android:gravity="center">
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="fill_parent"
+                android:layout_height="40dp"
+                android:id="@+id/first_song_container"
+                android:clickable="true">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/first_song_toggle_button"
+                    android:src="@android:drawable/star_big_off"
+                    android:padding="10dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="gamerstep-bass-triplets (clinthammermusic)"
+                    android:id="@+id/first_song_name"
+                    android:typeface="sans"
+                    android:textColor="@android:color/white"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:textSize="13sp" />
+
+            </LinearLayout>
+
+            <ImageView
+                android:layout_width="fill_parent"
+                android:layout_height="1dp"
+                android:id="@+id/song_divider_1"
+                android:background="@android:color/darker_gray" />
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="fill_parent"
+                android:layout_height="40dp"
+                android:id="@+id/second_song_container"
+                android:clickable="true">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/second_song_toggle_button"
+                    android:src="@android:drawable/star_big_off"
+                    android:padding="10dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ts-digi-lead-2 (clinthammermusic)"
+                    android:id="@+id/second_song_name"
+                    android:typeface="sans"
+                    android:textColor="@android:color/white"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <ImageView
+                android:layout_width="fill_parent"
+                android:layout_height="1dp"
+                android:id="@+id/song_divider_2"
+                android:background="@android:color/darker_gray" />
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="fill_parent"
+                android:layout_height="40dp"
+                android:id="@+id/third_song_container"
+                android:clickable="true">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/third_song_toggle_button"
+                    android:src="@android:drawable/star_big_off"
+                    android:padding="10dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ts-drums (clinthammermusic)"
+                    android:id="@+id/third_song_name"
+                    android:typeface="sans"
+                    android:textColor="@android:color/white"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:textSize="13sp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/main_container_spacer"
+            android:visibility="invisible"
+            android:padding="2dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SOUND FX"
+            android:id="@+id/sound_fx_header"
+            android:textSize="10sp"
+            android:typeface="sans"
+            android:textColor="@android:color/white"
+            android:background="@android:drawable/dialog_frame"
+            android:gravity="center"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:layout_gravity="center_horizontal" />
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/sound_fx_container"
+            android:background="@android:drawable/editbox_dropdown_dark_frame"
+            android:layout_gravity="center_horizontal"
+            android:gravity="center_horizontal"
+            android:padding="4dp" >
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="fill_parent"
+                android:layout_height="40dp"
+                android:id="@+id/first_fx_container"
+                android:clickable="true">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="SOUND FX 1: SCI-FI 5"
+                    android:id="@+id/first_fx_name"
+                    android:typeface="sans"
+                    android:textColor="@android:color/white"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:padding="10dp"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <ImageView
+                android:layout_width="fill_parent"
+                android:layout_height="1dp"
+                android:id="@+id/fx_divider_1"
+                android:background="@android:color/darker_gray" />
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="fill_parent"
+                android:layout_height="40dp"
+                android:id="@+id/second_fx_container"
+                android:clickable="true">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="SOUND FX 2: MACHINE"
+                    android:id="@+id/second_fx_name"
+                    android:typeface="sans"
+                    android:textColor="@android:color/white"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:padding="10dp"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <ImageView
+                android:layout_width="fill_parent"
+                android:layout_height="1dp"
+                android:id="@+id/fx_divider_2"
+                android:background="@android:color/darker_gray" />
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="fill_parent"
+                android:layout_height="40dp"
+                android:id="@+id/third_fx_container"
+                android:clickable="true">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="SOUND FX 3: DIGITAL LIFE 1"
+                    android:id="@+id/third_fx_name"
+                    android:typeface="sans"
+                    android:textColor="@android:color/white"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:padding="10dp"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center"
+        android:id="@+id/hxgse_demo_bottom_container"
+        android:padding="4dp">
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:id="@+id/play_controls_container">
+
+            <ImageButton
+                android:layout_width="56dp"
+                android:layout_height="48dp"
+                android:id="@+id/play_button"
+                android:src="@android:drawable/ic_media_play"
+                android:clickable="true"
+                android:layout_weight="1" />
+
+            <ImageButton
+                android:layout_width="56dp"
+                android:layout_height="48dp"
+                android:id="@+id/pause_button"
+                android:src="@android:drawable/ic_media_pause"
+                android:clickable="true"
+                android:layout_weight="1" />
+
+            <ImageButton
+                android:layout_width="56dp"
+                android:layout_height="48dp"
+                android:id="@+id/stop_button"
+                android:src="@android:drawable/picture_frame"
+                android:layout_weight="1" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:id="@+id/play_options_container">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SETTINGS"
+                android:id="@+id/settings_header"
+                android:textSize="10sp"
+                android:typeface="sans"
+                android:textColor="@android:color/white"
+                android:background="@android:drawable/dialog_frame"
+                android:gravity="center"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_weight="1" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="MUSIC ON"
+                android:id="@+id/music_enable_button"
+                android:textColor="@android:color/white"
+                android:textSize="12sp"
+                android:layout_weight="1" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SOUND ON"
+                android:id="@+id/sound_enable_button"
+                android:textColor="@android:color/white"
+                android:textSize="12sp"
+                android:layout_weight="1" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</FrameLayout>
