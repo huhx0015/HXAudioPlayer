@@ -1,22 +1,24 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent"  tools:context=".HXGSEMainActivity"
     android:background="@android:color/background_dark"
     android:padding="5dp"
-    android:id="@+id/hxgse_demo_layout">
+    android:id="@+id/hxgse_demo_layout"
+    android:orientation="vertical">
 
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/hxgse_demo_main_conatainer">
+        android:id="@+id/hxgse_demo_main_conatainer"
+        android:layout_weight="1">
 
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:padding="2dp"
+            android:padding="1dp"
             android:id="@+id/main_container_1">
 
             <TextView
@@ -40,7 +42,7 @@
                 android:id="@+id/song_list_container"
                 android:background="@android:drawable/editbox_dropdown_dark_frame"
                 android:layout_gravity="center_horizontal"
-                android:padding="4dp"
+                android:padding="2dp"
                 android:gravity="center">
 
                 <LinearLayout
@@ -143,7 +145,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:padding="2dp"
+            android:padding="1dp"
             android:id="@+id/main_container_2">
 
             <TextView
@@ -168,7 +170,7 @@
                 android:background="@android:drawable/editbox_dropdown_dark_frame"
                 android:layout_gravity="center_horizontal"
                 android:gravity="center_horizontal"
-                android:padding="4dp" >
+                android:padding="2dp" >
 
                 <LinearLayout
                     android:orientation="horizontal"
@@ -250,9 +252,11 @@
         android:orientation="vertical"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center"
+        android:layout_gravity="center"
         android:id="@+id/hxgse_demo_bottom_container"
-        android:padding="1dp">
+        android:padding="1dp"
+        android:layout_weight="1"
+        android:gravity="center">
 
         <LinearLayout
             android:orientation="horizontal"
@@ -329,4 +333,4 @@
 
     </LinearLayout>
 
-</FrameLayout>
+</LinearLayout>

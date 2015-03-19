@@ -1,15 +1,17 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent"  tools:context=".HXGSEMainActivity"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="fill_parent"
+    android:layout_height="fill_parent"  tools:context=".HXGSEMainActivity"
     android:background="@android:color/background_dark"
     android:padding="10dp"
-    android:id="@+id/hxgse_demo_layout">
+    android:id="@+id/hxgse_demo_layout"
+    android:orientation="vertical">
 
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/hxgse_demo_main_conatainer">
+        android:id="@+id/hxgse_demo_main_conatainer"
+        android:layout_weight="1">
 
         <TextView
             android:layout_width="wrap_content"
@@ -38,7 +40,7 @@
             <LinearLayout
                 android:orientation="horizontal"
                 android:layout_width="fill_parent"
-                android:layout_height="40dp"
+                android:layout_height="34dp"
                 android:id="@+id/first_song_container"
                 android:clickable="true">
 
@@ -52,7 +54,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="gamerstep-bass-triplets (clinthammermusic)"
+                    android:text="gamerstep-bass-triplets (clinthammer)"
                     android:id="@+id/first_song_name"
                     android:typeface="sans"
                     android:textColor="@android:color/white"
@@ -71,7 +73,7 @@
             <LinearLayout
                 android:orientation="horizontal"
                 android:layout_width="fill_parent"
-                android:layout_height="40dp"
+                android:layout_height="34dp"
                 android:id="@+id/second_song_container"
                 android:clickable="true">
 
@@ -85,7 +87,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="ts-digi-lead-2 (clinthammermusic)"
+                    android:text="ts-digi-lead-2 (clinthammer)"
                     android:id="@+id/second_song_name"
                     android:typeface="sans"
                     android:textColor="@android:color/white"
@@ -103,7 +105,7 @@
             <LinearLayout
                 android:orientation="horizontal"
                 android:layout_width="fill_parent"
-                android:layout_height="40dp"
+                android:layout_height="34dp"
                 android:id="@+id/third_song_container"
                 android:clickable="true">
 
@@ -117,7 +119,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="ts-drums (clinthammermusic)"
+                    android:text="ts-drums (clinthammer)"
                     android:id="@+id/third_song_name"
                     android:typeface="sans"
                     android:textColor="@android:color/white"
@@ -163,7 +165,7 @@
             <LinearLayout
                 android:orientation="horizontal"
                 android:layout_width="fill_parent"
-                android:layout_height="40dp"
+                android:layout_height="34dp"
                 android:id="@+id/first_fx_container"
                 android:clickable="true">
 
@@ -189,7 +191,7 @@
             <LinearLayout
                 android:orientation="horizontal"
                 android:layout_width="fill_parent"
-                android:layout_height="40dp"
+                android:layout_height="34dp"
                 android:id="@+id/second_fx_container"
                 android:clickable="true">
 
@@ -215,7 +217,7 @@
             <LinearLayout
                 android:orientation="horizontal"
                 android:layout_width="fill_parent"
-                android:layout_height="40dp"
+                android:layout_height="34dp"
                 android:id="@+id/third_fx_container"
                 android:clickable="true">
 
@@ -239,9 +241,11 @@
         android:orientation="vertical"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center"
+        android:layout_gravity="center"
         android:id="@+id/hxgse_demo_bottom_container"
-        android:padding="4dp">
+        android:padding="4dp"
+        android:layout_weight="4"
+        android:gravity="center">
 
         <LinearLayout
             android:orientation="horizontal"
@@ -318,4 +322,4 @@
 
     </LinearLayout>
 
-</FrameLayout>
+</LinearLayout>
