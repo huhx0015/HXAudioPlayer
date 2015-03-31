@@ -75,6 +75,17 @@ public class HXGSEDemoActivity extends ActionBarActivity {
         hxgse_music.getInstance().pauseSong(); // Pauses any song that is playing in the background.
     }
 
+    // onStop(): This function runs when screen is no longer visible and the activity is in a
+    // state prior to destruction.
+    @Override
+    protected void onStop() {
+
+        super.onStop();
+
+        // Refreshes the SoundPool object for Android 2.3 (GINGERBREAD) devices.
+        hxgse_sound.getInstance().reinitializeSoundPool();
+    }
+
     // onDestroy(): This function runs when the activity has terminated and is being destroyed.
     @Override
     protected void onDestroy() {

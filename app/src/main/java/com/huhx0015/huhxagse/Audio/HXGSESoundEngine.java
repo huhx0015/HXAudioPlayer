@@ -151,6 +151,7 @@ public class HXGSESoundEngine {
             if (hxgse_soundpool == null) {
                 Log.d(TAG, "WARNING: SoundPool object was null. Re-initializing SoundPool object.");
                 setUpSoundPool();
+                loadSoundEffects();
             }
 
             final int NUM_SOUNDS = soundList.size(); // Retrieves the number of defined sound effects in the list.
@@ -223,6 +224,20 @@ public class HXGSESoundEngine {
         if (hxgse_soundpool != null) {
             hxgse_soundpool.autoResume(); // Resumes all sound effect playback.
             Log.d(TAG, "SOUND: Resuming sound effect playback.");
+        }
+    }
+
+    // reinitializeSoundPool(): This method re-initializes the SoundPool object for devices running
+    // on Android 2.3 (GINGERBREAD) and earlier. This is to help minimize the AudioTrack out of
+    // memory error, which was limited to a small 1 MB size buffer.
+    public void reinitializeSoundPool() {
+
+        // GINGERBREAD: The SoundPool is released and re-initialized. This is done to minimize the
+        // AudioTrack out of memory (-12) error.
+        if (api_level < 11) {
+            releaseSound(); // Releases the SoundPool object.
+            setUpSoundPool(); // Initializes the SoundPool object.
+            loadSoundEffects(); // Loads the sound effect hash map.
         }
     }
 
