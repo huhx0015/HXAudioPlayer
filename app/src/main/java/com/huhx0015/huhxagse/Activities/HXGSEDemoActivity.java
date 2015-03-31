@@ -352,6 +352,10 @@ public class HXGSEDemoActivity extends ActionBarActivity {
 
                 // Enables sound playback.
                 else {
+
+                    // Refreshes the SoundPool object for Android 2.3 (GINGERBREAD) devices.
+                    hxgse_sound.getInstance().reinitializeSoundPool();
+
                     soundOn = true;
                     soundEnableButton.setText("SOUND ON");
                 }
