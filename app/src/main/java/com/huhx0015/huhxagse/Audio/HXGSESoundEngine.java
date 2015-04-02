@@ -31,7 +31,7 @@ public class HXGSESoundEngine {
     private SparseIntArray soundEffectMap; // Hash map for sound effects.
     private boolean autoInitialize = true; // Used to control the auto initialization of the SoundPool object. This is only used on Android 2.3 (GINGERBREAD) devices.
     public boolean soundOn; // Used for determining if sound option is enabled or not.
-    private final int MAX_SIMULTANEOUS_SOUNDS = 8; // Can output eight sound effects simultaneously. Adjust this value accordingly.
+    private final int MAX_SIMULTANEOUS_SOUNDS = 24; // Can output eight sound effects simultaneously. Adjust this value accordingly.
     private final int MAX_SOUND_EVENTS = 25; // Maximum number of sound events before the SoundPool object is reset. Adjust this value based on sound sample sizes. Android 2.3 (GINGERBREAD) only.
     private int soundEventCount = 0; // Used to count the number of sound events that have occurred.
 
