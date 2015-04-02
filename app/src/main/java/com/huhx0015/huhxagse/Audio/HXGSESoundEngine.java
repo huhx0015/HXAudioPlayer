@@ -218,7 +218,8 @@ public class HXGSESoundEngine {
     // pauseSounds(): Pauses all sound effects playing in the background.
     public void pauseSounds() {
 
-        // Checks to see if hxgse_soundpool has been initiated first before pausing sound effect playback.
+        // Checks to see if the hxgse_soundpool object has been initiated first before pausing sound
+        // effect playback.
         if (hxgse_soundpool != null) {
             hxgse_soundpool.autoPause(); // Pauses all sound effect playback.
             Log.d(TAG, "SOUND: All sound playback has been paused.");
