@@ -29,8 +29,11 @@ public class HXGSESoundEngine {
     private LinkedList<HXGSESoundFX> soundList; // List of sound effects.
     private SoundPool hxgse_soundpool; // SoundPool variable for sound effects.
     private SparseIntArray soundEffectMap; // Hash map for sound effects.
+    private boolean autoInitialize = true; // Used to control the auto initialization of the SoundPool object. This is only used on Android 2.3 (GINGERBREAD) devices.
     public boolean soundOn; // Used for determining if sound option is enabled or not.
     private final int MAX_SIMULTANEOUS_SOUNDS = 8; // Can output eight sound effects simultaneously. Adjust this value accordingly.
+    private final int MAX_SOUND_EVENTS = 25; // Maximum number of sound events before the SoundPool object is reset. Adjust this value based on sound sample sizes. Android 2.3 (GINGERBREAD) only.
+    private int soundEventCount = 0; // Used to count the number of sound events that have occurred.
 
     // SYSTEM VARIABLES:
     private Context context; // Context for the instance in which this class is used.
@@ -146,12 +149,20 @@ public class HXGSESoundEngine {
         // Processes and plays the sound effect only if soundOn variable is set to true.
         if (soundOn == true) {
 
-            // Checks to see if the soundPool class has been instantiated first before playing a sound effect.
-            // This is to prevent a rare null pointer exception bug.
+            // Checks to see if the soundPool class has been instantiated first before playing a
+            // sound effect. This is to prevent a rare null pointer exception bug.
             if (hxgse_soundpool == null) {
                 Log.d(TAG, "WARNING: SoundPool object was null. Re-initializing SoundPool object.");
                 setUpSoundPool();
                 loadSoundEffects();
+            }
+
+            // ANDROID 2.3 (GINGERBREAD): The SoundPool object is re-initialized if the sound event
+            // counter has reached the MAX_SOUND_EVENT limit. This is to handle the AudioTrack
+            // 1 MB buffer limit issue.
+            if ( (api_level < 11) && (soundEventCount >= MAX_SOUND_EVENTS) && (autoInitialize) ) {
+                Log.d(TAG, "WARNING: Sound event count (" + soundEventCount + ") has exceeded the maximum number of sound events. Re-initializing the engine.");
+                reinitializeSoundPool();
             }
 
             final int NUM_SOUNDS = soundList.size(); // Retrieves the number of defined sound effects in the list.
@@ -179,6 +190,7 @@ public class HXGSESoundEngine {
                     // is played.
                     if (hxgse_soundpool != null) {
                         soundID = hxgse_soundpool.play(soundEffectMap.get(i), volume, volume, 1, loop, 1.0f); // Plays the sound effect.
+                        soundEventCount++; // Increments the sound event counter.
                         Log.d(TAG, "SOUND: Playing " + retrievedSfx + " sound effect at soundEffectMap position " + i + ".");
                     }
 
@@ -235,9 +247,14 @@ public class HXGSESoundEngine {
         // GINGERBREAD: The SoundPool is released and re-initialized. This is done to minimize the
         // AudioTrack out of memory (-12) error.
         if (api_level < 11) {
+
+            Log.d(TAG, "RE-INITIALIZING: The SoundPool object is being re-initialized.");
+
             releaseSound(); // Releases the SoundPool object.
             setUpSoundPool(); // Initializes the SoundPool object.
             loadSoundEffects(); // Loads the sound effect hash map.
+
+            soundEventCount = 0; // Resets the sound event counter.
         }
     }
 
