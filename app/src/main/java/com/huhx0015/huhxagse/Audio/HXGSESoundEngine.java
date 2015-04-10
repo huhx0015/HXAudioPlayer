@@ -8,7 +8,6 @@ import android.media.SoundPool;
 import android.os.Build;
 import android.util.Log;
 import android.util.SparseIntArray;
-
 import com.huhx0015.huhxagse.Model.HXGSESoundFX;
 import com.huhx0015.huhxagse.Resources.HXGSESoundList;
 import java.util.LinkedList;
@@ -31,8 +30,9 @@ public class HXGSESoundEngine {
     private SparseIntArray soundEffectMap; // Hash map for sound effects.
     private boolean autoInitialize = true; // Used to control the auto initialization of the SoundPool object. This is only used on Android 2.3 (GINGERBREAD) devices.
     public boolean soundOn; // Used for determining if sound option is enabled or not.
-    private final int MAX_SIMULTANEOUS_SOUNDS = 24; // Can output twenty-four sound effects simultaneously. Adjust this value accordingly.
-    private final int MAX_SOUND_EVENTS = 25; // Maximum number of sound events before the SoundPool object is reset. Adjust this value based on sound sample sizes. Android 2.3 (GINGERBREAD) only.
+    private int engineID; // Used to determine the ID value of this instance.
+    private final int MAX_SIMULTANEOUS_SOUNDS = 8; // Can output eight sound effects simultaneously. Adjust this value accordingly.
+    private final int MAX_SOUND_EVENTS = 8; // Maximum number of sound events before the SoundPool object is reset. Adjust this value based on sound sample sizes. Android 2.3 (GINGERBREAD) only.
     private int soundEventCount = 0; // Used to count the number of sound events that have occurred.
 
     // SYSTEM VARIABLES:
@@ -46,24 +46,25 @@ public class HXGSESoundEngine {
     private final static HXGSESoundEngine hgsxe_sounds = new HXGSESoundEngine();
 
     // HXGSESoundEngine(): Deconstructor for HXGSESoundEngine class.
-    private HXGSESoundEngine() {}
+    public HXGSESoundEngine() {}
 
     // getInstance(): Returns the hgsxe_sounds instance.
     public static HXGSESoundEngine getInstance() { return hgsxe_sounds; }
 
     // initializeAudio(): Initializes the HXGSESoundEngine class variables.
-    public void initializeAudio(Context con) {
+    public void initializeAudio(Context con, int id) {
 
-        Log.d(TAG, "INITIALIZING: Initializing HXGSE sound engine.");
+        Log.d(TAG, "INITIALIZING (" + id + "): Initializing HXGSE sound engine.");
 
         context = con; // Context for the instance in which this class is used.
+        engineID = id; // Sets the ID value for this instance.
         soundManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         soundEffectMap = new SparseIntArray(); // SparseIntArray of sound effects.
         soundOn = true; // Sets the sound flag to be enabled by default.
         setUpSoundPool(); // Initializes the SoundPool object.
         loadSoundEffects(); // Loads the sound effects into the SoundPool object.
 
-        Log.d(TAG, "INITIALIZING: HXGSE sound engine initialization complete.");
+        Log.d(TAG, "INITIALIZING (" + id + "): HXGSE sound engine initialization complete.");
     }
 
     /** SETUP FUNCTIONALITY ____________________________________________________________________ **/
@@ -74,13 +75,13 @@ public class HXGSESoundEngine {
 
         // API 21+: Android 5.0 and above.
         if (api_level > 20) {
-            Log.d(TAG, "INITIALIZING: Using Lollipop (API 21) SoundPool initialization.");
+            Log.d(TAG, "INITIALIZING (" + engineID + "): Using Lollipop (API 21) SoundPool initialization.");
             hxgse_soundpool = constructSoundPool();
         }
 
         // API 9 - 20: Android 2.3 - 4.4
         else {
-            Log.d(TAG, "INITIALIZING: Using GB/HC/ICS/JB/KK (API 9 - 20) SoundPool initialization.");
+            Log.d(TAG, "INITIALIZING (" + engineID + "): Using GB/HC/ICS/JB/KK (API 9 - 20) SoundPool initialization.");
             hxgse_soundpool = new SoundPool(MAX_SIMULTANEOUS_SOUNDS, AudioManager.STREAM_MUSIC, 0);
         }
     }
@@ -98,12 +99,12 @@ public class HXGSESoundEngine {
         attributes.setContentType(AudioAttributes.USAGE_GAME); // Sets the audio type to USAGE_GAME.
         soundBuilder.setAudioAttributes(attributes.build()); // Sets the attributes.
 
-        Log.d(TAG, "INITIALIZING: Setting audio content type to USAGE_GAME.");
+        Log.d(TAG, "INITIALIZING (" + engineID + "): Setting audio content type to USAGE_GAME.");
 
         // Sets the maximum number of audio streams that can be played at once.
         soundBuilder.setMaxStreams(MAX_SIMULTANEOUS_SOUNDS); // Sets the maximum number of audio streams.
 
-        Log.d(TAG, "INITIALIZING: SoundPool construction complete.");
+        Log.d(TAG, "INITIALIZING (" + engineID + "): SoundPool construction complete.");
 
         return soundBuilder.build(); // Returns the newly created SoundPool object.
     }
@@ -117,20 +118,20 @@ public class HXGSESoundEngine {
         // Checks to see if the soundList size is invalid or not.
         if (soundList.size() > 1) {
 
-            Log.d(TAG, "INITIALIZING: " + soundList.size() + " sound effects found.");
+            Log.d(TAG, "INITIALIZING (" + engineID + "): " + soundList.size() + " sound effects found.");
 
             // Populates the sound effect map from the soundList LinkedList array.
             for (int position = 0; position < soundList.size(); position++) {
                 soundEffectMap.put(position + 1, hxgse_soundpool.load(context, soundList.get(position).getSoundRes(), 1));
-                Log.d(TAG, "INITIALIZING: Loading sound effect " + soundList.get(position).getSoundName() + " into position " + (position + 1) + ".");
+                Log.d(TAG, "INITIALIZING (" + engineID + "): Loading sound effect " + soundList.get(position).getSoundName() + " into position " + (position + 1) + ".");
             }
 
-            Log.d(TAG, "INITIALIZING: SoundEffectMap populated.");
+            Log.d(TAG, "INITIALIZING (" + engineID + "): SoundEffectMap populated.");
         }
 
         // Outputs an error message.
         else {
-            Log.d(TAG, "ERROR: Cannot initialize HXGSESound engine due to empty list of sound effects.");
+            Log.d(TAG, "ERROR (" + engineID + "): Cannot initialize HXGSESound engine due to empty list of sound effects.");
         }
     }
 
@@ -152,7 +153,7 @@ public class HXGSESoundEngine {
             // Checks to see if the soundPool class has been instantiated first before playing a
             // sound effect. This is to prevent a rare null pointer exception bug.
             if (hxgse_soundpool == null) {
-                Log.d(TAG, "WARNING: SoundPool object was null. Re-initializing SoundPool object.");
+                Log.d(TAG, "WARNING (" + engineID + "): SoundPool object was null. Re-initializing SoundPool object.");
                 setUpSoundPool();
                 loadSoundEffects();
             }
@@ -161,7 +162,7 @@ public class HXGSESoundEngine {
             // counter has reached the MAX_SOUND_EVENT limit. This is to handle the AudioTrack
             // 1 MB buffer limit issue.
             if ( (api_level < 11) && (soundEventCount >= MAX_SOUND_EVENTS) && (autoInitialize) ) {
-                Log.d(TAG, "WARNING: Sound event count (" + soundEventCount + ") has exceeded the maximum number of sound events. Re-initializing the engine.");
+                Log.d(TAG, "WARNING (" + engineID + "): Sound event count (" + soundEventCount + ") has exceeded the maximum number of sound events. Re-initializing the engine.");
                 reinitializeSoundPool();
             }
 
@@ -169,7 +170,7 @@ public class HXGSESoundEngine {
 
             // Checks to see if the sound effect list is valid or not.
             if (NUM_SOUNDS < 1) {
-                Log.d(TAG, "ERROR: The sound effect list doesn't contain any valid sound objects. Has the sound effect list been populated?");
+                Log.d(TAG, "ERROR (" + engineID + "): The sound effect list doesn't contain any valid sound objects. Has the sound effect list been populated?");
                 return 0;
             }
 
@@ -191,25 +192,25 @@ public class HXGSESoundEngine {
                     if (hxgse_soundpool != null) {
                         soundID = hxgse_soundpool.play(soundEffectMap.get(i), volume, volume, 1, loop, 1.0f); // Plays the sound effect.
                         soundEventCount++; // Increments the sound event counter.
-                        Log.d(TAG, "SOUND: Playing " + retrievedSfx + " sound effect at soundEffectMap position " + i + ".");
+                        Log.d(TAG, "SOUND (" + engineID + "): Playing " + retrievedSfx + " sound effect at soundEffectMap position " + i + ".");
                     }
 
                     else {
-                        Log.d(TAG, "ERROR: Cannot play sound effect due to SoundPool object being null.");
+                        Log.d(TAG, "ERROR (" + engineID + "): Cannot play sound effect due to SoundPool object being null.");
                     }
                 }
             }
 
             // If the sound effect was not found, an error message is outputted to logcat.
             if (!soundEffectFound) {
-                Log.d(TAG, "ERROR: Specified sound effect was not found in the sound effect list.");
+                Log.d(TAG, "ERROR (" + engineID + "): Specified sound effect was not found in the sound effect list.");
             }
         }
 
         // Outputs an error message to logcat, indicating that the sound effect could not be played
         // and that the sound engine is disabled.
         else {
-            Log.d(TAG, "ERROR: Sound effect could not be played due to the sound engine being disabled.");
+            Log.d(TAG, "ERROR (" + engineID + "): Sound effect could not be played due to the sound engine being disabled.");
         }
 
         return soundID;
@@ -222,11 +223,11 @@ public class HXGSESoundEngine {
         // effect playback.
         if (hxgse_soundpool != null) {
             hxgse_soundpool.autoPause(); // Pauses all sound effect playback.
-            Log.d(TAG, "SOUND: All sound playback has been paused.");
+            Log.d(TAG, "SOUND (" + engineID + "): All sound playback has been paused.");
         }
 
         else {
-            Log.d(TAG, "ERROR: Cannot pause sound playback due to SoundPool object being null.");
+            Log.d(TAG, "ERROR (" + engineID + "): Cannot pause sound playback due to SoundPool object being null.");
         }
     }
 
@@ -236,7 +237,7 @@ public class HXGSESoundEngine {
         // Checks to see if hxgse_soundpool has been initiated first before resuming sound effect playback.
         if (hxgse_soundpool != null) {
             hxgse_soundpool.autoResume(); // Resumes all sound effect playback.
-            Log.d(TAG, "SOUND: Resuming sound effect playback.");
+            Log.d(TAG, "SOUND (" + engineID + "): Resuming sound effect playback.");
         }
     }
 
@@ -249,7 +250,7 @@ public class HXGSESoundEngine {
         // AudioTrack out of memory (-12) error.
         if (api_level < 11) {
 
-            Log.d(TAG, "RE-INITIALIZING: The SoundPool object is being re-initialized.");
+            Log.d(TAG, "RE-INITIALIZING (" + engineID + "): The SoundPool object is being re-initialized.");
 
             releaseSound(); // Releases the SoundPool object.
             setUpSoundPool(); // Initializes the SoundPool object.
@@ -268,11 +269,11 @@ public class HXGSESoundEngine {
             hxgse_soundpool.release();
             hxgse_soundpool = null;
 
-            Log.d(TAG, "RELEASE: SoundPool object has been released.");
+            Log.d(TAG, "RELEASE (" + engineID + "): SoundPool object has been released.");
         }
 
         else {
-            Log.d(TAG, "ERROR: SoundPool object is null and cannot be released.");
+            Log.d(TAG, "ERROR (" + engineID + "): SoundPool object is null and cannot be released.");
         }
     }
 }

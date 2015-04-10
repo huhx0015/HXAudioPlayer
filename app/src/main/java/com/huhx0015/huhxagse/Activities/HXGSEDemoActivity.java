@@ -12,7 +12,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import com.huhx0015.huhxagse.Audio.HXGSEMusicEngine;
 import com.huhx0015.huhxagse.Audio.HXGSEPhysicalSound;
-import com.huhx0015.huhxagse.Audio.HXGSESoundEngine;
+import com.huhx0015.huhxagse.Audio.HXGSESoundHandler;
 import com.huhx0015.huhxagse.Data.HXGSEPreferences;
 import com.huhx0015.huhxagse.R;
 import com.squareup.picasso.Picasso;
@@ -22,8 +22,8 @@ public class HXGSEDemoActivity extends ActionBarActivity {
     /** CLASS VARIABLES ________________________________________________________________________ **/
 
     // AUDIO VARIABLES
-    private HXGSEMusicEngine hxgse_music; // HXGSEMusic class object that is used for music functionality.
-    private HXGSESoundEngine hxgse_sound; // HXGSESound class object that is used for sound functionality.
+    private HXGSEMusicEngine hxgse_music; // HXGSEMusicEngine class object that is used for music functionality.
+    private HXGSESoundHandler hxgse_sound; // HXGSESoundHandler class object that is used for sound functionality.
     private String currentSong = "NONE"; // Sets the default song for the activity.
     private Boolean musicOn = true; // Used to determine if music has been enabled or not.
     private Boolean soundOn = true; // Used to determine if sound has been enabled or not.
@@ -34,7 +34,6 @@ public class HXGSEDemoActivity extends ActionBarActivity {
 
     // PREFERENCE VARIABLES
     private SharedPreferences HXGSE_prefs; // SharedPreferences object for storing app data.
-    private static final String HXGSE_OPTIONS = "hxgse_preferences";
 
     /** ACTIVITY LIFECYCLE FUNCTIONALITY _______________________________________________________ **/
 
@@ -44,7 +43,7 @@ public class HXGSEDemoActivity extends ActionBarActivity {
 
         // AUDIO CLASS INITIALIZATION:
         hxgse_music.getInstance().initializeAudio(this); // Initializes the HXGSEMusic class object.
-        hxgse_sound.getInstance().initializeAudio(this); // Initializes the HXGSESound class object.
+        hxgse_sound.getInstance().initializeAudio(this, 2); // Initializes the HXGSESound class object.
 
         loadPreferences(); // Loads the settings values from the main SharedPreferences object.
         setUpLayout(); // Sets up layout for the activity.
