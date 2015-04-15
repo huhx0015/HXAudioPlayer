@@ -172,45 +172,48 @@ public class HXGSEMusicEngine {
             backgroundSong = new MediaPlayer();
         }
 
-        // Stops any songs currently playing in the background.
-        if (backgroundSong.isPlaying()) {
-            Log.d(TAG, "PREPARING: Song currently playing in the background. Stopping playback before switching to a new song.");
-            backgroundSong.stop();
-        }
+        else {
 
-        // Sets up the MediaPlayer object for the song to be played.
-        releaseMedia(); // Releases MediaPool resources.
-        backgroundSong = new MediaPlayer(); // Initializes the MediaPlayer.
-        backgroundSong.setAudioStreamType(AudioManager.STREAM_MUSIC); // Sets the audio type for the MediaPlayer object.
-
-        Log.d(TAG, "PREPARING: MediaPlayer stream type set to STREAM_MUSIC.");
-
-        backgroundSong = MediaPlayer.create(context, songName); // Sets up the MediaPlayer for the song.
-        backgroundSong.setLooping(loop); // Enables infinite looping of music.
-
-        Log.d(TAG, "PREPARING: Loop condition has been set to " + loop + ".");
-
-        // If the song was previously paused, resume the song at it's previous location.
-        if (isPaused) {
-
-            Log.d(TAG, "PREPARING: Song was previously paused, resuming song playback.");
-
-            backgroundSong.seekTo(songPosition); // Jumps to the position where the song left off.
-            songPosition = 0; // Resets songPosition variable after song's position has been set.
-            isPaused = false; // Indicates that the song is no longer paused.
-        }
-
-        // Sets up the listener for the MediaPlayer object. Song playback begins immediately
-        // once the MediaPlayer object is ready.
-        backgroundSong.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-
-            @Override
-            public void onPrepared(MediaPlayer mediaPlayer) {
-
-                Log.d(TAG, "MUSIC: Song playback has begun.");
-                mediaPlayer.start(); // Begins playing the song.
+            // Stops any songs currently playing in the background.
+            if (backgroundSong.isPlaying()) {
+                Log.d(TAG, "PREPARING: Song currently playing in the background. Stopping playback before switching to a new song.");
+                backgroundSong.stop();
             }
-        });
+
+            // Sets up the MediaPlayer object for the song to be played.
+            releaseMedia(); // Releases MediaPool resources.
+            backgroundSong = new MediaPlayer(); // Initializes the MediaPlayer.
+            backgroundSong.setAudioStreamType(AudioManager.STREAM_MUSIC); // Sets the audio type for the MediaPlayer object.
+
+            Log.d(TAG, "PREPARING: MediaPlayer stream type set to STREAM_MUSIC.");
+
+            backgroundSong = MediaPlayer.create(context, songName); // Sets up the MediaPlayer for the song.
+            backgroundSong.setLooping(loop); // Enables infinite looping of music.
+
+            Log.d(TAG, "PREPARING: Loop condition has been set to " + loop + ".");
+
+            // If the song was previously paused, resume the song at it's previous location.
+            if (isPaused) {
+
+                Log.d(TAG, "PREPARING: Song was previously paused, resuming song playback.");
+
+                backgroundSong.seekTo(songPosition); // Jumps to the position where the song left off.
+                songPosition = 0; // Resets songPosition variable after song's position has been set.
+                isPaused = false; // Indicates that the song is no longer paused.
+            }
+
+            // Sets up the listener for the MediaPlayer object. Song playback begins immediately
+            // once the MediaPlayer object is ready.
+            backgroundSong.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+
+                @Override
+                public void onPrepared(MediaPlayer mediaPlayer) {
+
+                    Log.d(TAG, "MUSIC: Song playback has begun.");
+                    mediaPlayer.start(); // Begins playing the song.
+                }
+            });
+        }
     }
 
     // releaseMedia(): Used to release the resources being used by mediaPlayer objects.

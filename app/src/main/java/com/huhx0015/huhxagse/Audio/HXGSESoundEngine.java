@@ -158,52 +158,56 @@ public class HXGSESoundEngine {
                 loadSoundEffects();
             }
 
-            // ANDROID 2.3 (GINGERBREAD): The SoundPool object is re-initialized if the sound event
-            // counter has reached the MAX_SOUND_EVENT limit. This is to handle the AudioTrack
-            // 1 MB buffer limit issue.
-            if ( (api_level < 11) && (soundEventCount >= MAX_SOUND_EVENTS) && (autoInitialize) ) {
-                Log.d(TAG, "WARNING (" + engineID + "): Sound event count (" + soundEventCount + ") has exceeded the maximum number of sound events. Re-initializing the engine.");
-                reinitializeSoundPool();
-            }
+            else {
 
-            final int NUM_SOUNDS = soundList.size(); // Retrieves the number of defined sound effects in the list.
+                // ANDROID 2.3 (GINGERBREAD): The SoundPool object is re-initialized if the sound event
+                // counter has reached the MAX_SOUND_EVENT limit. This is to handle the AudioTrack
+                // 1 MB buffer limit issue.
+                if ((api_level < 11) && (soundEventCount >= MAX_SOUND_EVENTS) && (autoInitialize)) {
+                    Log.d(TAG, "WARNING (" + engineID + "): Sound event count (" + soundEventCount + ") has exceeded the maximum number of sound events. Re-initializing the engine.");
+                    reinitializeSoundPool();
+                }
 
-            // Checks to see if the sound effect list is valid or not.
-            if (NUM_SOUNDS < 1) {
-                Log.d(TAG, "ERROR (" + engineID + "): The sound effect list doesn't contain any valid sound objects. Has the sound effect list been populated?");
-                return 0;
-            }
+                else {
 
-            // Loops through the sound list to find the specified sound effect in the pre-defined sound effect list.
-            for (int i = 1; i <= NUM_SOUNDS; i++) {
+                    final int NUM_SOUNDS = soundList.size(); // Retrieves the number of defined sound effects in the list.
 
-                String retrievedSfx = soundList.get(i - 1).getSoundName(); // Retrieves the sound name string.
-
-                // Compares the specified song name against the current song name in the list.
-                if (retrievedSfx.equals(sfx)) {
-
-                    soundEffectFound = true; // Indicates that the specified SFX was found in the sound effect list.
-
-                    // Retrieves the current volume value.
-                    float volume = soundManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-
-                    // Checks to see if the SoundPool object is null first. If not, the sound effect
-                    // is played.
-                    if (hxgse_soundpool != null) {
-                        soundID = hxgse_soundpool.play(soundEffectMap.get(i), volume, volume, 1, loop, 1.0f); // Plays the sound effect.
-                        soundEventCount++; // Increments the sound event counter.
-                        Log.d(TAG, "SOUND (" + engineID + "): Playing " + retrievedSfx + " sound effect at soundEffectMap position " + i + ".");
+                    // Checks to see if the sound effect list is valid or not.
+                    if (NUM_SOUNDS < 1) {
+                        Log.d(TAG, "ERROR (" + engineID + "): The sound effect list doesn't contain any valid sound objects. Has the sound effect list been populated?");
+                        return 0;
                     }
 
-                    else {
-                        Log.d(TAG, "ERROR (" + engineID + "): Cannot play sound effect due to SoundPool object being null.");
+                    // Loops through the sound list to find the specified sound effect in the pre-defined sound effect list.
+                    for (int i = 1; i <= NUM_SOUNDS; i++) {
+
+                        String retrievedSfx = soundList.get(i - 1).getSoundName(); // Retrieves the sound name string.
+
+                        // Compares the specified song name against the current song name in the list.
+                        if (retrievedSfx.equals(sfx)) {
+
+                            soundEffectFound = true; // Indicates that the specified SFX was found in the sound effect list.
+
+                            // Retrieves the current volume value.
+                            float volume = soundManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+
+                            // Checks to see if the SoundPool object is null first. If not, the sound effect
+                            // is played.
+                            if (hxgse_soundpool != null) {
+                                soundID = hxgse_soundpool.play(soundEffectMap.get(i), volume, volume, 1, loop, 1.0f); // Plays the sound effect.
+                                soundEventCount++; // Increments the sound event counter.
+                                Log.d(TAG, "SOUND (" + engineID + "): Playing " + retrievedSfx + " sound effect at soundEffectMap position " + i + ".");
+                            } else {
+                                Log.d(TAG, "ERROR (" + engineID + "): Cannot play sound effect due to SoundPool object being null.");
+                            }
+                        }
+                    }
+
+                    // If the sound effect was not found, an error message is outputted to logcat.
+                    if (!soundEffectFound) {
+                        Log.d(TAG, "ERROR (" + engineID + "): Specified sound effect was not found in the sound effect list.");
                     }
                 }
-            }
-
-            // If the sound effect was not found, an error message is outputted to logcat.
-            if (!soundEffectFound) {
-                Log.d(TAG, "ERROR (" + engineID + "): Specified sound effect was not found in the sound effect list.");
             }
         }
 
