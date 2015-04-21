@@ -16,8 +16,8 @@ INSTRUCTIONS:
 2. Declare HXGSEMusicEngine / HXGSESoundHander objects as universal variables. 
  
 3. Initialize HXGSEMusic / HXGSESound objects in the onCreate() function of the first activity / fragment of your app that requires sound playback. 
-  - hxgse_music.getInstance().initializeAudio(this);
-  - hxgse_sound.getInstance().initializeAudio(this, 2);
+  - hxgse_music.getInstance().initializeAudio(getApplicationContext());
+  - hxgse_sound.getInstance().initializeAudio(getApplicationContext(), 2);
   
 4. Status of the music and sound engines will be outputted to logcat. Once fully initialized, all methods of HXGSEMusicEngine and HXGSESoundHandler are available to use.
 
