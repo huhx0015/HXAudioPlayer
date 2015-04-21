@@ -42,8 +42,8 @@ public class HXGSEDemoActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
 
         // AUDIO CLASS INITIALIZATION:
-        hxgse_music.getInstance().initializeAudio(this); // Initializes the HXGSEMusic class object.
-        hxgse_sound.getInstance().initializeAudio(this, 2); // Initializes the HXGSESound class object.
+        hxgse_music.getInstance().initializeAudio(getApplicationContext()); // Initializes the HXGSEMusic class object.
+        hxgse_sound.getInstance().initializeAudio(getApplicationContext(), 2); // Initializes the HXGSESound class object.
 
         loadPreferences(); // Loads the settings values from the main SharedPreferences object.
         setUpLayout(); // Sets up layout for the activity.
