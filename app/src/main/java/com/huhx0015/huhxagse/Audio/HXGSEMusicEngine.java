@@ -222,6 +222,7 @@ public class HXGSEMusicEngine {
         // Releases MediaPool resources.
         if (backgroundSong != null) {
 
+            backgroundSong.reset();
             backgroundSong.release();
             backgroundSong = null;
 
