@@ -10,11 +10,11 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import com.huhx0015.huhxagse.Audio.HXGSEMusicEngine;
-import com.huhx0015.huhxagse.Audio.HXGSEPhysicalSound;
-import com.huhx0015.huhxagse.Audio.HXGSESoundHandler;
-import com.huhx0015.huhxagse.Data.HXGSEPreferences;
 import com.huhx0015.huhxagse.R;
+import com.huhx0015.huhxagse.data.HXGSEPreferences;
+import com.huhx0015.hxgselib.audio.HXGSEMusicEngine;
+import com.huhx0015.hxgselib.audio.HXGSEPhysicalSound;
+import com.huhx0015.hxgselib.audio.HXGSESoundHandler;
 import com.squareup.picasso.Picasso;
 
 public class HXGSEDemoActivity extends ActionBarActivity {
@@ -42,8 +42,8 @@ public class HXGSEDemoActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
 
         // AUDIO CLASS INITIALIZATION:
-        hxgse_music.getInstance().initializeAudio(getApplicationContext()); // Initializes the HXGSEMusic class object.
-        hxgse_sound.getInstance().initializeAudio(getApplicationContext(), 2); // Initializes the HXGSESound class object.
+        HXGSEMusicEngine.getInstance().initializeAudio(getApplicationContext()); // Initializes the HXGSEMusic class object.
+        HXGSESoundHandler.getInstance().initializeAudio(getApplicationContext(), 2); // Initializes the HXGSESound class object.
 
         loadPreferences(); // Loads the settings values from the main SharedPreferences object.
         setUpLayout(); // Sets up layout for the activity.
@@ -68,10 +68,10 @@ public class HXGSEDemoActivity extends ActionBarActivity {
         super.onPause();
 
         // Sets the isPlaying variable to determine if the song is currently playing.
-        isPlaying = hxgse_music.getInstance().isSongPlaying();
+        isPlaying = HXGSEMusicEngine.getInstance().isSongPlaying();
 
         HXGSEPhysicalSound.disablePhysSounds(false, this); // Re-enables the physical button's sound effects.
-        hxgse_music.getInstance().pauseSong(); // Pauses any song that is playing in the background.
+        HXGSEMusicEngine.getInstance().pauseSong(); // Pauses any song that is playing in the background.
     }
 
     // onStop(): This function runs when screen is no longer visible and the activity is in a
@@ -82,7 +82,7 @@ public class HXGSEDemoActivity extends ActionBarActivity {
         super.onStop();
 
         // Refreshes the SoundPool object for Android 2.3 (GINGERBREAD) devices.
-        hxgse_sound.getInstance().reinitializeSoundPool();
+        HXGSESoundHandler.getInstance().reinitializeSoundPool();
     }
 
     // onDestroy(): This function runs when the activity has terminated and is being destroyed.
@@ -91,8 +91,8 @@ public class HXGSEDemoActivity extends ActionBarActivity {
         super.onDestroy();
 
         // Releases all audio-related instances if the application is terminating.
-        hxgse_music.getInstance().releaseMedia();
-        hxgse_sound.getInstance().releaseSound();
+        HXGSEMusicEngine.getInstance().releaseMedia();
+        HXGSESoundHandler.getInstance().releaseSound();
     }
 
     /** ACTIVITY EXTENSION FUNCTIONALITY _______________________________________________________ **/
@@ -113,7 +113,7 @@ public class HXGSEDemoActivity extends ActionBarActivity {
     @Override
     public void onBackPressed() {
 
-        hxgse_sound.getInstance().playSoundFx("SFX3", 0); // Plays the sound effect.
+        HXGSESoundHandler.getInstance().playSoundFx("SFX3", 0); // Plays the sound effect.
         finish(); // Finishes the activity.
     }
 
@@ -124,7 +124,7 @@ public class HXGSEDemoActivity extends ActionBarActivity {
 
         // Plays a custom sound effect when the MENU key is pressed.
         if (keyCode == KeyEvent.KEYCODE_MENU ) {
-            hxgse_sound.getInstance().playSoundFx("SFX2", 0); // Plays the sound effect.
+            HXGSESoundHandler.getInstance().playSoundFx("SFX2", 0); // Plays the sound effect.
             return true; // Returns true to prevent further propagation of the key event.
         }
 
@@ -176,7 +176,7 @@ public class HXGSEDemoActivity extends ActionBarActivity {
                 // Sets the name of the song and plays the song immediately if music is enabled.
                 if (musicOn) {
                     currentSong = "SONG 1"; // Sets the song name.
-                    hxgse_music.getInstance().playSongName(currentSong, true);
+                    HXGSEMusicEngine.getInstance().playSongName(currentSong, true);
 
                     toggleStar(1); // Toggles the star for the first song.
                 }
@@ -192,7 +192,7 @@ public class HXGSEDemoActivity extends ActionBarActivity {
                 // Sets the name of the song and plays the song immediately if music is enabled.
                 if (musicOn) {
                     currentSong = "SONG 2"; // Sets the song name.
-                    hxgse_music.getInstance().playSongName(currentSong, true);
+                    HXGSEMusicEngine.getInstance().playSongName(currentSong, true);
 
                     toggleStar(2); // Toggles the star for the second song.
                 }
@@ -208,7 +208,7 @@ public class HXGSEDemoActivity extends ActionBarActivity {
                 // Sets the name of the song and plays the song immediately if music is enabled.
                 if (musicOn) {
                     currentSong = "SONG 3"; // Sets the song name.
-                    hxgse_music.getInstance().playSongName(currentSong, true);
+                    HXGSEMusicEngine.getInstance().playSongName(currentSong, true);
 
                     toggleStar(3); // Toggles the star for the third song.
                 }
@@ -225,7 +225,7 @@ public class HXGSEDemoActivity extends ActionBarActivity {
             public void onClick(View v) {
 
                 // Plays the sound effect.
-                hxgse_sound.getInstance().playSoundFx("SFX1", 0);
+                HXGSESoundHandler.getInstance().playSoundFx("SFX1", 0);
             }
         });
 
@@ -236,7 +236,7 @@ public class HXGSEDemoActivity extends ActionBarActivity {
             public void onClick(View v) {
 
                 // Plays the sound effect.
-                hxgse_sound.getInstance().playSoundFx("SFX2", 0);
+                HXGSESoundHandler.getInstance().playSoundFx("SFX2", 0);
             }
         });
 
@@ -247,7 +247,7 @@ public class HXGSEDemoActivity extends ActionBarActivity {
             public void onClick(View v) {
 
                 // Plays the sound effect.
-                hxgse_sound.getInstance().playSoundFx("SFX3", 0);
+                HXGSESoundHandler.getInstance().playSoundFx("SFX3", 0);
             }
         });
 
@@ -267,7 +267,7 @@ public class HXGSEDemoActivity extends ActionBarActivity {
 
                 // Plays the last selected song.
                 else {
-                    hxgse_music.getInstance().playSongName(currentSong, true);
+                    HXGSEMusicEngine.getInstance().playSongName(currentSong, true);
                 }
             }
         });
@@ -279,8 +279,8 @@ public class HXGSEDemoActivity extends ActionBarActivity {
             public void onClick(View v) {
 
                 // Pauses the song that is currently playing in the background.
-                if (hxgse_music.getInstance().isSongPlaying()) {
-                    hxgse_music.getInstance().pauseSong();
+                if (HXGSEMusicEngine.getInstance().isSongPlaying()) {
+                    HXGSEMusicEngine.getInstance().pauseSong();
                 }
             }
         });
@@ -292,8 +292,8 @@ public class HXGSEDemoActivity extends ActionBarActivity {
             public void onClick(View v) {
 
                 // Stops the song that is currently playing in the background.
-                if (hxgse_music.getInstance().isSongPlaying()) {
-                    hxgse_music.getInstance().stopSong();
+                if (HXGSEMusicEngine.getInstance().isSongPlaying()) {
+                    HXGSEMusicEngine.getInstance().stopSong();
                     currentSong = "NONE"; // Indicates no song has been selected.
                     toggleStar(0); // Updates the star song toggles.
                 }
@@ -313,8 +313,8 @@ public class HXGSEDemoActivity extends ActionBarActivity {
                 if (musicOn) {
 
                     // Stops song playback if song is currently playing.
-                    if (hxgse_music.getInstance().isSongPlaying()) {
-                        hxgse_music.getInstance().stopSong();
+                    if (HXGSEMusicEngine.getInstance().isSongPlaying()) {
+                        HXGSEMusicEngine.getInstance().stopSong();
                         currentSong  = "NONE"; // Indicates no song has been selected.
                         toggleStar(0); // Updates the song star toggles.
                     }
@@ -333,7 +333,7 @@ public class HXGSEDemoActivity extends ActionBarActivity {
                 HXGSEPreferences.setMusicOn(musicOn, HXGSE_prefs);
 
                 // Sets the musicOn value in the HXGSEMusic class.
-                hxgse_music.getInstance().musicOn = musicOn;
+                HXGSEMusicEngine.getInstance().musicOn = musicOn;
             }
         });
 
@@ -353,7 +353,7 @@ public class HXGSEDemoActivity extends ActionBarActivity {
                 else {
 
                     // Refreshes the SoundPool object for Android 2.3 (GINGERBREAD) devices.
-                    hxgse_sound.getInstance().reinitializeSoundPool();
+                    HXGSESoundHandler.getInstance().reinitializeSoundPool();
 
                     soundOn = true;
                     soundEnableButton.setText("SOUND ON");
@@ -363,7 +363,7 @@ public class HXGSEDemoActivity extends ActionBarActivity {
                 HXGSEPreferences.setSoundOn(soundOn, HXGSE_prefs);
 
                 // Sets the soundOn value in the HXGSEMusic class.
-                hxgse_sound.getInstance().soundOn = soundOn;
+                HXGSESoundHandler.getInstance().soundOn = soundOn;
             }
         });
     }
@@ -425,7 +425,7 @@ public class HXGSEDemoActivity extends ActionBarActivity {
 
         // Checks to see if the song was playing prior to the activity from being
         if (isPlaying) {
-            hxgse_music.getInstance().playSongName(currentSong, true);
+            HXGSEMusicEngine.getInstance().playSongName(currentSong, true);
         }
     }
 
@@ -440,7 +440,7 @@ public class HXGSEDemoActivity extends ActionBarActivity {
         soundOn = HXGSEPreferences.getSoundOn(HXGSE_prefs);
 
         // Assigns the retrieved preference values to the class objects.
-        hxgse_music.getInstance().musicOn = musicOn;
-        hxgse_sound.getInstance().soundOn = soundOn;
+        HXGSEMusicEngine.getInstance().musicOn = musicOn;
+        HXGSESoundHandler.getInstance().soundOn = soundOn;
     }
 }

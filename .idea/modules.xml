@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/HuhXAndroidGameSoundEngine.iml" filepath="$PROJECT_DIR$/HuhXAndroidGameSoundEngine.iml" />
+      <module fileurl="file://$PROJECT_DIR$/HuhX_Game_Sound_Engine.iml" filepath="$PROJECT_DIR$/HuhX_Game_Sound_Engine.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/hxgse/hxgse.iml" filepath="$PROJECT_DIR$/hxgse/hxgse.iml" />
     </modules>
