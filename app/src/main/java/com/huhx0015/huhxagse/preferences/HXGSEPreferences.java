@@ -1,4 +1,4 @@
-package com.huhx0015.huhxagse.data;
+package com.huhx0015.huhxagse.preferences;
 
 import android.content.Context;
 import android.content.SharedPreferences;

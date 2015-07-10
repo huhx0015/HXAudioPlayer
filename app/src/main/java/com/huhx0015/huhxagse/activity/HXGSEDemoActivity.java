@@ -1,4 +1,4 @@
-package com.huhx0015.huhxagse.Activities;
+package com.huhx0015.huhxagse.activity;
 
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
@@ -11,7 +11,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import com.huhx0015.huhxagse.R;
-import com.huhx0015.huhxagse.data.HXGSEPreferences;
+import com.huhx0015.huhxagse.preferences.HXGSEPreferences;
 import com.huhx0015.hxgselib.audio.HXGSEMusicEngine;
 import com.huhx0015.hxgselib.audio.HXGSEPhysicalSound;
 import com.huhx0015.hxgselib.audio.HXGSESoundHandler;

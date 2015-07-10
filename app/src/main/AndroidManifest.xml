@@ -10,7 +10,7 @@
         android:theme="@style/AppTheme" >
 
         <activity
-            android:name=".Activities.HXGSEDemoActivity"
+            android:name=".activity.HXGSEDemoActivity"
             android:label="HuhX Game Sound Engine Demo"
             android:configChanges="orientation|screenSize|keyboardHidden">
             <intent-filter>
