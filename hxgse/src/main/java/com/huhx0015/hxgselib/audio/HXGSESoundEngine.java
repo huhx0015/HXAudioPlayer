@@ -154,6 +154,7 @@ public class HXGSESoundEngine {
             // sound effect. This is to prevent a rare null pointer exception bug.
             if (hxgse_soundpool == null) {
                 Log.d(TAG, "WARNING (" + engineID + "): SoundPool object was null. Re-initializing SoundPool object.");
+                soundEffectMap = new SparseIntArray(); // SparseIntArray of sound effects.
                 setUpSoundPool();
                 loadSoundEffects();
             }
