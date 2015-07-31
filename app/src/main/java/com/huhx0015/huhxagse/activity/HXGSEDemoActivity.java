@@ -423,6 +423,11 @@ public class HXGSEDemoActivity extends ActionBarActivity {
     // paused, the song is resumed.
     private void resumeAudioState() {
 
+        // Checks the HXGSEMusicEngine initialization status to ensure that it is still initialized.
+        // This is to prevent against a rare null object issue where the activity may be destroyed
+        // in low memory situations.
+        HXGSEMusicEngine.getInstance().getInitStatus(this);
+
         // Checks to see if the song was playing prior to the activity from being
         if (isPlaying) {
             HXGSEMusicEngine.getInstance().playSongName(currentSong, true);

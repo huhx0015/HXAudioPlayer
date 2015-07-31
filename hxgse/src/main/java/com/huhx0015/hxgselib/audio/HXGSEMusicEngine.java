@@ -22,7 +22,8 @@ public class HXGSEMusicEngine {
     // AUDIO VARIABLES:
     private MediaPlayer backgroundSong; // MediaPlayer variable for background song.
     private String currentSong; // Used for determining what song is playing in the background.
-    private boolean isPaused; // Used for determining if a song has been paused.
+    private Boolean isInitialized; // Used for determining if the HXGSEMusicEngine component has been initialized.
+    private Boolean isPaused; // Used for determining if a song has been paused.
     public int songPosition; // Used for resuming playback on a song that was paused.
     public boolean musicOn; // Used for determining whether music is playing in the background.
 
@@ -48,12 +49,30 @@ public class HXGSEMusicEngine {
 
         context = con; // Context for the instance in which this class is used.
         backgroundSong = new MediaPlayer(); // Instantiates the main MediaPlayer object.
+        isInitialized = true; // Indicates that the engine has been initialized.
         isPaused = false; // Indicates that the song is not paused by default.
         musicOn = true; // Indicates that music playback is enabled by default.
         currentSong = "STOPPED"; // Sets the "STOPPED" condition for the song name string.
         songPosition = 0; // Sets the song position to the beginning of the song by default.
 
         Log.d(TAG, "INITIALIZING: HXGSE music engine initialization complete.");
+    }
+
+    // getInitStatus(): This function checks the current initialization status of the
+    // HXGSEMusicEngine object. If it is null, the HXGSEMusicEngine parameters are reset. This is to
+    // deal with a null pointer bug that can occur when the application is suspended for a long time
+    // and the app activity is destroyed and re-created.
+    public Boolean getInitStatus(Context con) {
+
+        // Checks to see if the HXGSEMusicEngine object has already been initialized. If it has not
+        // been initialized, the HXGSEMusicEngine class is re-initialized.
+        if (isInitialized == null) {
+            initializeAudio(con); // Initializes the HXGSEMusicEngine class variables.
+            return false;
+        }
+
+        // Indicates that the HXGSEMusicEngine object has already been initialized.
+        else { return true; }
     }
 
     /** MUSIC FUNCTIONALITY ____________________________________________________________________ **/
