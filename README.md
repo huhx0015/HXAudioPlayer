@@ -5,7 +5,7 @@ DEVELOPER: Michael Yoon Huh (HUHX0015)
 
 STATUS: Open-Source
 
-The HuhX Game Sound Engine is a custom game audio engine for Android 2.3 - Android 5.1. This is an easy-to-use sound and music engine that is focused on providing audio for Android game-related apps. This audio engine was utilized in apps such as StepBOT, Dragon Geo, Cid's Aerial Tours, and Chrono Maps.
+The HuhX Game Sound Engine is a custom game audio engine for Android 2.3 - Android 6.0. This is an sound and music engine that is focused on providing audio for Android game-related apps. This audio engine was utilized in apps such as StepBOT, Dragon Geo, Cid's Aerial Tours, and Chrono Maps.
 
 The demo activity provided with the project provides an example how the HuhX GSE engine works.
 
@@ -20,6 +20,9 @@ INSTRUCTIONS:
   - hxgse_sound.getInstance().initializeAudio(getApplicationContext(), 2);
   
 4. Status of the music and sound engines will be outputted to logcat. Once fully initialized, all methods of HXGSEMusicEngine and HXGSESoundHandler are available to use.
+
+5. (OPTIONAL) If your device supports Dolby Audio, you can enable Dolby Audio Processing by initializing the HXGSEDolbyEffects class:
+  - hxgse_music.getInstance().intializeDolby(getApplicationContext());
 
 NOTES: 
 - INITIALIZATION: Intialize the HXGSEMusicEngine / HXGSESoundHander objects once, in the first activity of your app that requires sound playback. No need to re-initialize these objects in other activity instances (unless releaseAudio()/releaseMedia() is called, which is not recommended until the end of app life), as a single instance is active until releaseAudio()/releaseMedia() is called. Initializing HXGSEMusicEngine / HXGSESoundHandler more than once may result in more than one audio streams running at once.
