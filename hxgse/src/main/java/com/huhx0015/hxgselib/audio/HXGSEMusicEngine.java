@@ -72,6 +72,7 @@ public class HXGSEMusicEngine {
         }
 
         // Indicates that the HXGSEMusicEngine object has already been initialized.
+
         else { return true; }
     }
 
