@@ -91,22 +91,21 @@ public class HXGSESoundEngine {
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private SoundPool constructSoundPool() {
 
-        // Initializes the SoundPool.Builder and AudioAttributes.Builder objects.
-        SoundPool.Builder soundBuilder = new SoundPool.Builder();
-        AudioAttributes.Builder attributes = new AudioAttributes.Builder();
+        // Initializes the AudioAttributes.Builder object.
+        AudioAttributes attributes = new AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_GAME) // Sets the audio type to USAGE_GAME.
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build();
 
-        // Sets the audio type attributes for the SoundPool.Builder object.
-        attributes.setContentType(AudioAttributes.USAGE_GAME); // Sets the audio type to USAGE_GAME.
-        soundBuilder.setAudioAttributes(attributes.build()); // Sets the attributes.
-
-        Log.d(TAG, "INITIALIZING (" + engineID + "): Setting audio content type to USAGE_GAME.");
-
-        // Sets the maximum number of audio streams that can be played at once.
-        soundBuilder.setMaxStreams(MAX_SIMULTANEOUS_SOUNDS); // Sets the maximum number of audio streams.
+        // Initializes the SoundPool.Builder object.
+        SoundPool soundBuilder = new SoundPool.Builder()
+                .setAudioAttributes(attributes)
+                .setMaxStreams(MAX_SIMULTANEOUS_SOUNDS) // Sets the maximum number of audio streams.
+                .build();
 
         Log.d(TAG, "INITIALIZING (" + engineID + "): SoundPool construction complete.");
 
-        return soundBuilder.build(); // Returns the newly created SoundPool object.
+        return soundBuilder; // Returns the newly created SoundPool object.
     }
 
     // loadSoundEffects(): Loads sound effects into the soundEffectMap hash map.
