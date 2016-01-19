@@ -2,8 +2,8 @@ package com.huhx0015.huhxagse.activity;
 
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
@@ -16,9 +16,8 @@ import com.huhx0015.hxgselib.audio.HXGSEDolbyEffects;
 import com.huhx0015.hxgselib.audio.HXGSEMusicEngine;
 import com.huhx0015.hxgselib.audio.HXGSEPhysicalSound;
 import com.huhx0015.hxgselib.audio.HXGSESoundHandler;
-import com.squareup.picasso.Picasso;
 
-public class HXGSEDemoActivity extends ActionBarActivity {
+public class HXGSEDemoActivity extends AppCompatActivity {
 
     /** CLASS VARIABLES ________________________________________________________________________ **/
 
@@ -389,33 +388,33 @@ public class HXGSEDemoActivity extends ActionBarActivity {
 
             // First Song 'STAR':
             case 1:
-                Picasso.with(this).load(starOn).into(firstSongStar);
-                Picasso.with(this).load(starOff).into(secondSongStar);
-                Picasso.with(this).load(starOff).into(thirdSongStar);
+                firstSongStar.setImageResource(starOn);
+                secondSongStar.setImageResource(starOff);
+                thirdSongStar.setImageResource(starOff);
                 currentStar = 1;
                 break;
 
             // Second Song 'STAR':
             case 2:
-                Picasso.with(this).load(starOff).into(firstSongStar);
-                Picasso.with(this).load(starOn).into(secondSongStar);
-                Picasso.with(this).load(starOff).into(thirdSongStar);
+                firstSongStar.setImageResource(starOff);
+                secondSongStar.setImageResource(starOn);
+                thirdSongStar.setImageResource(starOff);
                 currentStar = 2;
                 break;
 
             // Third Song 'STAR':
             case 3:
-                Picasso.with(this).load(starOff).into(firstSongStar);
-                Picasso.with(this).load(starOff).into(secondSongStar);
-                Picasso.with(this).load(starOn).into(thirdSongStar);
+                firstSongStar.setImageResource(starOff);
+                secondSongStar.setImageResource(starOff);
+                thirdSongStar.setImageResource(starOn);
                 currentStar = 3;
                 break;
 
             // No song selected:
             default:
-                Picasso.with(this).load(starOff).into(firstSongStar);
-                Picasso.with(this).load(starOff).into(secondSongStar);
-                Picasso.with(this).load(starOff).into(thirdSongStar);
+                firstSongStar.setImageResource(starOff);
+                secondSongStar.setImageResource(starOff);
+                thirdSongStar.setImageResource(starOff);
                 currentStar = 0;
                 break;
         }
