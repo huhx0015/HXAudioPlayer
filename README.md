@@ -1,7 +1,7 @@
 HuhX_Game_Sound_Engine
 ==================
 
-DEVELOPER: Michael Yoon Huh (HUHX0015)
+DEVELOPER: Michael Yoon Huh
 
 STATUS: Open-Source
 
