@@ -1,7 +1,7 @@
 HX Game Sound Engine
 ====================
 
-Developer: huhx0015
+DEVELOPER: huhx0015
 
 ## Description
 
