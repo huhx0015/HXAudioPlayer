@@ -5,7 +5,7 @@ Developer: huhx0015
 
 ## Description
 
-The HuhX Game Sound Engine is a custom game audio wrapper library for Android 2.3 - Android 6.0. This is an sound and music engine that is focused on providing audio for Android game-related apps. This audio library was utilized in apps such as StepBOT, Dragon Geo, Cid's Aerial Tours, and Chrono Maps.
+The HuhX Game Sound Engine is a custom game audio wrapper library for Android 2.3 - Android 6.0. This is an sound and music engine that is focused on providing audio for Android game-related apps. This audio library was utilized in apps such as Dragon Geo, Cid's Aerial Tours, Chrono Maps, and StepBOT.
 
 The demo activity provided with the project provides an example how the HX GSE library works.
 
