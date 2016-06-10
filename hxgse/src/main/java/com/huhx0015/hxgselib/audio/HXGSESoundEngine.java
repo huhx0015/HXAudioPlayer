@@ -143,11 +143,11 @@ public class HXGSESoundEngine {
     // 1+: Loop the sound effect to the amount specified.
     public int playSoundFx(String sfx, final int loop) {
 
-        Boolean soundEffectFound = false; // Used to determine if the sound effect has been found and played.
+        boolean soundEffectFound = false; // Used to determine if the sound effect has been found and played.
         int soundID = 0; // The reference ID of the sound effect being played.
 
         // Processes and plays the sound effect only if soundOn variable is set to true.
-        if (soundOn == true) {
+        if (soundOn) {
 
             // Checks to see if the soundPool class has been instantiated first before playing a
             // sound effect. This is to prevent a rare null pointer exception bug.

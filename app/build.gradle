@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "23.0.2"
+    buildToolsVersion "23.0.3"
 
     defaultConfig {
         applicationId "com.huhx0015.huhxagse"
@@ -26,5 +26,5 @@ dependencies {
     compile project(':hxgse')
 
     // ANDROID SUPPORT LIBRARIES:
-    compile 'com.android.support:appcompat-v7:23.+'
+    compile 'com.android.support:appcompat-v7:23.4.0'
 }

@@ -15,7 +15,7 @@ public class HXGSEPhysicalSound {
     /** CLASS FUNCTIONALITY ____________________________________________________________________ **/
 
     // disablePhysicalSounds(): Enables or disables the devices physical button's sound effects.
-    public static void disablePhysSounds(Boolean mode, Context context) {
+    public static void disablePhysSounds(boolean mode, Context context) {
         AudioManager mgr = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         mgr.setStreamMute(AudioManager.STREAM_SYSTEM, mode);
     }

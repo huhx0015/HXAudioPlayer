@@ -26,9 +26,9 @@ public class HXGSEDemoActivity extends AppCompatActivity {
     private HXGSEMusicEngine hxgse_music; // HXGSEMusicEngine class object that is used for music functionality.
     private HXGSESoundHandler hxgse_sound; // HXGSESoundHandler class object that is used for sound functionality.
     private String currentSong = "NONE"; // Sets the default song for the activity.
-    private Boolean musicOn = true; // Used to determine if music has been enabled or not.
-    private Boolean soundOn = true; // Used to determine if sound has been enabled or not.
-    private Boolean isPlaying = false; // Indicates that a song is currently playing in the background.
+    private boolean musicOn = true; // Used to determine if music has been enabled or not.
+    private boolean soundOn = true; // Used to determine if sound has been enabled or not.
+    private boolean isPlaying = false; // Indicates that a song is currently playing in the background.
 
     // LAYOUT VARIABLES
     private int currentStar = 0; // Used to determine which star is currently toggled.

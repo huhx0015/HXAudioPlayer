@@ -23,7 +23,7 @@ public class HXGSEMusicEngine {
     private MediaPlayer backgroundSong; // MediaPlayer variable for background song.
     private String currentSong; // Used for determining what song is playing in the background.
     private Boolean isInitialized; // Used for determining if the HXGSEMusicEngine component has been initialized.
-    private Boolean isPaused; // Used for determining if a song has been paused.
+    private boolean isPaused; // Used for determining if a song has been paused.
     public int songPosition; // Used for resuming playback on a song that was paused.
     public boolean musicOn; // Used for determining whether music is playing in the background.
 
@@ -62,7 +62,7 @@ public class HXGSEMusicEngine {
     // HXGSEMusicEngine object. If it is null, the HXGSEMusicEngine parameters are reset. This is to
     // deal with a null pointer bug that can occur when the application is suspended for a long time
     // and the app activity is destroyed and re-created.
-    public Boolean getInitStatus(Context con) {
+    public boolean getInitStatus(Context con) {
 
         // Checks to see if the HXGSEMusicEngine object has already been initialized. If it has not
         // been initialized, the HXGSEMusicEngine class is re-initialized.
@@ -83,13 +83,13 @@ public class HXGSEMusicEngine {
     // Set loop variable to true to enable infinite song looping.
     // TRUE: Loops the song infinitely.
     // FALSE: Disables song looping.
-    public void playSongName(String songName, Boolean loop) {
+    public void playSongName(String songName, boolean loop) {
 
         boolean musicFound = false; // Used for determining if a corresponding song for songName was found or not.
         int songID = 0; // Used for storing the reference ID to the raw music resource object.
 
         // If the music option has been enabled, a song is selected based on the passed in songName string.
-        if (musicOn == true) {
+        if (musicOn) {
 
             LinkedList<HXGSESong> songList = HXGSEMusicList.hxgseMusicList(); // Retrieves the list of songs.
             final int NUM_SONGS = songList.size(); // Retrieves the number of songs in the list.
@@ -158,7 +158,7 @@ public class HXGSEMusicEngine {
     }
 
     // isSongPlaying(): Determines if a song is currently playing in the background.
-    public Boolean isSongPlaying() {
+    public boolean isSongPlaying() {
         if (backgroundSong.isPlaying()) { return true; }
         else { return false; }
     }

@@ -1,15 +1,15 @@
-HuhX_Game_Sound_Engine
-==================
+HX Game Sound Engine
+====================
 
-DEVELOPER: Michael Yoon Huh
+Developer: huhx0015
 
-STATUS: Open-Source
+## Description
 
-The HuhX Game Sound Engine is a custom game audio engine for Android 2.3 - Android 6.0. This is an sound and music engine that is focused on providing audio for Android game-related apps. This audio engine was utilized in apps such as StepBOT, Dragon Geo, Cid's Aerial Tours, and Chrono Maps.
+The HuhX Game Sound Engine is a custom game audio wrapper library for Android 2.3 - Android 6.0. This is an sound and music engine that is focused on providing audio for Android game-related apps. This audio library was utilized in apps such as StepBOT, Dragon Geo, Cid's Aerial Tours, and Chrono Maps.
 
-The demo activity provided with the project provides an example how the HuhX GSE engine works.
+The demo activity provided with the project provides an example how the HX GSE library works.
 
-INSTRUCTIONS:
+## Instructions
 
 1. Define your song and sound effect names and resources in HXGSEMusicList and HXGSESoundList classes.
 
@@ -24,7 +24,8 @@ INSTRUCTIONS:
 5. (OPTIONAL) If your device supports Dolby Audio, you can enable Dolby Audio Processing by initializing the HXGSEDolbyEffects class:
   - hxgse_music.getInstance().intializeDolby(getApplicationContext());
 
-NOTES: 
+## Notes
+
 - INITIALIZATION: Intialize the HXGSEMusicEngine / HXGSESoundHander objects once, in the first activity of your app that requires sound playback. No need to re-initialize these objects in other activity instances (unless releaseAudio()/releaseMedia() is called, which is not recommended until the end of app life), as a single instance is active until releaseAudio()/releaseMedia() is called. Initializing HXGSEMusicEngine / HXGSESoundHandler more than once may result in more than one audio streams running at once.
 
 - ANDROID API 1 - 11: HXGSESoundHandler class creates multiple instances of HXGSESoundEngine, based on the second parameter inputted for the initializeAudio method. This is to help minimize the SoundPool out of memory issue that is present in older versions of Android. As a suggestion to help minimize the issue, make sure that loaded sound effects are small in size and bitrate (recommended to be less than 100 KB and 64kbps or less). Please note that for devices running Android API 12 or greater, only a single instance of HXGSESoundEngine is used, as the 1 MB sound buffer limit issue is not present on newer versions of Android.
