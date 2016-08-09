@@ -33,3 +33,19 @@ The demo activity provided with the project provides an example how the HXGSE li
 - RELEASE: It is recommended not to call releaseAudio()/releaseMedia() in HXGSESoundHandler and HXGSEMusicEngine unless your application is about to be terminated. If releaseAudio()/releaseMedia() is called and sound or music functionality is needed after such calls have been made, a new instance of HXGSESoundHandler / HXGSEMusicEngine must be initialized before audio is able to function.
 
 - SCREEN ORIENTATION CHANGE: If your application makes use of screen orientation changes, it is important not to call the releaseAudio()/releaseMedia() methods in HXGSESoundHandler and HXGSEMusicEngine in onPause()/onStop()/onDestroy() states. It is highly suggested to make your activity to use the following property in the AndroidManifest.xml file and make use of the onConfigurationChanged() function. <android:configChanges="orientation|screenSize|keyboardHidden">
+
+## License
+
+    Copyright 2016 Michael Huh
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
