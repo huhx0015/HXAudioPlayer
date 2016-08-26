@@ -11,7 +11,7 @@
 
         <activity
             android:name=".activity.HXGSEDemoActivity"
-            android:label="HuhX Game Sound Engine Demo"
+            android:label="HX Game Sound Engine Demo"
             android:configChanges="orientation|screenSize|keyboardHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
