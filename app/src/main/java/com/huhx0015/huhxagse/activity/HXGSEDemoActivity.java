@@ -40,9 +40,9 @@ public class HXGSEDemoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         // AUDIO CLASS INITIALIZATION:
-        HXGSEMusicEngine.getInstance().initializeAudio(getApplicationContext()); // Initializes the HXGSEMusic class object.
-        HXGSESoundHandler.getInstance().initializeAudio(getApplicationContext(), 2); // Initializes the HXGSESound class object.
-        HXGSEDolbyEffects.getInstance().initializeDolby(getApplicationContext()); // Initializes the HXGSEDolby class object.
+        HXGSEMusicEngine.getInstance().initializeAudio(); // Initializes the HXGSEMusic class object.
+        HXGSESoundHandler.getInstance().initializeAudio(this, 2); // Initializes the HXGSESound class object.
+        HXGSEDolbyEffects.getInstance().initializeDolby(this); // Initializes the HXGSEDolby class object.
 
         loadPreferences(); // Loads the settings values from the main SharedPreferences object.
         setUpLayout(); // Sets up layout for the activity.
@@ -81,7 +81,7 @@ public class HXGSEDemoActivity extends AppCompatActivity {
         super.onStop();
 
         // Refreshes the SoundPool object for Android 2.3 (GINGERBREAD) devices.
-        HXGSESoundHandler.getInstance().reinitializeSoundPool();
+        HXGSESoundHandler.getInstance().reinitializeSoundPool(this);
     }
 
     // onDestroy(): This function runs when the activity has terminated and is being destroyed.
@@ -113,7 +113,7 @@ public class HXGSEDemoActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
 
-        HXGSESoundHandler.getInstance().playSoundFx("SFX3", 0); // Plays the sound effect.
+        HXGSESoundHandler.getInstance().playSoundFx("SFX3", 0, this); // Plays the sound effect.
         finish(); // Finishes the activity.
     }
 
@@ -124,7 +124,7 @@ public class HXGSEDemoActivity extends AppCompatActivity {
 
         // Plays a custom sound effect when the MENU key is pressed.
         if (keyCode == KeyEvent.KEYCODE_MENU ) {
-            HXGSESoundHandler.getInstance().playSoundFx("SFX2", 0); // Plays the sound effect.
+            HXGSESoundHandler.getInstance().playSoundFx("SFX2", 0, this); // Plays the sound effect.
             return true; // Returns true to prevent further propagation of the key event.
         }
 
@@ -176,7 +176,7 @@ public class HXGSEDemoActivity extends AppCompatActivity {
                 // Sets the name of the song and plays the song immediately if music is enabled.
                 if (musicOn) {
                     currentSong = "SONG 1"; // Sets the song name.
-                    HXGSEMusicEngine.getInstance().playSongName(currentSong, true);
+                    HXGSEMusicEngine.getInstance().playSongName(currentSong, true, HXGSEDemoActivity.this);
 
                     toggleStar(1); // Toggles the star for the first song.
                 }
@@ -192,7 +192,7 @@ public class HXGSEDemoActivity extends AppCompatActivity {
                 // Sets the name of the song and plays the song immediately if music is enabled.
                 if (musicOn) {
                     currentSong = "SONG 2"; // Sets the song name.
-                    HXGSEMusicEngine.getInstance().playSongName(currentSong, true);
+                    HXGSEMusicEngine.getInstance().playSongName(currentSong, true, HXGSEDemoActivity.this);
 
                     toggleStar(2); // Toggles the star for the second song.
                 }
@@ -208,7 +208,7 @@ public class HXGSEDemoActivity extends AppCompatActivity {
                 // Sets the name of the song and plays the song immediately if music is enabled.
                 if (musicOn) {
                     currentSong = "SONG 3"; // Sets the song name.
-                    HXGSEMusicEngine.getInstance().playSongName(currentSong, true);
+                    HXGSEMusicEngine.getInstance().playSongName(currentSong, true, HXGSEDemoActivity.this);
 
                     toggleStar(3); // Toggles the star for the third song.
                 }
@@ -225,7 +225,7 @@ public class HXGSEDemoActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 // Plays the sound effect.
-                HXGSESoundHandler.getInstance().playSoundFx("SFX1", 0);
+                HXGSESoundHandler.getInstance().playSoundFx("SFX1", 0, HXGSEDemoActivity.this);
             }
         });
 
@@ -236,7 +236,7 @@ public class HXGSEDemoActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 // Plays the sound effect.
-                HXGSESoundHandler.getInstance().playSoundFx("SFX2", 0);
+                HXGSESoundHandler.getInstance().playSoundFx("SFX2", 0, HXGSEDemoActivity.this);
             }
         });
 
@@ -247,7 +247,7 @@ public class HXGSEDemoActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 // Plays the sound effect.
-                HXGSESoundHandler.getInstance().playSoundFx("SFX3", 0);
+                HXGSESoundHandler.getInstance().playSoundFx("SFX3", 0, HXGSEDemoActivity.this);
             }
         });
 
@@ -267,7 +267,7 @@ public class HXGSEDemoActivity extends AppCompatActivity {
 
                 // Plays the last selected song.
                 else {
-                    HXGSEMusicEngine.getInstance().playSongName(currentSong, true);
+                    HXGSEMusicEngine.getInstance().playSongName(currentSong, true, HXGSEDemoActivity.this);
                 }
             }
         });
@@ -333,7 +333,7 @@ public class HXGSEDemoActivity extends AppCompatActivity {
                 HXGSEPreferences.setMusicOn(musicOn, HXGSE_prefs);
 
                 // Sets the musicOn value in the HXGSEMusic class.
-                HXGSEMusicEngine.getInstance().musicOn = musicOn;
+                HXGSEMusicEngine.getInstance().setMusicOn(musicOn);
             }
         });
 
@@ -353,7 +353,7 @@ public class HXGSEDemoActivity extends AppCompatActivity {
                 else {
 
                     // Refreshes the SoundPool object for Android 2.3 (GINGERBREAD) devices.
-                    HXGSESoundHandler.getInstance().reinitializeSoundPool();
+                    HXGSESoundHandler.getInstance().reinitializeSoundPool(HXGSEDemoActivity.this);
 
                     soundOn = true;
                     soundEnableButton.setText("SOUND ON");
@@ -363,7 +363,7 @@ public class HXGSEDemoActivity extends AppCompatActivity {
                 HXGSEPreferences.setSoundOn(soundOn, HXGSE_prefs);
 
                 // Sets the soundOn value in the HXGSEMusic class.
-                HXGSESoundHandler.getInstance().soundOn = soundOn;
+                HXGSESoundHandler.getInstance().setSoundOn(soundOn);
             }
         });
     }
@@ -426,11 +426,11 @@ public class HXGSEDemoActivity extends AppCompatActivity {
         // Checks the HXGSEMusicEngine initialization status to ensure that it is still initialized.
         // This is to prevent against a rare null object issue where the activity may be destroyed
         // in low memory situations.
-        HXGSEMusicEngine.getInstance().getInitStatus(this);
+        HXGSEMusicEngine.getInstance().getInitStatus();
 
         // Checks to see if the song was playing prior to the activity from being
         if (isPlaying) {
-            HXGSEMusicEngine.getInstance().playSongName(currentSong, true);
+            HXGSEMusicEngine.getInstance().playSongName(currentSong, true, this);
         }
     }
 
@@ -445,7 +445,7 @@ public class HXGSEDemoActivity extends AppCompatActivity {
         soundOn = HXGSEPreferences.getSoundOn(HXGSE_prefs);
 
         // Assigns the retrieved preference values to the class objects.
-        HXGSEMusicEngine.getInstance().musicOn = musicOn;
-        HXGSESoundHandler.getInstance().soundOn = soundOn;
+        HXGSEMusicEngine.getInstance().setMusicOn(musicOn);
+        HXGSESoundHandler.getInstance().setSoundOn(soundOn);
     }
 }

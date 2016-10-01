@@ -19,35 +19,37 @@ public class HXGSEMusicEngine {
     
     /** CLASS VARIABLES ________________________________________________________________________ **/
 
+    // INSTANCE VARIABLES:
+    private static HXGSEMusicEngine hxgse_music; // Instance variable for HXGSEMusicEngine.
+
     // AUDIO VARIABLES:
     private MediaPlayer backgroundSong; // MediaPlayer variable for background song.
     private String currentSong; // Used for determining what song is playing in the background.
     private Boolean isInitialized; // Used for determining if the HXGSEMusicEngine component has been initialized.
     private boolean isPaused; // Used for determining if a song has been paused.
-    public int songPosition; // Used for resuming playback on a song that was paused.
-    public boolean musicOn; // Used for determining whether music is playing in the background.
+    private int songPosition; // Used for resuming playback on a song that was paused.
+    private boolean musicOn; // Used for determining whether music is playing in the background.
 
     // SYSTEM VARIABLES:
-    private Context context; // Context for the instance in which this class is used.
     private static final String TAG = HXGSEMusicEngine.class.getSimpleName(); // Used for logging output to logcat.
+
+    /** INSTANCE FUNCTIONALITY _________________________________________________________________ **/
+
+    // getInstance(): Returns the hxgse_sounds instance.
+    public static HXGSEMusicEngine getInstance() {
+        if (hxgse_music == null) {
+            hxgse_music = new HXGSEMusicEngine();
+        }
+        return hxgse_music;
+    }
 
     /** INITIALIZATION FUNCTIONALITY ___________________________________________________________ **/
 
-    // HXGSEMusicEngine(): Constructor for HXGSEMusicEngine class.
-    private final static HXGSEMusicEngine hxgse_music = new HXGSEMusicEngine();
-
-    // HXGSEMusicEngine(): Deconstructor for HXGSEMusicEngine class.
-    private HXGSEMusicEngine() {}
-
-    // getInstance(): Returns the hxgse_sounds instance.
-    public static HXGSEMusicEngine getInstance() { return hxgse_music; }
-
     // initializeAudio(): Initializes the HXGSEMusicEngine class variables.
-    public void initializeAudio(Context con) {
+    public void initializeAudio() {
 
         Log.d(TAG, "INITIALIZING: Initializing HXGSE music engine.");
 
-        context = con; // Context for the instance in which this class is used.
         backgroundSong = new MediaPlayer(); // Instantiates the main MediaPlayer object.
         isInitialized = true; // Indicates that the engine has been initialized.
         isPaused = false; // Indicates that the song is not paused by default.
@@ -62,17 +64,16 @@ public class HXGSEMusicEngine {
     // HXGSEMusicEngine object. If it is null, the HXGSEMusicEngine parameters are reset. This is to
     // deal with a null pointer bug that can occur when the application is suspended for a long time
     // and the app activity is destroyed and re-created.
-    public boolean getInitStatus(Context con) {
+    public boolean getInitStatus() {
 
         // Checks to see if the HXGSEMusicEngine object has already been initialized. If it has not
         // been initialized, the HXGSEMusicEngine class is re-initialized.
         if (isInitialized == null) {
-            initializeAudio(con); // Initializes the HXGSEMusicEngine class variables.
+            initializeAudio(); // Initializes the HXGSEMusicEngine class variables.
             return false;
         }
 
         // Indicates that the HXGSEMusicEngine object has already been initialized.
-
         else { return true; }
     }
 
@@ -83,7 +84,7 @@ public class HXGSEMusicEngine {
     // Set loop variable to true to enable infinite song looping.
     // TRUE: Loops the song infinitely.
     // FALSE: Disables song looping.
-    public void playSongName(String songName, boolean loop) {
+    public void playSongName(String songName, boolean loop, Context context) {
 
         boolean musicFound = false; // Used for determining if a corresponding song for songName was found or not.
         int songID = 0; // Used for storing the reference ID to the raw music resource object.
@@ -142,7 +143,7 @@ public class HXGSEMusicEngine {
 
             // If a song match was found, play the music file from resources.
             if ( (musicFound) || (isPaused) ) {
-                playSong(songID, loop); // Calls playSong to create a MediaPlayer object and play the song.
+                playSong(songID, loop, context); // Calls playSong to create a MediaPlayer object and play the song.
             }
 
             // Outputs a message to logcat indicating that the song could not be found.
@@ -159,8 +160,7 @@ public class HXGSEMusicEngine {
 
     // isSongPlaying(): Determines if a song is currently playing in the background.
     public boolean isSongPlaying() {
-        if (backgroundSong.isPlaying()) { return true; }
-        else { return false; }
+        return backgroundSong.isPlaying();
     }
 
     // pauseSong(): Pauses any songs playing in the background and returns it's position.
@@ -182,7 +182,7 @@ public class HXGSEMusicEngine {
     }
 
     //  playSong(): Sets up a MediaPlayer object and begins playing the song.
-    private void playSong(final int songName, boolean loop) {
+    private void playSong(final int songName, boolean loop, Context context) {
 
         // Checks to see if the MediaPlayer class has been instantiated first before playing a song.
         // This is to prevent a rare null pointer exception bug.
@@ -267,6 +267,29 @@ public class HXGSEMusicEngine {
         else {
             Log.d(TAG, "ERROR: Cannot stop song, as MediaPlayer object is already null.");
         }
+    }
 
+    /** GET METHODS ____________________________________________________________________________ **/
+
+    // getSongPosition(): Returns the current song position.
+    public int getSongPosition() {
+        return songPosition;
+    }
+
+    // isMusicOn(): Returns the current value of musicOn.
+    public boolean isMusicOn() {
+        return musicOn;
+    }
+
+    /** SET METHODS ____________________________________________________________________________ **/
+
+    // setSongPosition(): Sets the current song position.
+    public void setSongPosition(int songPosition) {
+        this.songPosition = songPosition;
+    }
+
+    // setMusicOn(): Sets the musicOn value.
+    public void setMusicOn(boolean musicOn) {
+        this.musicOn = musicOn;
     }
 }

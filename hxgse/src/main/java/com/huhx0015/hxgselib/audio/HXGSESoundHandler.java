@@ -17,38 +17,39 @@ public class HXGSESoundHandler {
 
     /** CLASS VARIABLES ________________________________________________________________________ **/
 
+    // INSTANCE VARIABLES
+    private static HXGSESoundHandler hgsxe_handler; // HXGSESoundHandler instance variable.
+
     // AUDIO VARIABLES:
-    public boolean soundOn; // Used for determining if sound option is enabled or not.
+    private boolean soundOn; // Used for determining if sound option is enabled or not.
     private int currentEngine; // Used for determining the active HXGSESoundEngine instance.
     private int numberOfEngines; // Used for determining the number of HXGSESoundEngine instances.
     private LinkedList<HXGSESoundEngine> hxgse_sound_engines; // LinkedList object which contains the HXGSESoundEngine instances.
 
     // SYSTEM VARIABLES:
-    private Context context; // Context for the instance in which this class is used.
     private final int api_level = android.os.Build.VERSION.SDK_INT; // Used to determine the device's Android API version.
     private static final String TAG = HXGSESoundHandler.class.getSimpleName(); // Used for logging output to logcat.
 
-    /** INITIALIZATION FUNCTIONALITY ___________________________________________________________ **/
-
-    // HXGSESoundHandler(): Constructor for HXGSESoundHandler class.
-    private final static HXGSESoundHandler hgsxe_handler = new HXGSESoundHandler();
-
-    // HXGSESoundHandler(): Deconstructor for HXGSESoundHandler class.
-    private HXGSESoundHandler() {}
+    /** INSTANCE FUNCTIONALITY _________________________________________________________________ **/
 
     // getInstance(): Returns the hgsxe_handler instance.
-    public static HXGSESoundHandler getInstance() { return hgsxe_handler; }
+    public static HXGSESoundHandler getInstance() {
+        if (hgsxe_handler == null) {
+            hgsxe_handler = new HXGSESoundHandler();
+        }
+        return hgsxe_handler;
+    }
+
+    /** INITIALIZATION FUNCTIONALITY ___________________________________________________________ **/
 
     // initializeAudio(): Initializes the HXGSESoundHandler class variables.
     public void initializeAudio(Context con, int engineInstances) {
 
-        context = con; // Context for the instance in which this class is used.
         currentEngine = 0; // Sets the current engine instance to 0.
         soundOn = true; // Sets the sound flag to be enabled by default.
 
-        // ANDROID 3.0 - ANDROID 5.1: Only one HXGSESoundEngine instance is built, as Android 3.0
-        // and higher are not subject to the same SoundPool audio bugs present on Android 2.3.7 and
-        // earlier.
+        // ANDROID 3.0+: Only one HXGSESoundEngine instance is built, as Android 3.0 and higher are
+        // not subject to the same SoundPool audio bugs present on Android 2.3.7 and earlier.
         if (api_level > 11) {
             engineInstances = 1;
             Log.d(TAG, "BUILD: Android API 12 or greater detected. Only one HXGSESoundEngine instance will be built.");
@@ -68,11 +69,15 @@ public class HXGSESoundHandler {
         Log.d(TAG, "BUILD: Building " + engineInstances + " HXGSESoundEngine instances...");
 
         // Initializes and adds HXGSESoundEngine instances to the LinkedList.
-        for (int i = 0; i < engineInstances; i++) {
+        int i = 0;
+        for (int x : new int[engineInstances]) {
             HXGSESoundEngine hxgse_sound_engine = new HXGSESoundEngine();
             hxgse_sound_engine.initializeAudio(con, i);
             hxgse_sound_engines.add(hxgse_sound_engine);
+
             Log.d(TAG, "BUILD: HXGSESoundEngine (" + i + ") is ready.");
+
+            i++;
         }
 
         Log.d(TAG, "BUILD: All HXGSESoundEngines are ready.");
@@ -82,15 +87,15 @@ public class HXGSESoundHandler {
 
     // playSoundFX(): This is a function that directs the playing of the specified sound effect to
     // the HXGSESoundEngines.
-    public int playSoundFx(String sfx, final int loop) {
+    public int playSoundFx(String sfx, final int loop, Context context) {
 
         int soundID = 0;
 
         // Processes and plays the sound effect only if soundOn variable is set to true.
-        if (soundOn == true) {
+        if (soundOn) {
 
             Log.d(TAG, "SOUND: Attempting to play Sound effect on HXGSESoundEngine (" + currentEngine + ")...");
-            soundID = hxgse_sound_engines.get(currentEngine).playSoundFx(sfx, loop);
+            soundID = hxgse_sound_engines.get(currentEngine).playSoundFx(sfx, loop, context);
 
             // Sets the currentEngine value to point to the next HXGSESoundEngine instance.
             currentEngine++;
@@ -116,9 +121,11 @@ public class HXGSESoundHandler {
         Log.d(TAG, "PAUSE: Pausing sound playback on all HXGSESoundEngine instances...");
 
         // Pauses sound effect playback in all HXGSESoundEngine instances.
-        for (int i = 0; i < numberOfEngines; i++) {
+        int i = 0;
+        for (int x : new int[numberOfEngines]) {
             hxgse_sound_engines.get(i).pauseSounds();
             Log.d(TAG, "PAUSE: HXGSESoundEngine (" + i + ") is paused.");
+            i++;
         }
     }
 
@@ -128,16 +135,18 @@ public class HXGSESoundHandler {
         Log.d(TAG, "RESUME: Resuming sound playback on all HXGSESoundEngine instances...");
 
         // Resumes sound effect playback in all HXGSESoundEngine instances.
-        for (int i = 0; i < numberOfEngines; i++) {
+        int i = 0;
+        for (int x : new int[numberOfEngines]) {
             hxgse_sound_engines.get(i).resumeSounds();
             Log.d(TAG, "PAUSE: HXGSESoundEngine (" + i + ") is resumed.");
+            i++;
         }
     }
 
     // reinitializeSoundPool(): This method re-initializes all SoundPool objects for devices running
     // on Android 2.3 (GINGERBREAD) and earlier. This is to help minimize the AudioTrack out of
     // memory error, which was limited to a small 1 MB size buffer.
-    public void reinitializeSoundPool() {
+    public void reinitializeSoundPool(Context context) {
 
         // GINGERBREAD: The SoundPool is released and re-initialized. This is done to minimize the
         // AudioTrack out of memory (-12) error.
@@ -146,9 +155,11 @@ public class HXGSESoundHandler {
             Log.d(TAG, "RE-INITIALIZING: The HXGSESoundEngine instances are being re-initialized.");
 
             // Resumes sound effect playback in all HXGSESoundEngine instances.
-            for (int i = 0; i < numberOfEngines; i++) {
-                hxgse_sound_engines.get(i).reinitializeSoundPool();
+            int i = 0;
+            for (int x : new int[numberOfEngines]) {
+                hxgse_sound_engines.get(i).reinitializeSoundPool(context);
                 Log.d(TAG, "RE-INITIALIZING: HXGSESoundEngine (" + i + ") is re-initialized.");
+                i++;
             }
         }
     }
@@ -159,9 +170,25 @@ public class HXGSESoundHandler {
         Log.d(TAG, "RELEASE: Releasing all HXGSESoundEngine instances...");
 
         // Releases all HXGSESoundEngine instances.
-        for (int i = 0; i < numberOfEngines; i++) {
+        int i = 0;
+        for (int x : new int[numberOfEngines]) {
             hxgse_sound_engines.get(i).releaseSound();
             Log.d(TAG, "RELEASE: HXGSESoundEngine (" + i + ") is released.");
+            i++;
         }
+    }
+
+    /** GET METHODS ____________________________________________________________________________ **/
+
+    // isSoundOn(): Returns the soundOn value.
+    public boolean isSoundOn() {
+        return soundOn;
+    }
+
+    /** SET METHODS ____________________________________________________________________________ **/
+
+    // setSoundOn(): Sets the soundOn value.
+    public void setSoundOn(boolean soundOn) {
+        this.soundOn = soundOn;
     }
 }

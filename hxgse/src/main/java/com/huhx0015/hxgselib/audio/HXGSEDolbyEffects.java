@@ -16,32 +16,33 @@ public class HXGSEDolbyEffects implements OnDolbyAudioProcessingEventListener {
 
     /** CLASS VARIABLES ________________________________________________________________________ **/
 
+    // INSTANCE VARIABLE
+    private static HXGSEDolbyEffects hxgse_dolby; // The HXGSEDolbyEffects instance.
+
     // DOLBY VARIABLES:
     private DolbyAudioProcessing dolbyAudioProcessor; // DolbyAudioProcessing object for utilizing Dolby audio sound processing functionality.
 
     // SYSTEM VARIABLES:
-    private Context context; // Context for the instance in which this class is used.
-    private final int api_level = android.os.Build.VERSION.SDK_INT; // Used to determine the device's Android API version.
     private static final String TAG = HXGSEMusicEngine.class.getSimpleName(); // Used for logging output to logcat.
+
+    /** INSTANCE FUNCTIONALITY _________________________________________________________________ **/
+
+    // getInstance(): Returns the hxgse_dolby instance.
+    public static HXGSEDolbyEffects getInstance() {
+        if (hxgse_dolby == null) {
+            hxgse_dolby = new HXGSEDolbyEffects();
+        }
+        return hxgse_dolby;
+    }
 
     /** INITIALIZATION FUNCTIONALITY ___________________________________________________________ **/
 
-    // HXGSEDolbyEffects(): Constructor for HXGSEDolbyEffects class.
-    private final static HXGSEDolbyEffects hxgse_dolby = new HXGSEDolbyEffects();
-
-    // HXGSEDolbyEffects(): Deconstructor for HXGSEDolbyEffects class.
-    public HXGSEDolbyEffects() {}
-
-    // getInstance(): Returns the hgsxe_dolby instance.
-    public static HXGSEDolbyEffects getInstance() { return hxgse_dolby; }
-
     // initializeDolby(): Initializes the HXGSEDolbyEffects class variables.
-    public void initializeDolby(Context con) {
+    public void initializeDolby(Context context) {
 
         Log.d(TAG, "INITIALIZING: Initializing Dolby audio processing effects.");
 
-        context = con; // Context for the instance in which this class is used.
-        dolbyAudioProcessor = DolbyAudioProcessing.getDolbyAudioProcessing(con, DolbyAudioProcessing.PROFILE.GAME, this);
+        dolbyAudioProcessor = DolbyAudioProcessing.getDolbyAudioProcessing(context, DolbyAudioProcessing.PROFILE.GAME, this);
 
         // If initialization of the Dolby Audio Processor has failed, an error logcat message is outputted.
         if (dolbyAudioProcessor == null){

@@ -29,40 +29,28 @@ public class HXGSESoundEngine {
     private SoundPool hxgse_soundpool; // SoundPool variable for sound effects.
     private SparseIntArray soundEffectMap; // Hash map for sound effects.
     private boolean autoInitialize = true; // Used to control the auto initialization of the SoundPool object. This is only used on Android 2.3 (GINGERBREAD) devices.
-    public boolean soundOn; // Used for determining if sound option is enabled or not.
+    private boolean soundOn; // Used for determining if sound option is enabled or not.
     private int engineID; // Used to determine the ID value of this instance.
     private final int MAX_SIMULTANEOUS_SOUNDS = 8; // Can output eight sound effects simultaneously. Adjust this value accordingly.
     private final int MAX_SOUND_EVENTS = 8; // Maximum number of sound events before the SoundPool object is reset. Adjust this value based on sound sample sizes. Android 2.3 (GINGERBREAD) only.
     private int soundEventCount = 0; // Used to count the number of sound events that have occurred.
 
     // SYSTEM VARIABLES:
-    private Context context; // Context for the instance in which this class is used.
     private final int api_level = android.os.Build.VERSION.SDK_INT; // Used to determine the device's Android API version.
     private static final String TAG = HXGSESoundEngine.class.getSimpleName(); // Used for logging output to logcat.
 
     /** INITIALIZATION FUNCTIONALITY ___________________________________________________________ **/
 
-    // HXGSESoundEngine(): Constructor for HXGSESoundEngine class.
-    private final static HXGSESoundEngine hgsxe_sounds = new HXGSESoundEngine();
-
-    // HXGSESoundEngine(): Deconstructor for HXGSESoundEngine class.
-    public HXGSESoundEngine() {}
-
-    // getInstance(): Returns the hgsxe_sounds instance.
-    public static HXGSESoundEngine getInstance() { return hgsxe_sounds; }
-
     // initializeAudio(): Initializes the HXGSESoundEngine class variables.
-    public void initializeAudio(Context con, int id) {
+    public void initializeAudio(Context context, int id) {
 
         Log.d(TAG, "INITIALIZING (" + id + "): Initializing HXGSE sound engine.");
 
-        context = con; // Context for the instance in which this class is used.
         engineID = id; // Sets the ID value for this instance.
-        soundManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         soundEffectMap = new SparseIntArray(); // SparseIntArray of sound effects.
         soundOn = true; // Sets the sound flag to be enabled by default.
         setUpSoundPool(); // Initializes the SoundPool object.
-        loadSoundEffects(); // Loads the sound effects into the SoundPool object.
+        loadSoundEffects(context); // Loads the sound effects into the SoundPool object.
 
         Log.d(TAG, "INITIALIZING (" + id + "): HXGSE sound engine initialization complete.");
     }
@@ -109,7 +97,7 @@ public class HXGSESoundEngine {
     }
 
     // loadSoundEffects(): Loads sound effects into the soundEffectMap hash map.
-    private void loadSoundEffects() {
+    private void loadSoundEffects(Context context) {
 
         // Retrieves the list of sound effects.
         soundList = HXGSESoundList.hxgseSoundList();
@@ -141,7 +129,7 @@ public class HXGSESoundEngine {
     // -1: Loops the sound effect infinitely.
     // 0: Plays the sound effect once.
     // 1+: Loop the sound effect to the amount specified.
-    public int playSoundFx(String sfx, final int loop) {
+    public int playSoundFx(String sfx, final int loop, Context context) {
 
         boolean soundEffectFound = false; // Used to determine if the sound effect has been found and played.
         int soundID = 0; // The reference ID of the sound effect being played.
@@ -155,7 +143,7 @@ public class HXGSESoundEngine {
                 Log.d(TAG, "WARNING (" + engineID + "): SoundPool object was null. Re-initializing SoundPool object.");
                 soundEffectMap = new SparseIntArray(); // SparseIntArray of sound effects.
                 setUpSoundPool();
-                loadSoundEffects();
+                loadSoundEffects(context);
             }
 
             else {
@@ -165,7 +153,7 @@ public class HXGSESoundEngine {
                 // 1 MB buffer limit issue.
                 if ((api_level < 11) && (soundEventCount >= MAX_SOUND_EVENTS) && (autoInitialize)) {
                     Log.d(TAG, "WARNING (" + engineID + "): Sound event count (" + soundEventCount + ") has exceeded the maximum number of sound events. Re-initializing the engine.");
-                    reinitializeSoundPool();
+                    reinitializeSoundPool(context);
                 }
 
                 else {
@@ -189,6 +177,9 @@ public class HXGSESoundEngine {
                             soundEffectFound = true; // Indicates that the specified SFX was found in the sound effect list.
 
                             // Retrieves the current volume value.
+                            if (soundManager == null) {
+                                soundManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+                            }
                             float volume = soundManager.getStreamVolume(AudioManager.STREAM_MUSIC);
 
                             // Checks to see if the SoundPool object is null first. If not, the sound effect
@@ -248,7 +239,7 @@ public class HXGSESoundEngine {
     // reinitializeSoundPool(): This method re-initializes the SoundPool object for devices running
     // on Android 2.3 (GINGERBREAD) and earlier. This is to help minimize the AudioTrack out of
     // memory error, which was limited to a small 1 MB size buffer.
-    public void reinitializeSoundPool() {
+    public void reinitializeSoundPool(Context context) {
 
         // GINGERBREAD: The SoundPool is released and re-initialized. This is done to minimize the
         // AudioTrack out of memory (-12) error.
@@ -258,7 +249,7 @@ public class HXGSESoundEngine {
 
             releaseSound(); // Releases the SoundPool object.
             setUpSoundPool(); // Initializes the SoundPool object.
-            loadSoundEffects(); // Loads the sound effect hash map.
+            loadSoundEffects(context); // Loads the sound effect hash map.
 
             soundEventCount = 0; // Resets the sound event counter.
         }
