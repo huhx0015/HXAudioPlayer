@@ -22,9 +22,6 @@ public class HXGSEDemoActivity extends AppCompatActivity {
     /** CLASS VARIABLES ________________________________________________________________________ **/
 
     // AUDIO VARIABLES
-    private HXGSEDolbyEffects hxgse_dolby; // HXGSEDolbyEffects class object that is used for adding Dolby sound effects.
-    private HXGSEMusicEngine hxgse_music; // HXGSEMusicEngine class object that is used for music functionality.
-    private HXGSESoundHandler hxgse_sound; // HXGSESoundHandler class object that is used for sound functionality.
     private String currentSong = "NONE"; // Sets the default song for the activity.
     private boolean musicOn = true; // Used to determine if music has been enabled or not.
     private boolean soundOn = true; // Used to determine if sound has been enabled or not.
