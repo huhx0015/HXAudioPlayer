@@ -108,9 +108,11 @@ public class HXGSESoundEngine {
             Log.d(TAG, "INITIALIZING (" + engineID + "): " + soundList.size() + " sound effects found.");
 
             // Populates the sound effect map from the soundList LinkedList array.
-            for (int position = 0; position < soundList.size(); position++) {
-                soundEffectMap.put(position + 1, hxgse_soundpool.load(context, soundList.get(position).getSoundRes(), 1));
-                Log.d(TAG, "INITIALIZING (" + engineID + "): Loading sound effect " + soundList.get(position).getSoundName() + " into position " + (position + 1) + ".");
+            int position = 0;
+            for (int x : new int[soundList.size()]) {
+                soundEffectMap.put(position, hxgse_soundpool.load(context, soundList.get(position).getSoundRes(), 1));
+                Log.d(TAG, "INITIALIZING (" + engineID + "): Loading sound effect " + soundList.get(position).getSoundName() + " into position " + (position) + ".");
+                position++;
             }
 
             Log.d(TAG, "INITIALIZING (" + engineID + "): SoundEffectMap populated.");
@@ -167,9 +169,10 @@ public class HXGSESoundEngine {
                     }
 
                     // Loops through the sound list to find the specified sound effect in the pre-defined sound effect list.
-                    for (int i = 1; i <= NUM_SOUNDS; i++) {
+                    int i = 0;
+                    for (int x : new int[NUM_SOUNDS]) {
 
-                        String retrievedSfx = soundList.get(i - 1).getSoundName(); // Retrieves the sound name string.
+                        String retrievedSfx = soundList.get(i).getSoundName(); // Retrieves the sound name string.
 
                         // Compares the specified song name against the current song name in the list.
                         if (retrievedSfx.equals(sfx)) {
@@ -192,6 +195,7 @@ public class HXGSESoundEngine {
                                 Log.d(TAG, "ERROR (" + engineID + "): Cannot play sound effect due to SoundPool object being null.");
                             }
                         }
+                        i++;
                     }
 
                     // If the sound effect was not found, an error message is outputted to logcat.

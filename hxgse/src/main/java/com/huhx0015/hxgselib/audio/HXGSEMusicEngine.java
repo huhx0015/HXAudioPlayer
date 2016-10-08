@@ -102,7 +102,8 @@ public class HXGSEMusicEngine {
             }
 
             // Loops through the song list to find the specified song in the pre-defined music list.
-            for (int i = 0; i < NUM_SONGS; i++) {
+            int i = 0;
+            for (int x : new int[NUM_SONGS]) {
 
                 String retrievedSong = songList.get(i).getSongName(); // Retrieves the song name string.
 
@@ -139,6 +140,7 @@ public class HXGSEMusicEngine {
                         return;
                     }
                 }
+                i++;
             }
 
             // If a song match was found, play the music file from resources.
