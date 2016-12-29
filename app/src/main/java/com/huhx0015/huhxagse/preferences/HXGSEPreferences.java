@@ -5,8 +5,8 @@ import android.content.SharedPreferences;
 
 /** -----------------------------------------------------------------------------------------------
  *  [HXGSEPreferences] CLASS
- *  DESCRIPTION: HXGSEPreferences is a class that contains functionality that pertains to the use and
- *  manipulation of shared preferences data.
+ *  DESCRIPTION: HXGSEPreferences is a class that contains functionality that pertains to the use
+ *  and manipulation of shared preferences data.
  *  -----------------------------------------------------------------------------------------------
  */
 
