@@ -194,7 +194,7 @@ public class HXGSEMusicEngine {
             backgroundSong = new MediaPlayer();
         }
 
-        else {
+        else if (songName != 0) {
 
             // Stops any songs currently playing in the background.
             if (backgroundSong.isPlaying()) {
@@ -235,6 +235,10 @@ public class HXGSEMusicEngine {
                     mediaPlayer.start(); // Begins playing the song.
                 }
             });
+        }
+
+        else {
+            Log.d(TAG, "ERROR: Cannot play song, song resource ID was 0x0.");
         }
     }
 
