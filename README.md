@@ -21,9 +21,6 @@ The demo activity provided with the project provides an example how the HXGSE li
   
 4. Status of the music and sound engines will be outputted to logcat. Once fully initialized, all methods of HXGSEMusicEngine and HXGSESoundHandler are available to use.
 
-5. (OPTIONAL) If your device supports Dolby Audio, you can enable Dolby Audio Processing by initializing the HXGSEDolbyEffects class:
-  - hxgse_music.getInstance().intializeDolby(getContext());
-
 ## Notes
 
 - INITIALIZATION: Intialize the HXGSEMusicEngine / HXGSESoundHander objects once, in the first activity of your app that requires sound playback. No need to re-initialize these objects in other activity instances (unless releaseAudio()/releaseMedia() is called, which is not recommended until the end of app life), as a single instance is active until releaseAudio()/releaseMedia() is called. Initializing HXGSEMusicEngine / HXGSESoundHandler more than once may result in more than one audio streams running at once.
@@ -47,3 +44,4 @@ The demo activity provided with the project provides an example how the HXGSE li
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
+    

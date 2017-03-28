@@ -26,5 +26,5 @@ dependencies {
     compile project(':hxgse')
 
     // ANDROID SUPPORT LIBRARIES:
-    compile 'com.android.support:appcompat-v7:25.1.0'
+    compile 'com.android.support:appcompat-v7:25.3.1'
 }

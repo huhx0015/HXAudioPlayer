@@ -30,6 +30,10 @@ public class HXGSEMusicEngine {
     private int songPosition; // Used for resuming playback on a song that was paused.
     private boolean musicOn; // Used for determining whether music is playing in the background.
 
+    // CONSTANTS VARIABLES:
+    private static final String STOPPED = "STOPPED";
+    private static final String PAUSED = "PAUSED";
+
     // SYSTEM VARIABLES:
     private static final String TAG = HXGSEMusicEngine.class.getSimpleName(); // Used for logging output to logcat.
 
@@ -54,7 +58,7 @@ public class HXGSEMusicEngine {
         isInitialized = true; // Indicates that the engine has been initialized.
         isPaused = false; // Indicates that the song is not paused by default.
         musicOn = true; // Indicates that music playback is enabled by default.
-        currentSong = "STOPPED"; // Sets the "STOPPED" condition for the song name string.
+        currentSong = STOPPED; // Sets the "STOPPED" condition for the song name string.
         songPosition = 0; // Sets the song position to the beginning of the song by default.
 
         Log.d(TAG, "INITIALIZING: HXGSE music engine initialization complete.");
@@ -97,7 +101,7 @@ public class HXGSEMusicEngine {
 
             // Checks to see if the song list is valid or not.
             if (NUM_SONGS < 1) {
-                Log.d(TAG, "ERROR: The songlist doesn't contain any valid song objects. Has the song list been populated?");
+                Log.e(TAG, "ERROR: The songlist doesn't contain any valid song objects. Has the song list been populated?");
                 return;
             }
 
@@ -118,7 +122,7 @@ public class HXGSEMusicEngine {
                         // Checks to see if the songID is a valid reference ID.
                         if (songID == 0) {
 
-                            Log.d(TAG, "ERROR: Invalid song reference ID was found. ID was " + songID + ".");
+                            Log.e(TAG, "ERROR: Invalid song reference ID was found. ID was " + songID + ".");
                             return;
                         }
 
@@ -136,7 +140,7 @@ public class HXGSEMusicEngine {
                     // Indicates that the specified song is already playing and the operation is
                     // cancelled.
                     else {
-                        Log.d(TAG, "ERROR: Specified song " + songName + " is already playing!");
+                        Log.e(TAG, "ERROR: Specified song " + songName + " is already playing!");
                         return;
                     }
                 }
@@ -150,13 +154,13 @@ public class HXGSEMusicEngine {
 
             // Outputs a message to logcat indicating that the song could not be found.
             else {
-                Log.d(TAG, "ERROR: Specified song " + songName + " was not found. Please specify a valid song name.");
+                Log.e(TAG, "ERROR: Specified song " + songName + " was not found. Please specify a valid song name.");
             }
         }
 
         // Outputs a message to logcat indicating that the song cannot be played.
         else {
-            Log.d(TAG, "ERROR: Song cannot be played. Music engine is currently disabled.");
+            Log.e(TAG, "ERROR: Song cannot be played. Music engine is currently disabled.");
         }
     }
 
@@ -179,7 +183,7 @@ public class HXGSEMusicEngine {
             if (backgroundSong.isPlaying()) { backgroundSong.pause(); } // Pauses the song.
 
             isPaused = true; // Indicates that the song is currently paused.
-            currentSong = "PAUSED";
+            currentSong = PAUSED;
         }
     }
 
@@ -238,7 +242,7 @@ public class HXGSEMusicEngine {
         }
 
         else {
-            Log.d(TAG, "ERROR: Cannot play song, song resource ID was 0x0.");
+            Log.e(TAG, "ERROR: Cannot play song, song resource ID was 0x0.");
         }
     }
 
@@ -256,7 +260,7 @@ public class HXGSEMusicEngine {
         }
 
         else {
-            Log.d(TAG, "ERROR: MediaPlayer object is null and cannot be released.");
+            Log.e(TAG, "ERROR: MediaPlayer object is null and cannot be released.");
         }
     }
 
@@ -266,12 +270,12 @@ public class HXGSEMusicEngine {
         // Checks to see if mapSong has been initiated first before stopping song playback.
         if ( (backgroundSong != null) && (musicOn) ) {
             backgroundSong.stop(); // Stops any songs currently playing in the background.
-            currentSong = "STOPPED";
+            currentSong = STOPPED;
             Log.d(TAG, "MUSIC: Song playback has been stopped.");
         }
 
         else {
-            Log.d(TAG, "ERROR: Cannot stop song, as MediaPlayer object is already null.");
+            Log.e(TAG, "ERROR: Cannot stop song, as MediaPlayer object is already null.");
         }
     }
 

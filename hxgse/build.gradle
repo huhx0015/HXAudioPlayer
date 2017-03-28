@@ -22,7 +22,4 @@ dependencies {
 
     // INTEGRATED LIBRARIES:
     compile fileTree(include: ['*.jar'], dir: 'libs')
-
-    // AUDIO LIBRARIES:
-    compile files('libs/dolby_audio_processing.jar')
 }

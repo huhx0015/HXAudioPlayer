@@ -109,7 +109,7 @@ public class HXGSESoundHandler {
         // Outputs an error message to logcat, indicating that the sound effect could not be played
         // and that the sound handler is disabled.
         else {
-            Log.d(TAG, "ERROR: Sound effect could not be played due to the sound handler being disabled.");
+            Log.e(TAG, "ERROR: Sound effect could not be played due to the sound handler being disabled.");
         }
 
         return soundID;

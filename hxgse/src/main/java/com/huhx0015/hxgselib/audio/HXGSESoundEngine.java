@@ -120,7 +120,7 @@ public class HXGSESoundEngine {
 
         // Outputs an error message.
         else {
-            Log.d(TAG, "ERROR (" + engineID + "): Cannot initialize HXGSESound engine due to empty list of sound effects.");
+            Log.e(TAG, "ERROR (" + engineID + "): Cannot initialize HXGSESound engine due to empty list of sound effects.");
         }
     }
 
@@ -164,7 +164,7 @@ public class HXGSESoundEngine {
 
                     // Checks to see if the sound effect list is valid or not.
                     if (NUM_SOUNDS < 1) {
-                        Log.d(TAG, "ERROR (" + engineID + "): The sound effect list doesn't contain any valid sound objects. Has the sound effect list been populated?");
+                        Log.e(TAG, "ERROR (" + engineID + "): The sound effect list doesn't contain any valid sound objects. Has the sound effect list been populated?");
                         return 0;
                     }
 
@@ -192,7 +192,7 @@ public class HXGSESoundEngine {
                                 soundEventCount++; // Increments the sound event counter.
                                 Log.d(TAG, "SOUND (" + engineID + "): Playing " + retrievedSfx + " sound effect at soundEffectMap position " + i + ".");
                             } else {
-                                Log.d(TAG, "ERROR (" + engineID + "): Cannot play sound effect due to SoundPool object being null.");
+                                Log.e(TAG, "ERROR (" + engineID + "): Cannot play sound effect due to SoundPool object being null.");
                             }
                         }
                         i++;
@@ -200,7 +200,7 @@ public class HXGSESoundEngine {
 
                     // If the sound effect was not found, an error message is outputted to logcat.
                     if (!soundEffectFound) {
-                        Log.d(TAG, "ERROR (" + engineID + "): Specified sound effect was not found in the sound effect list.");
+                        Log.e(TAG, "ERROR (" + engineID + "): Specified sound effect was not found in the sound effect list.");
                     }
                 }
             }
@@ -209,7 +209,7 @@ public class HXGSESoundEngine {
         // Outputs an error message to logcat, indicating that the sound effect could not be played
         // and that the sound engine is disabled.
         else {
-            Log.d(TAG, "ERROR (" + engineID + "): Sound effect could not be played due to the sound engine being disabled.");
+            Log.e(TAG, "ERROR (" + engineID + "): Sound effect could not be played due to the sound engine being disabled.");
         }
 
         return soundID;
@@ -226,7 +226,7 @@ public class HXGSESoundEngine {
         }
 
         else {
-            Log.d(TAG, "ERROR (" + engineID + "): Cannot pause sound playback due to SoundPool object being null.");
+            Log.e(TAG, "ERROR (" + engineID + "): Cannot pause sound playback due to SoundPool object being null.");
         }
     }
 
@@ -272,7 +272,7 @@ public class HXGSESoundEngine {
         }
 
         else {
-            Log.d(TAG, "ERROR (" + engineID + "): SoundPool object is null and cannot be released.");
+            Log.e(TAG, "ERROR (" + engineID + "): SoundPool object is null and cannot be released.");
         }
     }
 }

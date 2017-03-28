@@ -12,7 +12,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import com.huhx0015.huhxagse.R;
 import com.huhx0015.huhxagse.preferences.HXGSEPreferences;
-import com.huhx0015.hxgselib.audio.HXGSEDolbyEffects;
 import com.huhx0015.hxgselib.audio.HXGSEMusicEngine;
 import com.huhx0015.hxgselib.audio.HXGSEPhysicalSound;
 import com.huhx0015.hxgselib.audio.HXGSESoundHandler;
@@ -42,7 +41,6 @@ public class HXGSEDemoActivity extends AppCompatActivity {
         // AUDIO CLASS INITIALIZATION:
         HXGSEMusicEngine.getInstance().initializeAudio(); // Initializes the HXGSEMusic class object.
         HXGSESoundHandler.getInstance().initializeAudio(this, 2); // Initializes the HXGSESound class object.
-        HXGSEDolbyEffects.getInstance().initializeDolby(this); // Initializes the HXGSEDolby class object.
 
         loadPreferences(); // Loads the settings values from the main SharedPreferences object.
         setUpLayout(); // Sets up layout for the activity.
@@ -92,7 +90,6 @@ public class HXGSEDemoActivity extends AppCompatActivity {
         // Releases all audio-related instances if the application is terminating.
         HXGSEMusicEngine.getInstance().releaseMedia();
         HXGSESoundHandler.getInstance().releaseSound();
-        HXGSEDolbyEffects.getInstance().releaseDolbyEffects();
     }
 
     /** ACTIVITY EXTENSION FUNCTIONALITY _______________________________________________________ **/
