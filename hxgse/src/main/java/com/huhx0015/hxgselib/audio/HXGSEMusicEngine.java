@@ -190,60 +190,45 @@ public class HXGSEMusicEngine {
     //  playSong(): Sets up a MediaPlayer object and begins playing the song.
     private void playSong(final int songName, boolean loop, Context context) {
 
-        // Checks to see if the MediaPlayer class has been instantiated first before playing a song.
-        // This is to prevent a rare null pointer exception bug.
-        if (backgroundSong == null) {
-
-            Log.d(TAG, "WARNING: MediaPlayer object was null. Re-initializing MediaPlayer object.");
-            backgroundSong = new MediaPlayer();
+        // Stops any songs currently playing in the background.
+        if (backgroundSong != null && backgroundSong.isPlaying()) {
+            Log.d(TAG, "PREPARING: Song currently playing in the background. Stopping playback before switching to a new song.");
+            backgroundSong.stop();
         }
 
-        else if (songName != 0) {
+        // Sets up the MediaPlayer object for the song to be played.
+        releaseMedia(); // Releases MediaPool resources.
+        backgroundSong = new MediaPlayer(); // Initializes the MediaPlayer.
+        backgroundSong.setAudioStreamType(AudioManager.STREAM_MUSIC); // Sets the audio type for the MediaPlayer object.
 
-            // Stops any songs currently playing in the background.
-            if (backgroundSong.isPlaying()) {
-                Log.d(TAG, "PREPARING: Song currently playing in the background. Stopping playback before switching to a new song.");
-                backgroundSong.stop();
+        Log.d(TAG, "PREPARING: MediaPlayer stream type set to STREAM_MUSIC.");
+
+        backgroundSong = MediaPlayer.create(context, songName); // Sets up the MediaPlayer for the song.
+        backgroundSong.setLooping(loop); // Enables infinite looping of music.
+
+        Log.d(TAG, "PREPARING: Loop condition has been set to " + loop + ".");
+
+        // If the song was previously paused, resume the song at it's previous location.
+        if (isPaused) {
+
+            Log.d(TAG, "PREPARING: Song was previously paused, resuming song playback.");
+
+            backgroundSong.seekTo(songPosition); // Jumps to the position where the song left off.
+            songPosition = 0; // Resets songPosition variable after song's position has been set.
+            isPaused = false; // Indicates that the song is no longer paused.
+        }
+
+        // Sets up the listener for the MediaPlayer object. Song playback begins immediately
+        // once the MediaPlayer object is ready.
+        backgroundSong.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+
+            @Override
+            public void onPrepared(MediaPlayer mediaPlayer) {
+
+                Log.d(TAG, "MUSIC: Song playback has begun.");
+                mediaPlayer.start(); // Begins playing the song.
             }
-
-            // Sets up the MediaPlayer object for the song to be played.
-            releaseMedia(); // Releases MediaPool resources.
-            backgroundSong = new MediaPlayer(); // Initializes the MediaPlayer.
-            backgroundSong.setAudioStreamType(AudioManager.STREAM_MUSIC); // Sets the audio type for the MediaPlayer object.
-
-            Log.d(TAG, "PREPARING: MediaPlayer stream type set to STREAM_MUSIC.");
-
-            backgroundSong = MediaPlayer.create(context, songName); // Sets up the MediaPlayer for the song.
-            backgroundSong.setLooping(loop); // Enables infinite looping of music.
-
-            Log.d(TAG, "PREPARING: Loop condition has been set to " + loop + ".");
-
-            // If the song was previously paused, resume the song at it's previous location.
-            if (isPaused) {
-
-                Log.d(TAG, "PREPARING: Song was previously paused, resuming song playback.");
-
-                backgroundSong.seekTo(songPosition); // Jumps to the position where the song left off.
-                songPosition = 0; // Resets songPosition variable after song's position has been set.
-                isPaused = false; // Indicates that the song is no longer paused.
-            }
-
-            // Sets up the listener for the MediaPlayer object. Song playback begins immediately
-            // once the MediaPlayer object is ready.
-            backgroundSong.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-
-                @Override
-                public void onPrepared(MediaPlayer mediaPlayer) {
-
-                    Log.d(TAG, "MUSIC: Song playback has begun.");
-                    mediaPlayer.start(); // Begins playing the song.
-                }
-            });
-        }
-
-        else {
-            Log.e(TAG, "ERROR: Cannot play song, song resource ID was 0x0.");
-        }
+        });
     }
 
     // releaseMedia(): Used to release the resources being used by mediaPlayer objects.
