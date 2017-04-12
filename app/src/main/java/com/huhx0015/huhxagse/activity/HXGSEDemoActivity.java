@@ -24,7 +24,6 @@ public class HXGSEDemoActivity extends AppCompatActivity {
     private String currentSong = "NONE"; // Sets the default song for the activity.
     private boolean musicOn = true; // Used to determine if music has been enabled or not.
     private boolean soundOn = true; // Used to determine if sound has been enabled or not.
-    private boolean isPlaying = false; // Indicates that a song is currently playing in the background.
 
     // LAYOUT VARIABLES
     private int currentStar = 0; // Used to determine which star is currently toggled.
@@ -39,7 +38,6 @@ public class HXGSEDemoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         // AUDIO CLASS INITIALIZATION:
-        HXMusic.instance().initializeAudio(); // Initializes the HXGSEMusic class object.
         HXGSESoundHandler.getInstance().initializeAudio(this, 2); // Initializes the HXGSESound class object.
 
         loadPreferences(); // Loads the settings values from the main SharedPreferences object.
@@ -54,7 +52,7 @@ public class HXGSEDemoActivity extends AppCompatActivity {
 
         // Checks to see if songs were playing in the background previously; this call resumes
         // the audio playback.
-        resumeAudioState();
+        HXMusic.resumeMusic(this);
         HXGSEPhysicalSound.disablePhysSounds(true, this); // Temporarily disables the physical button's sound effects.
     }
 
@@ -64,11 +62,8 @@ public class HXGSEDemoActivity extends AppCompatActivity {
     protected void onPause(){
         super.onPause();
 
-        // Sets the isPlaying variable to determine if the song is currently playing.
-        isPlaying = HXMusic.instance().isSongPlaying();
-
         HXGSEPhysicalSound.disablePhysSounds(false, this); // Re-enables the physical button's sound effects.
-        HXMusic.instance().pauseSong(); // Pauses any song that is playing in the background.
+        HXMusic.pauseMusic(); // Pauses any song that is playing in the background.
     }
 
     // onStop(): This function runs when screen is no longer visible and the activity is in a
@@ -88,7 +83,7 @@ public class HXGSEDemoActivity extends AppCompatActivity {
         super.onDestroy();
 
         // Releases all audio-related instances if the application is terminating.
-        HXMusic.instance().releaseMedia();
+        HXMusic.clear();
         HXGSESoundHandler.getInstance().releaseSound();
     }
 
@@ -173,7 +168,14 @@ public class HXGSEDemoActivity extends AppCompatActivity {
                 // Sets the name of the song and plays the song immediately if music is enabled.
                 if (musicOn) {
                     currentSong = "SONG 1"; // Sets the song name.
-                    HXMusic.instance().playSongName(currentSong, true, HXGSEDemoActivity.this);
+
+                    HXMusic.music()
+                            .load(R.raw.song_1_gamerstep_bass_triplets)
+                            .title(currentSong)
+                            .looped(true)
+                            .play(HXGSEDemoActivity.this);
+
+                    //HXMusic.instance().playSongName(currentSong, true, HXGSEDemoActivity.this);
 
                     toggleStar(1); // Toggles the star for the first song.
                 }
@@ -189,7 +191,14 @@ public class HXGSEDemoActivity extends AppCompatActivity {
                 // Sets the name of the song and plays the song immediately if music is enabled.
                 if (musicOn) {
                     currentSong = "SONG 2"; // Sets the song name.
-                    HXMusic.instance().playSongName(currentSong, true, HXGSEDemoActivity.this);
+
+                    HXMusic.music()
+                            .load(R.raw.song_2_ts_drums)
+                            .title(currentSong)
+                            .looped(true)
+                            .play(HXGSEDemoActivity.this);
+
+                    //HXMusic.instance().playSongName(currentSong, true, HXGSEDemoActivity.this);
 
                     toggleStar(2); // Toggles the star for the second song.
                 }
@@ -209,7 +218,7 @@ public class HXGSEDemoActivity extends AppCompatActivity {
                     HXMusic.music()
                             .load(R.raw.song_3_ts_digi_lead_2)
                             .title(currentSong)
-                            .looped(true)
+                            .looped(false)
                             .play(HXGSEDemoActivity.this);
 
                     //HXMusic.instance().playSongName(currentSong, true, HXGSEDemoActivity.this);
@@ -271,7 +280,7 @@ public class HXGSEDemoActivity extends AppCompatActivity {
 
                 // Plays the last selected song.
                 else {
-                    HXMusic.instance().playSongName(currentSong, true, HXGSEDemoActivity.this);
+                    HXMusic.resumeMusic(HXGSEDemoActivity.this);
                 }
             }
         });
@@ -283,8 +292,8 @@ public class HXGSEDemoActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 // Pauses the song that is currently playing in the background.
-                if (HXMusic.instance().isSongPlaying()) {
-                    HXMusic.instance().pauseSong();
+                if (HXMusic.isMusicPlaying()) {
+                    HXMusic.pauseMusic();
                 }
             }
         });
@@ -296,8 +305,8 @@ public class HXGSEDemoActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 // Stops the song that is currently playing in the background.
-                if (HXMusic.instance().isSongPlaying()) {
-                    HXMusic.instance().stopSong();
+                if (HXMusic.isMusicPlaying()) {
+                    HXMusic.stopMusic();
                     currentSong = "NONE"; // Indicates no song has been selected.
                     toggleStar(0); // Updates the star song toggles.
                 }
@@ -317,8 +326,8 @@ public class HXGSEDemoActivity extends AppCompatActivity {
                 if (musicOn) {
 
                     // Stops song playback if song is currently playing.
-                    if (HXMusic.instance().isSongPlaying()) {
-                        HXMusic.instance().stopSong();
+                    if (HXMusic.isMusicPlaying()) {
+                        HXMusic.stopMusic();
                         currentSong  = "NONE"; // Indicates no song has been selected.
                         toggleStar(0); // Updates the song star toggles.
                     }
@@ -337,7 +346,7 @@ public class HXGSEDemoActivity extends AppCompatActivity {
                 HXGSEPreferences.setMusicOn(musicOn, HXGSE_prefs);
 
                 // Sets the musicOn value in the HXGSEMusic class.
-                HXMusic.instance().setMusicOn(musicOn);
+                HXMusic.enableMusic(musicOn);
             }
         });
 
@@ -421,23 +430,6 @@ public class HXGSEDemoActivity extends AppCompatActivity {
         }
     }
 
-    /** AUDIO FUNCTIONALITY ____________________________________________________________________ **/
-
-    // resumeAudioState(): If music was playing in the background prior to the activity from being
-    // paused, the song is resumed.
-    private void resumeAudioState() {
-
-        // Checks the HXMusic initialization status to ensure that it is still initialized.
-        // This is to prevent against a rare null object issue where the activity may be destroyed
-        // in low memory situations.
-        HXMusic.instance().getInitStatus();
-
-        // Checks to see if the song was playing prior to the activity from being
-        if (isPlaying) {
-            HXMusic.instance().playSongName(currentSong, true, this);
-        }
-    }
-
     /** PREFERENCES FUNCTIONALITY ______________________________________________________________ **/
 
     // loadPreferences(): Loads the shared preference values.
@@ -449,7 +441,7 @@ public class HXGSEDemoActivity extends AppCompatActivity {
         soundOn = HXGSEPreferences.getSoundOn(HXGSE_prefs);
 
         // Assigns the retrieved preference values to the class objects.
-        HXMusic.instance().setMusicOn(musicOn);
+        HXMusic.enableMusic(musicOn);
         HXGSESoundHandler.getInstance().setSoundOn(soundOn);
     }
 }

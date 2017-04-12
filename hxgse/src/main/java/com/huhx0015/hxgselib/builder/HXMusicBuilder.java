@@ -2,24 +2,35 @@ package com.huhx0015.hxgselib.builder;
 
 import android.content.Context;
 import android.util.Log;
-
 import com.huhx0015.hxgselib.audio.HXMusic;
 import com.huhx0015.hxgselib.model.HXMusicItem;
 
-/**
- * Created by Michael Yoon Huh on 4/12/2017.
+/** -----------------------------------------------------------------------------------------------
+ *  [HXMusicBuilder] CLASS
+ *  DEVELOPER: Michael Yoon Huh (Huh X0015)
+ *  DESCRIPTION: HXMusicBuilder class is a builder class for the HXMusic object and is used to
+ *  construct an HXMusicItem and associated attributes to be used with the HXMusic object to
+ *  playback specified music.
+ *  -----------------------------------------------------------------------------------------------
  */
 
 public class HXMusicBuilder {
 
     /** CLASS VARIABLES ________________________________________________________________________ **/
 
+    // ATTRIBUTE VARIABLES:
+    private boolean isLooped;
+    private int musicPosition;
+
+    // MUSIC ITEM VARIABLE:
     private HXMusicItem musicItem;
 
+    // LOGGING VARIABLES:
     private static final String LOG_TAG = HXMusicBuilder.class.getSimpleName();
 
     /** CONSTRUCTOR METHOD _____________________________________________________________________ **/
 
+    // HXMusicBuilder(): Constructor method for this class.
     public HXMusicBuilder() {
         if (musicItem == null) {
             this.musicItem = new HXMusicItem();
@@ -28,32 +39,36 @@ public class HXMusicBuilder {
 
     /** BUILDER METHODS ________________________________________________________________________ **/
 
+    // load(): Sets the resource ID for this music.
     public HXMusicBuilder load(int resource) {
         this.musicItem.setMusicResource(resource);
         return this;
     }
 
+    // title(): Sets the title for this music.
     public HXMusicBuilder title(String title) {
         this.musicItem.setMusicTitle(title);
         return this;
     }
 
-    // at(): Sets the starting position of the song.
+    // at(): Sets the starting position of the music.
     public HXMusicBuilder at(int position) {
-        this.musicItem.setMusicPosition(position);
+        this.musicPosition = position;
         return this;
     }
 
+    // looped(): Specifies whether this music should be looped or not.
     public HXMusicBuilder looped(boolean looped) {
-        this.musicItem.setLooped(looped);
+        this.isLooped = looped;
         return this;
     }
 
+    // play(): Calls the HXMusic playMusic() method to attempt to play the built music.
     public void play(Context context) {
         if (context == null || context.getApplicationContext() == null) {
             Log.e(LOG_TAG, "ERROR: play(): Context cannot be null.");
         } else {
-            HXMusic.instance().playMusic(musicItem, context);
+            HXMusic.instance().playMusic(musicItem, musicPosition, isLooped, context);
         }
     }
 }
