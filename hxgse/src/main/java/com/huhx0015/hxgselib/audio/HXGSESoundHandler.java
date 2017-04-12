@@ -32,7 +32,7 @@ public class HXGSESoundHandler {
 
     /** INSTANCE FUNCTIONALITY _________________________________________________________________ **/
 
-    // getInstance(): Returns the hgsxe_handler instance.
+    // instance(): Returns the hgsxe_handler instance.
     public static HXGSESoundHandler getInstance() {
         if (hgsxe_handler == null) {
             hgsxe_handler = new HXGSESoundHandler();
