@@ -7,133 +7,137 @@
     android:orientation="vertical">
 
     <LinearLayout
-        android:orientation="horizontal"
+        android:id="@+id/hxgse_demo_main_conatainer"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/hxgse_demo_main_conatainer"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:orientation="horizontal">
 
         <LinearLayout
-            android:orientation="vertical"
+            android:id="@+id/main_container_1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:layout_weight="1"
-            android:padding="1dp"
-            android:id="@+id/main_container_1">
+            android:orientation="vertical"
+            android:padding="1dp">
 
             <TextView
+                android:id="@+id/song_list_header"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="SONG LIST"
-                android:id="@+id/song_list_header"
-                android:textSize="10sp"
-                android:typeface="sans"
-                android:textColor="@android:color/white"
+                android:layout_gravity="center_horizontal"
                 android:background="@android:drawable/dialog_frame"
                 android:gravity="center"
                 android:paddingLeft="20dp"
                 android:paddingRight="20dp"
-                android:layout_gravity="center_horizontal" />
+                android:text="SONG LIST"
+                android:textColor="@android:color/white"
+                android:textSize="10sp"
+                android:typeface="sans" />
 
             <LinearLayout
-                android:orientation="vertical"
+                android:id="@+id/song_list_container"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/song_list_container"
-                android:background="@android:drawable/editbox_dropdown_dark_frame"
                 android:layout_gravity="center_horizontal"
-                android:padding="2dp"
-                android:gravity="center">
+                android:background="@android:drawable/editbox_dropdown_dark_frame"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="2dp">
 
                 <LinearLayout
-                    android:orientation="horizontal"
-                    android:layout_width="fill_parent"
-                    android:layout_height="34dp"
                     android:id="@+id/first_song_container"
-                    android:clickable="true">
+                    android:layout_width="fill_parent"
+                    android:layout_height="30dp"
+                    android:clickable="true"
+                    android:orientation="horizontal"
+                    android:padding="6dp">
 
                     <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
                         android:id="@+id/first_song_toggle_button"
-                        android:src="@android:drawable/star_big_off"
-                        android:padding="10dp" />
-
-                    <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="gamerstep-bass-triplets"
+                        android:src="@android:drawable/star_big_off" />
+
+                    <TextView
                         android:id="@+id/first_song_name"
-                        android:typeface="sans"
-                        android:textColor="@android:color/white"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
                         android:layout_gravity="center"
+                        android:layout_marginLeft="4dp"
                         android:gravity="center"
-                        android:textSize="13sp" />
-
-                </LinearLayout>
-
-                <ImageView
-                    android:layout_width="fill_parent"
-                    android:layout_height="1dp"
-                    android:id="@+id/song_divider_1"
-                    android:background="@android:color/darker_gray" />
-
-                <LinearLayout
-                    android:orientation="horizontal"
-                    android:layout_width="fill_parent"
-                    android:layout_height="34dp"
-                    android:id="@+id/second_song_container"
-                    android:clickable="true">
-
-                    <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:id="@+id/second_song_toggle_button"
-                        android:src="@android:drawable/star_big_off"
-                        android:padding="10dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="ts-digi-lead-2"
-                        android:id="@+id/second_song_name"
-                        android:typeface="sans"
+                        android:text="gamerstep-bass-triplets"
                         android:textColor="@android:color/white"
-                        android:layout_gravity="center"
-                        android:gravity="center"
-                        android:textSize="13sp" />
-                </LinearLayout>
-
-                <ImageView
-                    android:layout_width="fill_parent"
-                    android:layout_height="1dp"
-                    android:id="@+id/song_divider_2"
-                    android:background="@android:color/darker_gray" />
-
-                <LinearLayout
-                    android:orientation="horizontal"
-                    android:layout_width="fill_parent"
-                    android:layout_height="34dp"
-                    android:id="@+id/third_song_container"
-                    android:clickable="true">
-
-                    <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:id="@+id/third_song_toggle_button"
-                        android:src="@android:drawable/star_big_off"
-                        android:padding="10dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:id="@+id/third_song_name"
-                        android:typeface="sans"
-                        android:textColor="@android:color/white"
-                        android:layout_gravity="center"
-                        android:gravity="center"
                         android:textSize="13sp"
-                        android:text="ts-drums" />
+                        android:typeface="sans" />
+
+                </LinearLayout>
+
+                <ImageView
+                    android:id="@+id/song_divider_1"
+                    android:layout_width="fill_parent"
+                    android:layout_height="1dp"
+                    android:background="@android:color/darker_gray" />
+
+                <LinearLayout
+                    android:id="@+id/second_song_container"
+                    android:layout_width="fill_parent"
+                    android:layout_height="30dp"
+                    android:clickable="true"
+                    android:orientation="horizontal"
+                    android:padding="6dp">
+
+                    <ImageView
+                        android:id="@+id/second_song_toggle_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@android:drawable/star_big_off" />
+
+                    <TextView
+                        android:id="@+id/second_song_name"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginLeft="4dp"
+                        android:gravity="center"
+                        android:text="ts-digi-lead-2"
+                        android:textColor="@android:color/white"
+                        android:textSize="13sp"
+                        android:typeface="sans" />
+                </LinearLayout>
+
+                <ImageView
+                    android:id="@+id/song_divider_2"
+                    android:layout_width="fill_parent"
+                    android:layout_height="1dp"
+                    android:background="@android:color/darker_gray" />
+
+                <LinearLayout
+                    android:id="@+id/third_song_container"
+                    android:layout_width="fill_parent"
+                    android:layout_height="30dp"
+                    android:clickable="true"
+                    android:orientation="horizontal"
+                    android:padding="6dp">
+
+                    <ImageView
+                        android:id="@+id/third_song_toggle_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@android:drawable/star_big_off" />
+
+                    <TextView
+                        android:id="@+id/third_song_name"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginLeft="4dp"
+                        android:gravity="center"
+                        android:text="ts-drums"
+                        android:textColor="@android:color/white"
+                        android:textSize="13sp"
+                        android:typeface="sans" />
 
                 </LinearLayout>
 
@@ -141,107 +145,108 @@
         </LinearLayout>
 
         <LinearLayout
-            android:orientation="vertical"
+            android:id="@+id/main_container_2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:layout_weight="1"
-            android:padding="1dp"
-            android:id="@+id/main_container_2">
+            android:orientation="vertical"
+            android:padding="1dp">
 
             <TextView
+                android:id="@+id/sound_fx_header"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="SOUND FX"
-                android:id="@+id/sound_fx_header"
-                android:textSize="10sp"
-                android:typeface="sans"
-                android:textColor="@android:color/white"
+                android:layout_gravity="center_horizontal"
                 android:background="@android:drawable/dialog_frame"
                 android:gravity="center"
                 android:paddingLeft="20dp"
                 android:paddingRight="20dp"
-                android:layout_gravity="center_horizontal" />
+                android:text="SOUND FX"
+                android:textColor="@android:color/white"
+                android:textSize="10sp"
+                android:typeface="sans" />
 
             <LinearLayout
-                android:orientation="vertical"
+                android:id="@+id/sound_fx_container"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/sound_fx_container"
-                android:background="@android:drawable/editbox_dropdown_dark_frame"
                 android:layout_gravity="center_horizontal"
+                android:background="@android:drawable/editbox_dropdown_dark_frame"
                 android:gravity="center_horizontal"
-                android:padding="2dp" >
+                android:orientation="vertical"
+                android:padding="2dp">
 
                 <LinearLayout
-                    android:orientation="horizontal"
-                    android:layout_width="fill_parent"
-                    android:layout_height="34dp"
                     android:id="@+id/first_fx_container"
-                    android:clickable="true">
+                    android:layout_width="fill_parent"
+                    android:layout_height="30dp"
+                    android:clickable="true"
+                    android:orientation="horizontal"
+                    android:padding="4dp">
 
                     <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="SOUND FX 1: SCI-FI 5"
                         android:id="@+id/first_fx_name"
-                        android:typeface="sans"
-                        android:textColor="@android:color/white"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
                         android:layout_gravity="center"
                         android:gravity="center"
-                        android:padding="10dp"
-                        android:textSize="13sp" />
+                        android:text="SOUND FX 1: SCI-FI 5"
+                        android:textColor="@android:color/white"
+                        android:textSize="12sp"
+                        android:typeface="sans" />
                 </LinearLayout>
 
                 <ImageView
-                    android:layout_width="fill_parent"
-                    android:layout_height="1dp"
                     android:id="@+id/fx_divider_1"
+                    android:layout_width="fill_parent"
+                    android:layout_height="1dp"
                     android:background="@android:color/darker_gray" />
 
                 <LinearLayout
-                    android:orientation="horizontal"
-                    android:layout_width="fill_parent"
-                    android:layout_height="34dp"
                     android:id="@+id/second_fx_container"
-                    android:clickable="true">
+                    android:layout_width="fill_parent"
+                    android:layout_height="30dp"
+                    android:clickable="true"
+                    android:orientation="horizontal"
+                    android:padding="4dp">
 
                     <TextView
+                        android:id="@+id/second_fx_name"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="SOUND FX 2: MACHINE"
-                        android:id="@+id/second_fx_name"
-                        android:typeface="sans"
-                        android:textColor="@android:color/white"
                         android:layout_gravity="center"
                         android:gravity="center"
-                        android:padding="10dp"
-                        android:textSize="13sp" />
+                        android:text="SOUND FX 2: MACHINE"
+                        android:textColor="@android:color/white"
+                        android:textSize="12sp"
+                        android:typeface="sans" />
                 </LinearLayout>
 
                 <ImageView
+                    android:id="@+id/fx_divider_2"
                     android:layout_width="fill_parent"
                     android:layout_height="1dp"
-                    android:id="@+id/fx_divider_2"
                     android:background="@android:color/darker_gray" />
 
                 <LinearLayout
-                    android:orientation="horizontal"
-                    android:layout_width="fill_parent"
-                    android:layout_height="34dp"
                     android:id="@+id/third_fx_container"
-                    android:clickable="true">
+                    android:layout_width="fill_parent"
+                    android:layout_height="30dp"
+                    android:clickable="true"
+                    android:orientation="horizontal"
+                    android:padding="4dp">
 
                     <TextView
+                        android:id="@+id/third_fx_name"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="SOUND FX 3: DIGITAL LIFE 1"
-                        android:id="@+id/third_fx_name"
-                        android:typeface="sans"
-                        android:textColor="@android:color/white"
                         android:layout_gravity="center"
                         android:gravity="center"
-                        android:padding="10dp"
-                        android:textSize="13sp" />
+                        android:text="SOUND FX 3: DIGITAL LIFE 1"
+                        android:textColor="@android:color/white"
+                        android:textSize="12sp"
+                        android:typeface="sans" />
                 </LinearLayout>
 
             </LinearLayout>
@@ -249,86 +254,84 @@
     </LinearLayout>
 
     <LinearLayout
-        android:orientation="vertical"
+        android:id="@+id/hxgse_demo_bottom_container"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:id="@+id/hxgse_demo_bottom_container"
-        android:padding="1dp"
         android:layout_weight="1"
-        android:gravity="center">
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="1dp">
 
         <LinearLayout
-            android:orientation="horizontal"
+            android:id="@+id/play_controls_container"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:gravity="center"
-            android:id="@+id/play_controls_container">
+            android:orientation="horizontal">
 
             <ImageButton
-                android:layout_width="56dp"
-                android:layout_height="48dp"
                 android:id="@+id/play_button"
-                android:src="@android:drawable/ic_media_play"
+                android:layout_width="56dp"
+                android:layout_height="46dp"
+                android:layout_weight="1"
                 android:clickable="true"
-                android:layout_weight="1" />
+                android:src="@android:drawable/ic_media_play" />
 
             <ImageButton
-                android:layout_width="56dp"
-                android:layout_height="48dp"
                 android:id="@+id/pause_button"
-                android:src="@android:drawable/ic_media_pause"
+                android:layout_width="56dp"
+                android:layout_height="46dp"
+                android:layout_weight="1"
                 android:clickable="true"
-                android:layout_weight="1" />
+                android:src="@android:drawable/ic_media_pause" />
 
             <ImageButton
-                android:layout_width="56dp"
-                android:layout_height="48dp"
                 android:id="@+id/stop_button"
-                android:src="@android:drawable/picture_frame"
-                android:layout_weight="1" />
+                android:layout_width="56dp"
+                android:layout_height="46dp"
+                android:layout_weight="1"
+                android:src="@android:drawable/picture_frame" />
         </LinearLayout>
 
         <LinearLayout
-            android:orientation="horizontal"
+            android:id="@+id/play_options_container"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|center_horizontal"
-            android:id="@+id/play_options_container">
+            android:orientation="horizontal">
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="SETTINGS"
                 android:id="@+id/settings_header"
-                android:textSize="10sp"
-                android:typeface="sans"
-                android:textColor="@android:color/white"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight="1"
                 android:background="@android:drawable/dialog_frame"
                 android:gravity="center"
-                android:paddingLeft="20dp"
-                android:paddingRight="20dp"
-                android:layout_gravity="center_horizontal"
-                android:layout_weight="1" />
+                android:text="SETTINGS"
+                android:textColor="@android:color/white"
+                android:textSize="10sp"
+                android:typeface="sans" />
 
             <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="MUSIC ON"
                 android:id="@+id/music_enable_button"
+                android:layout_width="match_parent"
+                android:layout_height="46dp"
+                android:layout_weight="1"
+                android:text="MUSIC ON"
                 android:textColor="@android:color/white"
-                android:textSize="12sp"
-                android:layout_weight="1" />
+                android:textSize="12sp" />
 
             <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="SOUND ON"
                 android:id="@+id/sound_enable_button"
+                android:layout_width="match_parent"
+                android:layout_height="46dp"
+                android:layout_weight="1"
+                android:text="SOUND ON"
                 android:textColor="@android:color/white"
-                android:textSize="12sp"
-                android:layout_weight="1" />
+                android:textSize="12sp" />
         </LinearLayout>
 
     </LinearLayout>
