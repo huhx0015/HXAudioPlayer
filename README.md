@@ -1,37 +1,55 @@
-HX Game Sound Engine
-====================
+HX Audio Player
+===============
 
 DEVELOPER: huhx0015
 
 ## Description
 
-The HX Game Sound Engine is a custom audio wrapper library for Android 2.3 - Android 7.0. This is an sound and music library that is focused on providing audio for Android game-related apps. This audio library was utilized in apps such as Dragon Geo, Cid's Aerial Tours, Chrono Maps, and StepBOT.
+The HX Audio Player is a custom audio wrapper library for Android 2.3 - Android 7.0. It is designed to be an easy-to-use, alternative approach to implementing music and sound playback into Android applications. This audio library was utilized in apps such as Dragon Geo, Cid's Aerial Tours, Chrono Maps, and StepBOT.
 
-The demo activity provided with the project provides an example how the HXGSE library works.
+The demo activity provided with the project provides an example how the HX Audio Player library works.
 
 ## Instructions
 
-1. Define your song and sound effect names and resources in HXGSEMusicList and HXGSESoundList classes.
+### Music Playback
 
-2. Declare HXGSEMusicEngine / HXGSESoundHander objects as universal variables. 
- 
-3. Initialize HXGSEMusic / HXGSESound objects in the onCreate() function of the first activity / fragment of your app that requires sound playback. 
-  - hxgse_music.getInstance().initializeAudio(getContext());
-  - hxgse_sound.getInstance().initializeAudio(getContext(), 2);
-  
-4. Status of the music and sound engines will be outputted to logcat. Once fully initialized, all methods of HXGSEMusicEngine and HXGSESoundHandler are available to use.
+To load and play music files, simply declare the following in your code:
+
+```
+HXMusic.music()
+       .load(R.raw.my_song_name)    // Sets the resource of the song. [REQUIRED]
+       .title("My Awesome Song")    // Sets the title of the song. [OPTIONAL]
+       .artist("Mr. Anonymous")     // Sets the artist of the song. [OPTIONAL]
+       .date("January 1, 1998")     // Sets the date of the song. [OPTIONAL]
+       .at(5)                       // Sets the position for where the song should start. [OPTIONAL]
+       .looped(true)                // Sets the song to be looped. [OPTIONAL]
+       .play(this);                 // Plays the song. [REQUIRED]
+```
+
+It's just that simple! No need to write complicated code to initialize MediaPlayer, HX Audio Player handles all of this!
+
+### Sound Playback
+
+As for loading and playing sound effects, declare the following in your code:
+
+```
+HXSound.sound()
+       .load(R.raw.my_sound_effect) // Sets the resource of the sound effect. [REQUIRED]
+       .looped(true)                // Sets the sound effect to be looped. [OPTIONAL]
+       .play(this);                 // Plays the sound effect. [REQUIRED]
+```
+
+Voilà! Also very simple! No need to deal with SoundPool!
 
 ## Notes
 
-- INITIALIZATION: Intialize the HXGSEMusicEngine / HXGSESoundHander objects once, in the first activity of your app that requires sound playback. No need to re-initialize these objects in other activity instances (unless releaseAudio()/releaseMedia() is called, which is not recommended until the end of app life), as a single instance is active until releaseAudio()/releaseMedia() is called. Initializing HXGSEMusicEngine / HXGSESoundHandler more than once may result in more than one audio streams running at once.
+- ANDROID API 9 - 10: HXSound class creates multiple instances of HXSoundEngine. This is to help minimize the SoundPool out of memory issue that is present in older versions of Android. As a suggestion to help minimize the issue, make sure that loaded sound effects are small in size and bitrate (recommended to be less than 100 KB and 64kbps or less). Please note that for devices running Android API 11 or greater, only a single instance of HXGSESoundEngine is used, as the 1 MB sound buffer limit issue is not present on newer versions of Android.
 
-- ANDROID API 9 - 11: HXGSESoundHandler class creates multiple instances of HXGSESoundEngine, based on the second parameter inputted for the initializeAudio method. This is to help minimize the SoundPool out of memory issue that is present in older versions of Android. As a suggestion to help minimize the issue, make sure that loaded sound effects are small in size and bitrate (recommended to be less than 100 KB and 64kbps or less). Please note that for devices running Android API 12 or greater, only a single instance of HXGSESoundEngine is used, as the 1 MB sound buffer limit issue is not present on newer versions of Android.
-
-- RELEASE: It is recommended not to call releaseAudio()/releaseMedia() in HXGSESoundHandler and HXGSEMusicEngine unless your application is about to be terminated. If releaseAudio()/releaseMedia() is called and sound or music functionality is needed after such calls have been made, a new instance of HXGSESoundHandler / HXGSEMusicEngine must be initialized before audio is able to function.
+- RELEASE: As HXMusic and HXSound are singleton objects, it is recommended to call HXMusic.clear() & HXSound.clear() when audio playback is no longer needed. It is recommended to call these in the onDestroy() method of your activity or fragment.
 
 ## License
 
-    Copyright 2016 Michael Huh
+    Copyright 2017 Michael Huh
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
