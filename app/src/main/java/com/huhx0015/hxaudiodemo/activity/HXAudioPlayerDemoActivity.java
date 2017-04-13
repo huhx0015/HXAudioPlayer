@@ -220,7 +220,7 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity {
                     HXMusic.music()
                             .load(R.raw.song_3_ts_digi_lead_2)
                             .title(currentSong)
-                            .looped(false)
+                            .looped(true)
                             .play(HXAudioPlayerDemoActivity.this);
 
                     toggleStar(3); // Toggles the star for the third song.
