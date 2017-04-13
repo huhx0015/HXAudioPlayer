@@ -68,7 +68,7 @@ public class HXMusic {
     // playMusic(): Plays the specified music with the given position and isLooped parameters.
     public boolean playMusic(HXMusicItem music, int position, boolean isLooped, Context context) {
 
-        if (checkMusicStatus(music)) {
+        if (checkStatus(music)) {
 
             this.musicItem = music;
             this.musicPosition = position;
@@ -181,9 +181,9 @@ public class HXMusic {
 
     /** MUSIC HELPER METHODS ___________________________________________________________________ **/
 
-    // checkMusicStatus(): Verifies if the HXMusicItem object is valid and is used to determine if
+    // checkStatus(): Verifies if the HXMusicItem object is valid and is used to determine if
     // the specified music can be played or not.
-    private boolean checkMusicStatus(HXMusicItem music) {
+    private boolean checkStatus(HXMusicItem music) {
 
         if (musicStatus.equals(HXMusicStatus.DISABLED)) {
             Log.e(LOG_TAG, "ERROR: checkMusicState(): Music has been currently disabled.");
@@ -210,8 +210,8 @@ public class HXMusic {
         }
     }
 
-    // enableMusic(): Used for enabling and disabling music playback.
-    public static void enableMusic(boolean isEnabled) {
+    // enable(): Used for enabling and disabling music playback.
+    public static void enable(boolean isEnabled) {
         instance();
 
         if (isEnabled) {
@@ -221,8 +221,8 @@ public class HXMusic {
         }
     }
 
-    // isMusicPlaying(): Determines if a music is currently playing in the background.
-    public static boolean isMusicPlaying() {
+    // isPlaying(): Determines if a music is currently playing in the background.
+    public static boolean isPlaying() {
         return hxMusic != null && hxMusic.mediaPlayer != null && hxMusic.mediaPlayer.isPlaying();
     }
 
@@ -245,23 +245,23 @@ public class HXMusic {
 
     /** GET METHODS ____________________________________________________________________________ **/
 
-    // getMusicPosition(): Returns the current music position.
-    public static int getSongPosition() {
+    // getPosition(): Returns the current music position.
+    public static int getPosition() {
         instance();
         return hxMusic.musicPosition;
     }
 
-    // getMusicStatus(): Returns the current music status of this object.
-    public static String getMusicStatus() {
+    // getStatus(): Returns the current music status of this object.
+    public static String getStatus() {
         instance();
         return hxMusic.musicStatus.toString();
     }
 
     /** SET METHODS ____________________________________________________________________________ **/
 
-    // setMusicPosition(): Sets the current music position.
-    public static void setSongPosition(int songPosition) {
+    // setPosition(): Sets the current music position.
+    public static void setPosition(int position) {
         instance();
-        hxMusic.musicPosition = songPosition;
+        hxMusic.musicPosition = position;
     }
 }

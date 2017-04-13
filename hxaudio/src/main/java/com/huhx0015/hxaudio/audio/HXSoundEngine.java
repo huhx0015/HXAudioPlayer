@@ -87,16 +87,16 @@ class HXSoundEngine {
         return soundBuilder; // Returns the newly created SoundPool object.
     }
 
-    // reinitializeSoundPool(): This method re-initializes the SoundPool object for devices running
+    // reinitialize(): This method re-initializes the SoundPool object for devices running
     // on Android 2.3 (GINGERBREAD) and earlier. This is to help minimize the AudioTrack out of
     // memory error, which was limited to a small 1 MB size buffer.
-    void reinitializeSoundPool() {
+    void reinitialize() {
 
         // GINGERBREAD: The SoundPool is released and re-initialized. This is done to minimize the
         // AudioTrack out of memory (-12) error.
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
 
-            Log.d(LOG_TAG, "RE-INITIALIZING (" + engineID + "): reinitializeSoundPool(): The SoundPool object is being re-initialized.");
+            Log.d(LOG_TAG, "RE-INITIALIZING (" + engineID + "): reinitialize(): The SoundPool object is being re-initialized.");
 
             release(); // Releases the SoundPool object.
             initSoundPool(); // Initializes the SoundPool object.
@@ -118,7 +118,7 @@ class HXSoundEngine {
         // buffer limit issue.
         if ((Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) && (soundEventCount >= MAX_SOUND_EVENTS)) {
             Log.w(LOG_TAG, "WARNING (" + engineID + "): prepareSoundFx(): Sound event count (" + soundEventCount + ") has exceeded the maximum number of sound events. Re-initializing the engine.");
-            reinitializeSoundPool();
+            reinitialize();
         }
 
         // Checks the sound FX list to see if the sound effect was already added or not.
