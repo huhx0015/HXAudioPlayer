@@ -99,10 +99,10 @@ public class HXSound {
         Log.d(LOG_TAG, "BUILD: All HXSoundEngines are ready.");
     }
 
-    // reinitializeSoundPool(): This method re-initializes all SoundPool objects for devices running
+    // reinitialize(): This method re-initializes all SoundPool objects for devices running
     // on Android 2.3 (GINGERBREAD) and earlier. This is to help minimize the AudioTrack out of
     // memory error, which was limited to a small 1 MB size buffer.
-    public static void reinitializeSoundPool() {
+    public static void reinitialize() {
         instance();
 
         // GINGERBREAD: The SoundPool is released and re-initialized. This is done to minimize the
@@ -114,7 +114,7 @@ public class HXSound {
             // Resumes sound effect playback in all HXSoundEngine instances.
             int i = 0;
             for (int x : new int[hxSound.numberOfEngines]) {
-                hxSound.hxSoundEngines.get(i).reinitializeSoundPool();
+                hxSound.hxSoundEngines.get(i).reinitialize();
                 Log.d(LOG_TAG, "RE-INITIALIZING: HXSoundEngine (" + i + ") is re-initialized.");
                 i++;
             }
@@ -208,8 +208,8 @@ public class HXSound {
         }
     }
 
-    // enableSound(): Used to enable or disable the HXSound system.
-    public static void enableSound(boolean isEnabled) {
+    // enable(): Used to enable or disable the HXSound system.
+    public static void enable(boolean isEnabled) {
         instance();
         hxSound.isEnabled = isEnabled;
     }

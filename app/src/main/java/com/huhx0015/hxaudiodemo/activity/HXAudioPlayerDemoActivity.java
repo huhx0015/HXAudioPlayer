@@ -1,7 +1,6 @@
 package com.huhx0015.hxaudiodemo.activity;
 
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.KeyEvent;
@@ -24,9 +23,6 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity {
     private String currentSong = "NONE"; // Sets the default song for the activity.
     private boolean musicOn = true; // Used to determine if music has been enabled or not.
     private boolean soundOn = true; // Used to determine if sound has been enabled or not.
-
-    // LAYOUT VARIABLES
-    private int currentStar = 0; // Used to determine which star is currently toggled.
 
     // PREFERENCE VARIABLES
     private SharedPreferences hxAudioPreferences; // SharedPreferences object for storing app data.
@@ -71,7 +67,7 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity {
         super.onStop();
 
         // Refreshes the SoundPool object for Android 2.3 (GINGERBREAD) devices.
-        HXSound.reinitializeSoundPool();
+        HXSound.reinitialize();
     }
 
     // onDestroy(): This function runs when the activity has terminated and is being destroyed.
@@ -82,17 +78,6 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity {
         // Releases all audio-related instances if the application is terminating.
         HXMusic.clear();
         HXSound.clear();
-    }
-
-    /** ACTIVITY EXTENSION FUNCTIONALITY _______________________________________________________ **/
-
-    // onConfigurationChanged(): If the screen orientation changes, this function is called.
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-
-        initView(); // The layout is re-created for the screen orientation change.
-        toggleStar(currentStar); // Sets the toggled star for the song that was last selected.
     }
 
     /** PHYSICAL BUTTON FUNCTIONALITY __________________________________________________________ **/
@@ -150,12 +135,12 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity {
         final ImageButton playButton = (ImageButton) findViewById(R.id.play_button);
         final ImageButton pauseButton = (ImageButton) findViewById(R.id.pause_button);
         final ImageButton stopButton = (ImageButton) findViewById(R.id.stop_button);
-        final LinearLayout firstSongContainer = (LinearLayout) findViewById(R.id.first_song_container);
-        final LinearLayout secondSongContainer = (LinearLayout) findViewById(R.id.second_song_container);
-        final LinearLayout thirdSongContainer = (LinearLayout) findViewById(R.id.third_song_container);
-        final LinearLayout firstFxContainer = (LinearLayout) findViewById(R.id.first_fx_container);
-        final LinearLayout secondFxContainer = (LinearLayout) findViewById(R.id.second_fx_container);
-        final LinearLayout thirdFxContainer = (LinearLayout) findViewById(R.id.third_fx_container);
+        final LinearLayout firstSongContainer = (LinearLayout) findViewById(R.id.activity_hx_audio_first_song_container);
+        final LinearLayout secondSongContainer = (LinearLayout) findViewById(R.id.activity_hx_audio_second_song_container);
+        final LinearLayout thirdSongContainer = (LinearLayout) findViewById(R.id.activity_hx_audio_third_song_container);
+        final LinearLayout firstFxContainer = (LinearLayout) findViewById(R.id.activity_hx_audio_first_sound_fx_container);
+        final LinearLayout secondFxContainer = (LinearLayout) findViewById(R.id.activity_hx_audio_second_sound_fx_container);
+        final LinearLayout thirdFxContainer = (LinearLayout) findViewById(R.id.activity_hx_audio_third_sound_fx_container);
 
         // Updates the text on the OPTIONS buttons, depending on their current state.
         if (musicOn) { musicEnableButton.setText(getString(R.string.music_on)); }
@@ -298,7 +283,7 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 // Pauses the song that is currently playing in the background.
-                if (HXMusic.isMusicPlaying()) {
+                if (HXMusic.isPlaying()) {
                     HXMusic.pauseMusic();
                 }
             }
@@ -311,7 +296,7 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 // Stops the song that is currently playing in the background.
-                if (HXMusic.isMusicPlaying()) {
+                if (HXMusic.isPlaying()) {
                     HXMusic.stopMusic();
                     currentSong = "NONE"; // Indicates no song has been selected.
                     toggleStar(0); // Updates the star song toggles.
@@ -332,7 +317,7 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity {
                 if (musicOn) {
 
                     // Stops song playback if song is currently playing.
-                    if (HXMusic.isMusicPlaying()) {
+                    if (HXMusic.isPlaying()) {
                         HXMusic.stopMusic();
                         currentSong  = "NONE"; // Indicates no song has been selected.
                         toggleStar(0); // Updates the song star toggles.
@@ -352,7 +337,7 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity {
                 HXAudioPreferences.setMusicOn(musicOn, hxAudioPreferences);
 
                 // Sets the musicOn value in the HXGSEMusic class.
-                HXMusic.enableMusic(musicOn);
+                HXMusic.enable(musicOn);
             }
         });
 
@@ -372,7 +357,7 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity {
                 else {
 
                     // Refreshes the SoundPool object for Android 2.3 (GINGERBREAD) devices.
-                    HXSound.reinitializeSoundPool();
+                    HXSound.reinitialize();
 
                     soundOn = true;
                     soundEnableButton.setText("SOUND ON");
@@ -382,7 +367,7 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity {
                 HXAudioPreferences.setSoundOn(soundOn, hxAudioPreferences);
 
                 // Sets the soundOn value in the HXGSEMusic class.
-                HXSound.enableSound(soundOn);
+                HXSound.enable(soundOn);
             }
         });
     }
@@ -391,9 +376,9 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity {
     private void toggleStar(int starNo) {
 
         // References the star toggle buttons.
-        ImageView firstSongStar = (ImageView) findViewById(R.id.first_song_toggle_button);
-        ImageView secondSongStar = (ImageView) findViewById(R.id.second_song_toggle_button);
-        ImageView thirdSongStar = (ImageView) findViewById(R.id.third_song_toggle_button);
+        ImageView firstSongStar = (ImageView) findViewById(R.id.activity_hx_audio_first_song_star);
+        ImageView secondSongStar = (ImageView) findViewById(R.id.activity_hx_audio_second_song_star);
+        ImageView thirdSongStar = (ImageView) findViewById(R.id.activity_hx_audio_third_song_star);
 
         // References the Drawable resources.
         int starOn = android.R.drawable.star_big_on;
@@ -407,7 +392,6 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity {
                 firstSongStar.setImageResource(starOn);
                 secondSongStar.setImageResource(starOff);
                 thirdSongStar.setImageResource(starOff);
-                currentStar = 1;
                 break;
 
             // Second Song 'STAR':
@@ -415,7 +399,6 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity {
                 firstSongStar.setImageResource(starOff);
                 secondSongStar.setImageResource(starOn);
                 thirdSongStar.setImageResource(starOff);
-                currentStar = 2;
                 break;
 
             // Third Song 'STAR':
@@ -423,7 +406,6 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity {
                 firstSongStar.setImageResource(starOff);
                 secondSongStar.setImageResource(starOff);
                 thirdSongStar.setImageResource(starOn);
-                currentStar = 3;
                 break;
 
             // No song selected:
@@ -431,7 +413,6 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity {
                 firstSongStar.setImageResource(starOff);
                 secondSongStar.setImageResource(starOff);
                 thirdSongStar.setImageResource(starOff);
-                currentStar = 0;
                 break;
         }
     }
@@ -447,7 +428,7 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity {
         soundOn = HXAudioPreferences.getSoundOn(hxAudioPreferences);
 
         // Assigns the retrieved preference values to the class objects.
-        HXMusic.enableMusic(musicOn);
-        HXSound.enableSound(soundOn);
+        HXMusic.enable(musicOn);
+        HXSound.enable(soundOn);
     }
 }
