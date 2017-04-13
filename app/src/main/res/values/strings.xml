@@ -1,3 +1,11 @@
 <resources>
-    <string name="app_name">HX GSE Demo</string>
+
+    <!--APPLICATION STRINGS-->
+    <string name="app_name">HX Audio Player Demo</string>
+
+    <!--BUTTON STRINGS-->
+    <string name="music_on">MUSIC ON</string>
+    <string name="music_off">MUSIC OFF</string>
+    <string name="sound_on">SOUND ON</string>
+    <string name="sound_off">SOUND OFF</string>
 </resources>

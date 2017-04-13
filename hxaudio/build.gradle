@@ -1,11 +1,10 @@
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 25
     buildToolsVersion "25.0.2"
 
     defaultConfig {
-        applicationId "com.huhx0015.huhxagse"
         minSdkVersion 9
         targetSdkVersion 25
         versionCode 1
@@ -17,14 +16,4 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-}
-
-dependencies {
-
-    // INTEGRATED LIBRARIES:
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile project(':hxaudio')
-
-    // ANDROID SUPPORT LIBRARIES:
-    compile 'com.android.support:appcompat-v7:25.3.1'
 }
