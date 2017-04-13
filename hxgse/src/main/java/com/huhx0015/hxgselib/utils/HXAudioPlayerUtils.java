@@ -1,19 +1,19 @@
-package com.huhx0015.hxgselib.audio;
+package com.huhx0015.hxgselib.utils;
 
 import android.content.Context;
 import android.media.AudioManager;
 import android.os.Build;
 
 /** -----------------------------------------------------------------------------------------------
- *  [HXGSEPhysicalSound] CLASS
- *  PROGRAMMER: Michael Yoon Huh (Huh X0015)
- *  DESCRIPTION: This class contains methods that affect the system sound state.
+ *  [HXAudioPlayerUtils] CLASS
+ *  DEVELOPER: Michael Yoon Huh (Huh X0015)
+ *  DESCRIPTION: This class contains utility methods for the HXAudioPlayer library.
  *  -----------------------------------------------------------------------------------------------
  */
 
-public class HXGSEPhysicalSound {
+public class HXAudioPlayerUtils {
 
-    /** CLASS FUNCTIONALITY ____________________________________________________________________ **/
+    /** UTILITY METHODS ________________________________________________________________________ **/
 
     // disablePhysicalSounds(): Enables or disables the devices physical button's sound effects.
     // Note: Android 7.0 and above requires "android.permission.ACCESS_NOTIFICATION_POLICY".
@@ -32,7 +32,6 @@ public class HXGSEPhysicalSound {
                 } else {
                     mgr.adjustStreamVolume(AudioManager.STREAM_SYSTEM, AudioManager.ADJUST_UNMUTE, 0);
                 }
-
             }
 
             // ANDROID 2.3 - ANDROID 5.1:

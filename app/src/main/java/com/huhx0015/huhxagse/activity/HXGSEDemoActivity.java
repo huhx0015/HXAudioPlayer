@@ -13,8 +13,8 @@ import android.widget.LinearLayout;
 import com.huhx0015.huhxagse.R;
 import com.huhx0015.huhxagse.preferences.HXGSEPreferences;
 import com.huhx0015.hxgselib.audio.HXMusic;
-import com.huhx0015.hxgselib.audio.HXGSEPhysicalSound;
-import com.huhx0015.hxgselib.audio.HXGSESoundHandler;
+import com.huhx0015.hxgselib.audio.HXSound;
+import com.huhx0015.hxgselib.utils.HXAudioPlayerUtils;
 
 public class HXGSEDemoActivity extends AppCompatActivity {
 
@@ -37,9 +37,6 @@ public class HXGSEDemoActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // AUDIO CLASS INITIALIZATION:
-        HXGSESoundHandler.getInstance().initializeAudio(this, 2); // Initializes the HXGSESound class object.
-
         loadPreferences(); // Loads the settings values from the main SharedPreferences object.
         setUpLayout(); // Sets up layout for the activity.
     }
@@ -53,7 +50,7 @@ public class HXGSEDemoActivity extends AppCompatActivity {
         // Checks to see if songs were playing in the background previously; this call resumes
         // the audio playback.
         HXMusic.resumeMusic(this);
-        HXGSEPhysicalSound.disablePhysSounds(true, this); // Temporarily disables the physical button's sound effects.
+        HXAudioPlayerUtils.disablePhysSounds(true, this); // Temporarily disables the physical button's sound effects.
     }
 
     // onPause(): This function is called whenever the current activity is suspended or another
@@ -62,7 +59,7 @@ public class HXGSEDemoActivity extends AppCompatActivity {
     protected void onPause(){
         super.onPause();
 
-        HXGSEPhysicalSound.disablePhysSounds(false, this); // Re-enables the physical button's sound effects.
+        HXAudioPlayerUtils.disablePhysSounds(false, this); // Re-enables the physical button's sound effects.
         HXMusic.pauseMusic(); // Pauses any song that is playing in the background.
     }
 
@@ -74,7 +71,7 @@ public class HXGSEDemoActivity extends AppCompatActivity {
         super.onStop();
 
         // Refreshes the SoundPool object for Android 2.3 (GINGERBREAD) devices.
-        HXGSESoundHandler.getInstance().reinitializeSoundPool(this);
+        HXSound.reinitializeSoundPool();
     }
 
     // onDestroy(): This function runs when the activity has terminated and is being destroyed.
@@ -84,7 +81,7 @@ public class HXGSEDemoActivity extends AppCompatActivity {
 
         // Releases all audio-related instances if the application is terminating.
         HXMusic.clear();
-        HXGSESoundHandler.getInstance().releaseSound();
+        HXSound.clear();
     }
 
     /** ACTIVITY EXTENSION FUNCTIONALITY _______________________________________________________ **/
@@ -105,7 +102,11 @@ public class HXGSEDemoActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
 
-        HXGSESoundHandler.getInstance().playSoundFx("SFX3", 0, this); // Plays the sound effect.
+        // Plays the sound effect.
+        HXSound.sound()
+                .load(R.raw.sfx_3_digital_life_1)
+                .play(HXGSEDemoActivity.this);
+
         finish(); // Finishes the activity.
     }
 
@@ -116,7 +117,12 @@ public class HXGSEDemoActivity extends AppCompatActivity {
 
         // Plays a custom sound effect when the MENU key is pressed.
         if (keyCode == KeyEvent.KEYCODE_MENU ) {
-            HXGSESoundHandler.getInstance().playSoundFx("SFX2", 0, this); // Plays the sound effect.
+
+            // Plays the sound effect.
+            HXSound.sound()
+                    .load(R.raw.sfx_2_machine)
+                    .play(this);
+
             return true; // Returns true to prevent further propagation of the key event.
         }
 
@@ -238,7 +244,9 @@ public class HXGSEDemoActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 // Plays the sound effect.
-                HXGSESoundHandler.getInstance().playSoundFx("SFX1", 0, HXGSEDemoActivity.this);
+                HXSound.sound()
+                        .load(R.raw.sfx_1_sci_fi_5)
+                        .play(HXGSEDemoActivity.this);
             }
         });
 
@@ -249,7 +257,9 @@ public class HXGSEDemoActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 // Plays the sound effect.
-                HXGSESoundHandler.getInstance().playSoundFx("SFX2", 0, HXGSEDemoActivity.this);
+                HXSound.sound()
+                        .load(R.raw.sfx_2_machine)
+                        .play(HXGSEDemoActivity.this);
             }
         });
 
@@ -260,7 +270,9 @@ public class HXGSEDemoActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 // Plays the sound effect.
-                HXGSESoundHandler.getInstance().playSoundFx("SFX3", 0, HXGSEDemoActivity.this);
+                HXSound.sound()
+                        .load(R.raw.sfx_3_digital_life_1)
+                        .play(HXGSEDemoActivity.this);
             }
         });
 
@@ -366,7 +378,7 @@ public class HXGSEDemoActivity extends AppCompatActivity {
                 else {
 
                     // Refreshes the SoundPool object for Android 2.3 (GINGERBREAD) devices.
-                    HXGSESoundHandler.getInstance().reinitializeSoundPool(HXGSEDemoActivity.this);
+                    HXSound.reinitializeSoundPool();
 
                     soundOn = true;
                     soundEnableButton.setText("SOUND ON");
@@ -376,7 +388,7 @@ public class HXGSEDemoActivity extends AppCompatActivity {
                 HXGSEPreferences.setSoundOn(soundOn, HXGSE_prefs);
 
                 // Sets the soundOn value in the HXGSEMusic class.
-                HXGSESoundHandler.getInstance().setSoundOn(soundOn);
+                HXSound.enableSound(soundOn);
             }
         });
     }
@@ -442,6 +454,6 @@ public class HXGSEDemoActivity extends AppCompatActivity {
 
         // Assigns the retrieved preference values to the class objects.
         HXMusic.enableMusic(musicOn);
-        HXGSESoundHandler.getInstance().setSoundOn(soundOn);
+        HXSound.enableSound(soundOn);
     }
 }
