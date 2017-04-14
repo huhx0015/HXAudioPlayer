@@ -1,6 +1,7 @@
 package com.huhx0015.hxaudio.audio;
 
 import android.content.Context;
+import android.content.res.AssetFileDescriptor;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.util.Log;
@@ -66,7 +67,7 @@ public class HXMusic {
     /** MUSIC ACTION METHODS ___________________________________________________________________ **/
 
     // playMusic(): Plays the specified music with the given position and isLooped parameters.
-    public boolean playMusic(HXMusicItem music, int position, boolean isLooped, Context context) {
+    public boolean playMusic(HXMusicItem music, final int position, final boolean isLooped, Context context) {
 
         if (checkStatus(music)) {
 
@@ -84,17 +85,17 @@ public class HXMusic {
             release(); // Releases MediaPool resources.
             mediaPlayer = new MediaPlayer(); // Initializes the MediaPlayer.
             mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC); // Sets the audio type for the MediaPlayer object.
-
             Log.d(LOG_TAG, "PREPARING: playMusic(): MediaPlayer stream type set to STREAM_MUSIC.");
 
-            // Sets up the MediaPlayer for the music.
-            mediaPlayer = MediaPlayer.create(context, musicItem.getMusicResource());
-            mediaPlayer.setLooping(isLooped);
-
-            Log.d(LOG_TAG, "PREPARING: playMusic(): Loop condition has been set to " + isLooped + ".");
-
-            if (musicPosition != 0) {
-                mediaPlayer.seekTo(musicPosition);
+            // Prepares the MediaPlayer object for music playback.
+            try {
+                AssetFileDescriptor asset = context.getResources().openRawResourceFd(musicItem.getMusicResource());
+                mediaPlayer.setDataSource(asset.getFileDescriptor(), asset.getStartOffset(), asset.getLength());
+                Log.d(LOG_TAG, "PREPARING: playMusic(): MediaPlayer resource was set, preparing MediaPlayer...");
+                mediaPlayer.prepareAsync(); // Prepares the MediaPlayer object asynchronously.
+            } catch (Exception e) {
+                Log.e(LOG_TAG, "ERROR: playMusic(): An error occurred while loading the music resource: " + e.getLocalizedMessage());
+                return false;
             }
 
             // Sets up the prepared listener for the MediaPlayer object. Music playback begins
@@ -103,9 +104,17 @@ public class HXMusic {
 
                 @Override
                 public void onPrepared(MediaPlayer mediaPlayer) {
-                    Log.d(LOG_TAG, "MUSIC: playMusic(): Music playback has begun.");
+                    if (musicPosition != 0) {
+                        mediaPlayer.seekTo(musicPosition);
+                        Log.d(LOG_TAG, "PREPARING: playMusic(): MediaPlayer position set to: " + position);
+                    }
+
+                    mediaPlayer.setLooping(isLooped); // Sets the looping attribute.
+                    Log.d(LOG_TAG, "PREPARING: playMusic(): MediaPlayer looping status: " + isLooped);
+
                     mediaPlayer.start(); // Begins playing the music.
                     musicStatus = HXMusicStatus.PLAYING;
+                    Log.d(LOG_TAG, "MUSIC: playMusic(): Music playback has begun.");
                 }
             });
 

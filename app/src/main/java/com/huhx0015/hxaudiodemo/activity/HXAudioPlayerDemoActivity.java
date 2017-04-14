@@ -46,7 +46,7 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity {
         // Checks to see if songs were playing in the background previously; this call resumes
         // the audio playback.
         HXMusic.resumeMusic(this);
-        HXAudioPlayerUtils.disablePhysSounds(true, this); // Temporarily disables the physical button's sound effects.
+        HXAudioPlayerUtils.enableSystemSound(true, this); // Temporarily disables the physical button's sound effects.
     }
 
     // onPause(): This function is called whenever the current activity is suspended or another
@@ -55,7 +55,7 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity {
     protected void onPause(){
         super.onPause();
 
-        HXAudioPlayerUtils.disablePhysSounds(false, this); // Re-enables the physical button's sound effects.
+        HXAudioPlayerUtils.enableSystemSound(false, this); // Re-enables the physical button's sound effects.
         HXMusic.pauseMusic(); // Pauses any song that is playing in the background.
     }
 

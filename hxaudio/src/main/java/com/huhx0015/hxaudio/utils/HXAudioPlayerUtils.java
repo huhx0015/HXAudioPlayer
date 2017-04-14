@@ -15,9 +15,10 @@ public class HXAudioPlayerUtils {
 
     /** UTILITY METHODS ________________________________________________________________________ **/
 
-    // disablePhysicalSounds(): Enables or disables the devices physical button's sound effects.
+    // enableSystemSound(): Enables or disables the device's system sound effects. This is most
+    // commonly used if physical button's sound effects need to be enabled/disabled.
     // Note: Android 7.0 and above requires "android.permission.ACCESS_NOTIFICATION_POLICY".
-    public static void disablePhysSounds(boolean mode, Context context) {
+    public static void enableSystemSound(boolean mode, Context context) {
 
         // ANDROID 2.3 - ANDROID 6.0:
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
