@@ -5,7 +5,9 @@ DEVELOPER: huhx0015
 
 ## Description
 
-The HX Audio Player is a custom audio wrapper library for Android 2.3 - Android 7.0. It is designed to be an easy-to-use, alternative approach to implementing music and sound playback into Android applications. This audio library was utilized in apps such as Dragon Geo, Cid's Aerial Tours, Chrono Maps, and StepBOT.
+The HX Audio Player is a custom audio wrapper library for Android 2.3 - Android 7.0. Originally designed as a library for games, HX Audio Player is designed to be an easy-to-use, alternative approach to implementing music and sound playback into Android applications. HX Audio Player also implements seamless workarounds to address the bugs and shortcomings of MediaPlayer and SoundPool APIs.
+
+This audio library was utilized in apps such as Dragon Geo, Cid's Aerial Tours, Chrono Maps, and StepBOT.
 
 The demo application provided with the project provides an example how the HX Audio Player library works.
 
@@ -14,6 +16,8 @@ The demo application provided with the project provides an example how the HX Au
 ### Music Playback
 
 To load and play music files, simply declare the following in your code:
+
+#### Play Music:
 
 ```
 HXMusic.music()
@@ -26,11 +30,62 @@ HXMusic.music()
        .play(this);                 // Plays the song. [REQUIRED]
 ```
 
+#### Pause Music:
+
+```
+HXMusic.pauseMusic();               // Pauses any song that is playing in the background.
+```
+
+#### Resume Music:
+
+```
+HXMusic.resumeMusic(this);          // Resumes playback of the last played song at the position where it left off.
+```
+
+#### Stop Music:
+
+```
+HXMusic.stopMusic();                // Stops all music playing in the background.
+```
+
+#### Song Playing
+
+```
+HXMusic.isPlaying();                // Returns a boolean to determine if the song is currently playing or not.
+```
+
+#### Song Position
+
+```
+HXMusic.getPosition();              // Returns the current position of the song, represented as an int value.
+HXMusic.setPosition(0);             // Sets the current position of the song.
+```
+
+#### Music Status
+
+```
+HXMusic.getStatus();                // Returns a String text message regarding the status of HXMusic.
+```
+
+#### Enable/Disable Music:
+
+```
+HXMusic.enable(true);               // Enables/disables music playback.
+```
+
+#### Clear Music:
+
+```
+HXMusic.clear();                    // Clears the HXMusic instance. Should be called when HXMusic is no longer in use.
+```
+
 It's just that simple! No need to write complicated code to initialize MediaPlayer, HX Audio Player handles all of this!
 
 ### Sound Playback
 
 As for loading and playing sound effects, declare the following in your code:
+
+#### Play Sound:
 
 ```
 HXSound.sound()
@@ -39,13 +94,45 @@ HXSound.sound()
        .play(this);                 // Plays the sound effect. [REQUIRED]
 ```
 
+#### Pause Sound:
+
+```
+HXSound.pauseSounds();              // Pauses all looping sounds playing in the background.
+```
+
+#### Resume Sound:
+
+```
+HXSound.resumeSounds();              // Resumes playback of all looping sounds previously played in the background.
+```
+
+#### Enable Multiple Sound Engines:
+
+```
+HXSound.engines(2);                  // Specifies the number of sound engines (2 is recommended) to be enabled. This feature works on API 9 - 10 devices only.
+```
+
+#### Enable/Disable Sound:
+
+```
+HXSound.enable(true);               // Enables/disables sound playback.
+```
+
+#### Clear Sound:
+
+```
+HXSound.clear();                    // Clears the HXSound instance. Should be called when HXSound is no longer in use.
+```
+
+pauseSounds()
+
 Voilà! Also very simple! No need to deal with SoundPool!
 
 ## Notes
 
 - ANDROID API 9 - 10: HXSound class creates multiple instances of HXSoundEngine. This is to help minimize the SoundPool out of memory issue that is present in older versions of Android. As a suggestion to help minimize the issue, make sure that loaded sound effects are small in size and bitrate (recommended to be less than 100 KB and 64kbps or less). Please note that for devices running Android API 11 or greater, only a single instance of HXGSESoundEngine is used, as the 1 MB sound buffer limit issue is not present on newer versions of Android.
 
-- RELEASE: As HXMusic and HXSound are singleton objects, it is recommended to call HXMusic.clear() & HXSound.clear() when audio playback is no longer needed. It is recommended to call these in the onDestroy() method of your activity or fragment.
+- RELEASE: As HXMusic and HXSound are singleton objects, it is recommended to call HXMusic.clear() & HXSound.clear() when audio playback is no longer needed. It is recommended to call these in the onDestroy() method of your Activity or Fragment.
 
 ## License
 

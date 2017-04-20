@@ -50,6 +50,12 @@ public class HXSound {
     public static HXSound instance() {
         if (hxSound == null) {
             hxSound = new HXSound();
+
+            // Sets the number of engine instances depending on the detected Android API level.
+            // Multiple sound engine instances are created for Android 2.3.7 devices, to handle a
+            // SoundPool audio buffer bug that is not present on Android 3.0 and higher.
+            hxSound.numberOfEngines = Build.VERSION.SDK_INT > Build.VERSION_CODES.GINGERBREAD_MR1 ?
+                    NUMBER_OF_ENGINES_HC : NUMBER_OF_ENGINES_GB;
         }
         return hxSound;
     }
@@ -69,16 +75,6 @@ public class HXSound {
     private void initializeSoundEngines() {
 
         this.currentEngine = 0; // Sets the current engine instance to 0.
-
-        // ANDROID 3.0+: Only one HXSoundEngine instance is built, as Android 3.0 and higher are
-        // not subject to the same SoundPool audio bugs present on Android 2.3.7 and earlier.
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.GINGERBREAD_MR1) {
-            this.numberOfEngines = NUMBER_OF_ENGINES_HC;
-            Log.d(LOG_TAG, "BUILD: Android API 11 or greater detected. Only one HXSoundEngine instances will be built.");
-        } else {
-            this.numberOfEngines = NUMBER_OF_ENGINES_GB;
-            Log.d(LOG_TAG, "BUILD: Android API 10 or less detected. Two HXSoundEngine instances will be built.");
-        }
 
         // LinkedList object which contains the HXSoundEngine instances.
         if (hxSoundEngines == null) {
@@ -131,7 +127,7 @@ public class HXSound {
             return false;
         }
 
-        if (soundStatus.equals(HXSoundStatus.NOT_READY)) {
+        if (soundStatus.equals(HXSoundStatus.NOT_READY) || soundStatus.equals(HXSoundStatus.RELEASED)) {
             initializeSoundEngines();
         }
 
@@ -159,10 +155,9 @@ public class HXSound {
 
     // pauseSounds(): Pauses all sound effect playback in all HXSoundEngine instances.
     public static void pauseSounds() {
-        instance();
 
         // Pauses sound effect playback in all HXSoundEngine instances.
-        if (hxSound.hxSoundEngines != null) {
+        if (hxSound != null && hxSound.hxSoundEngines != null) {
 
             Log.d(LOG_TAG, "PAUSE: Pausing sound playback on all HXSoundEngine instances...");
 
@@ -179,10 +174,9 @@ public class HXSound {
 
     // resumeSounds(): Resumes all sound effect playback in all HXSoundEngine instances.
     public static void resumeSounds() {
-        instance();
 
         // Resumes sound effect playback in all HXSoundEngine instances.
-        if (hxSound.hxSoundEngines != null) {
+        if (hxSound != null && hxSound.hxSoundEngines != null) {
 
             Log.d(LOG_TAG, "RESUME: Resuming sound playback on all HXSoundEngine instances...");
 
@@ -214,19 +208,43 @@ public class HXSound {
         hxSound.isEnabled = isEnabled;
     }
 
+    // engines(): Specifies the number of sound engine instances to be enabled. This feature is only
+    // enabled on devices running on Android API 10 or below and ignored on API 11 and above.
+    public static void engines(int engines) {
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.GINGERBREAD_MR1) {
+
+            if (engines < 1) {
+                Log.w(LOG_TAG, "PREPARING: engines(): Invalid engine value input. 1 or more engines must be specified.");
+                return;
+            }
+
+            if (hxSound != null && hxSound.hxSoundEngines != null) {
+                hxSound.release();
+            } else {
+                instance();
+            }
+
+            hxSound.numberOfEngines = engines;
+            hxSound.initializeSoundEngines();
+        } else {
+            Log.w(LOG_TAG, "PREPARING: engines(): This feature is only available for devices running on Android API 10 and below.");
+        }
+    }
+
     // release(): Used to free up memory resources utilized by all HXSoundEngine instances.
     private void release() {
 
-        Log.d(LOG_TAG, "RELEASE: Releasing all HXSoundEngine instances...");
+        Log.d(LOG_TAG, "RELEASE: release(): Releasing all HXSoundEngine instances...");
 
         // Releases all HXSoundEngine instances.
         int i = 0;
         for (int x : new int[numberOfEngines]) {
             hxSoundEngines.get(i).release();
-            Log.d(LOG_TAG, "RELEASE: HXSoundEngine (" + i + ") is released.");
+            Log.d(LOG_TAG, "RELEASE: release(): HXSoundEngine (" + i + ") is released.");
             i++;
         }
 
+        hxSoundEngines = null;
         soundStatus = HXSoundStatus.RELEASED;
     }
 }

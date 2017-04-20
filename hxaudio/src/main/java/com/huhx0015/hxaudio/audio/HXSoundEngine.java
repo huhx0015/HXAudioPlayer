@@ -31,7 +31,7 @@ class HXSoundEngine {
 
     // CONSTANT VARIABLES:
     private static final int MAX_SIMULTANEOUS_SOUNDS = 8; // Can output eight sound effects simultaneously. Adjust this value accordingly.
-    private static final int MAX_SOUND_EVENTS = 8; // Maximum number of sound events before the SoundPool object is reset. Adjust this value based on sound sample sizes. Android 2.3 (GINGERBREAD) only.
+    private static final int MAX_SOUND_EVENTS = 4; // Maximum number of sound events before the SoundPool object is reset. Adjust this value based on sound sample sizes. Android 2.3 (GINGERBREAD) only.
     private static final int SOUND_PRIORITY_LEVEL = 1; // Used for setting the sound priority level.
 
     // LOGGING VARIABLES:
@@ -144,6 +144,8 @@ class HXSoundEngine {
         if (isSoundPoolReady) {
             playSoundFx(resource, isLoop, volume);
         }
+
+        soundEventCount++;
     }
 
     // playSoundFx(): Plays the specified sound effect.
@@ -200,6 +202,9 @@ class HXSoundEngine {
         if (soundPool != null) {
             soundPool.release();
             soundPool = null;
+
+            soundEffectMap.clear();
+
             Log.d(LOG_TAG, "RELEASE (" + engineID + "): release(): SoundPool object has been released.");
         } else {
             Log.e(LOG_TAG, "ERROR (" + engineID + "): release(): SoundPool object is null and cannot be released.");

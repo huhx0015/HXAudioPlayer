@@ -37,6 +37,7 @@ public class HXMusic {
     /** ENUM ___________________________________________________________________________________ **/
 
     private enum HXMusicStatus {
+        NOT_READY,
         READY,
         PLAYING,
         PAUSED,
@@ -104,6 +105,7 @@ public class HXMusic {
 
                 @Override
                 public void onPrepared(MediaPlayer mediaPlayer) {
+
                     if (musicPosition != 0) {
                         mediaPlayer.seekTo(musicPosition);
                         Log.d(LOG_TAG, "PREPARING: playMusic(): MediaPlayer position set to: " + position);
@@ -256,14 +258,20 @@ public class HXMusic {
 
     // getPosition(): Returns the current music position.
     public static int getPosition() {
-        instance();
-        return hxMusic.musicPosition;
+        if (hxMusic != null) {
+            return hxMusic.musicPosition;
+        } else {
+            return 0;
+        }
     }
 
     // getStatus(): Returns the current music status of this object.
     public static String getStatus() {
-        instance();
-        return hxMusic.musicStatus.toString();
+        if (hxMusic != null) {
+            return hxMusic.musicStatus.toString();
+        } else {
+            return HXMusicStatus.NOT_READY.toString();
+        }
     }
 
     /** SET METHODS ____________________________________________________________________________ **/
