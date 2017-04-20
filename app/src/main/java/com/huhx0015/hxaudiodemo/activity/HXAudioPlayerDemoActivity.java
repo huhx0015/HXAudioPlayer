@@ -9,13 +9,16 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Toast;
+import com.huhx0015.hxaudio.interfaces.HXMusicListener;
+import com.huhx0015.hxaudio.model.HXMusicItem;
 import com.huhx0015.hxaudiodemo.R;
 import com.huhx0015.hxaudiodemo.preferences.HXAudioPreferences;
 import com.huhx0015.hxaudio.audio.HXMusic;
 import com.huhx0015.hxaudio.audio.HXSound;
 import com.huhx0015.hxaudio.utils.HXAudioPlayerUtils;
 
-public class HXAudioPlayerDemoActivity extends AppCompatActivity {
+public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMusicListener {
 
     /** CLASS VARIABLES ________________________________________________________________________ **/
 
@@ -35,6 +38,7 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity {
 
         loadPreferences(); // Loads the settings values from the main SharedPreferences object.
         initView(); // Sets up layout for the activity.
+        HXMusic.setListener(this); // Sets the HXMusicListener interface to this activity.
     }
 
     // onResume(): This function runs immediately after onCreate() finishes and is always re-run
@@ -115,14 +119,43 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity {
         return super.onKeyDown(keyCode, event);
     }
 
+    /** INTERFACE FUNCTIONALITY ________________________________________________________________ **/
+
+    // onMusicPrepared(): Called when HXMusic's MediaPlayer object has called onPrepared().
+    @Override
+    public void onMusicPrepared(HXMusicItem music) {
+        Toast.makeText(this, "MUSIC PREPARED: " + music.getMusicTitle(), Toast.LENGTH_SHORT).show();
+    }
+
+    // onMusicCompletion(): Called when HXMusic's MediaPlayer object has called onCompletion().
+    @Override
+    public void onMusicCompletion(HXMusicItem music) {
+        Toast.makeText(this, "MUSIC COMPLETED: " + music.getMusicTitle(), Toast.LENGTH_SHORT).show();
+    }
+
+    // onMusicPause(): Called when HXMusic's pauseMusic() method has been called.
+    @Override
+    public void onMusicPause(HXMusicItem music) {
+        Toast.makeText(this, "MUSIC PAUSED: " + music.getMusicTitle(), Toast.LENGTH_SHORT).show();
+    }
+
+    // onMusicResume(): Called when HXMusic's resumeMusic() method has been called.
+    @Override
+    public void onMusicResume(HXMusicItem music) {
+        Toast.makeText(this, "MUSIC RESUMED: " + music.getMusicTitle(), Toast.LENGTH_SHORT).show();
+    }
+
+    // onMusicStop(): Called when HXMusic's stopMusic() method has been called.
+    @Override
+    public void onMusicStop(HXMusicItem music) {
+        Toast.makeText(this, "MUSIC STOPPED: " + music.getMusicTitle(), Toast.LENGTH_SHORT).show();
+    }
+
     /** LAYOUT FUNCTIONALITY ___________________________________________________________________ **/
 
     // initView(): Sets up the layout for the activity.
     public void initView() {
-
-        // Sets the XML layout for the activity.
-        setContentView(R.layout.activity_hx_audio_player_demo);
-
+        setContentView(R.layout.activity_hx_audio_player_demo); // Sets the XML layout.
         initButtons(); // Sets up the button listeners for the activity.
     }
 

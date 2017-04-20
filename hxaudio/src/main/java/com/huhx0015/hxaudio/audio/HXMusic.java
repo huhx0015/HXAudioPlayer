@@ -6,6 +6,7 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.util.Log;
 import com.huhx0015.hxaudio.builder.HXMusicBuilder;
+import com.huhx0015.hxaudio.interfaces.HXMusicListener;
 import com.huhx0015.hxaudio.model.HXMusicItem;
 
 /** -----------------------------------------------------------------------------------------------
@@ -30,6 +31,9 @@ public class HXMusic {
     private HXMusicItem musicItem; // References the current HXMusicItem that stores information about the current music.
     private HXMusicStatus musicStatus = HXMusicStatus.READY; // Used to determine the current status of the music.
     private MediaPlayer mediaPlayer; // MediaPlayer object used for playing back the current music.
+
+    // LISTENER VARIABLES:
+    private HXMusicListener musicListener; // Interface for listening for events from the MediaPlayer object.
 
     // LOGGING VARIABLES:
     private static final String LOG_TAG = HXMusic.class.getSimpleName(); // Used for logging output to logcat.
@@ -116,6 +120,12 @@ public class HXMusic {
 
                     mediaPlayer.start(); // Begins playing the music.
                     musicStatus = HXMusicStatus.PLAYING;
+
+                    // Invokes the associated listener call.
+                    if (musicListener != null) {
+                        musicListener.onMusicPrepared(musicItem);
+                    }
+
                     Log.d(LOG_TAG, "MUSIC: playMusic(): Music playback has begun.");
                 }
             });
@@ -125,9 +135,15 @@ public class HXMusic {
             mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
                 public void onCompletion(MediaPlayer mp) {
-                    Log.d(LOG_TAG, "MUSIC: playMusic(): Music playback has completed.");
                     musicPosition = 0;
                     musicStatus = HXMusicStatus.STOPPED;
+
+                    // Invokes the associated listener call.
+                    if (musicListener != null) {
+                        musicListener.onMusicCompletion(musicItem);
+                    }
+
+                    Log.d(LOG_TAG, "MUSIC: playMusic(): Music playback has completed.");
                 }
             });
             return true;
@@ -152,6 +168,12 @@ public class HXMusic {
             }
 
             hxMusic.musicStatus = HXMusicStatus.PAUSED;  // Indicates that the music is currently paused.
+
+            // Invokes the associated listener call.
+            if (hxMusic.musicListener != null && hxMusic.musicItem != null) {
+                hxMusic.musicListener.onMusicPause(hxMusic.musicItem);
+            }
+
             Log.d(LOG_TAG, "MUSIC: pauseMusic(): Music playback has been paused.");
             return true;
         } else {
@@ -172,6 +194,11 @@ public class HXMusic {
         } else {
             hxMusic.playMusic(hxMusic.musicItem, hxMusic.musicPosition, hxMusic.isLooping,
                     context.getApplicationContext());
+
+            // Invokes the associated listener call.
+            if (hxMusic.musicListener != null && hxMusic.musicItem != null) {
+                hxMusic.musicListener.onMusicResume(hxMusic.musicItem);
+            }
             return true;
         }
     }
@@ -182,6 +209,12 @@ public class HXMusic {
         if (hxMusic != null && hxMusic.mediaPlayer != null) {
             hxMusic.mediaPlayer.stop(); // Stops any music currently playing in the background.
             hxMusic.musicStatus = HXMusicStatus.STOPPED;
+
+            // Invokes the associated listener call.
+            if (hxMusic.musicListener != null && hxMusic.musicItem != null) {
+                hxMusic.musicListener.onMusicStop(hxMusic.musicItem);
+            }
+
             Log.d(LOG_TAG, "MUSIC: stopMusic(): Music playback has been stopped.");
             return true;
         } else {
@@ -275,6 +308,12 @@ public class HXMusic {
     }
 
     /** SET METHODS ____________________________________________________________________________ **/
+
+    // setListener(): Sets the HXMusicListener interface for this class.
+    public static void setListener(HXMusicListener listener) {
+        instance();
+        hxMusic.musicListener = listener;
+    }
 
     // setPosition(): Sets the current music position.
     public static void setPosition(int position) {

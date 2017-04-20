@@ -5,7 +5,7 @@ DEVELOPER: huhx0015
 
 ## Description
 
-The HX Audio Player is a custom audio wrapper library for Android 2.3 - Android 7.0. Originally designed as an audio library for games, HX Audio Player is an easy-to-use, alternative approach to implementing music and sound playback into Android applications. HX Audio Player also implements seamless workarounds to address the bugs and shortcomings of MediaPlayer and SoundPool APIs.
+The HX Audio Player is a custom audio wrapper library for Android 2.3 and above. Originally designed as an audio library for games, HX Audio Player is an easy-to-use, alternative approach to implementing music and sound playback into Android applications. HX Audio Player also implements seamless workarounds to address the bugs and shortcomings of MediaPlayer and SoundPool APIs.
 
 Previous versions of this audio library was utilized in apps such as Dragon Geo, Cid's Aerial Tours, Chrono Maps, and StepBOT.
 
@@ -59,6 +59,12 @@ HXMusic.isPlaying();                // Returns a boolean to determine if the son
 ```
 HXMusic.getPosition();              // Returns the current position of the song, represented as an int value.
 HXMusic.setPosition(0);             // Sets the current position of the song.
+```
+
+#### Music Listener
+
+```
+HXMusic.setListener(this);          // Sets a HXMusicListener interface to HXMusic. Use this if you need to monitor events from HXMusic.
 ```
 
 #### Music Status
