@@ -44,7 +44,6 @@ public class HXMusic {
     private enum HXMusicStatus {
         NOT_READY,
         READY,
-        BUFFERING,
         PLAYING,
         PAUSED,
         STOPPED,
@@ -168,7 +167,6 @@ public class HXMusic {
                 mediaPlayer.setOnBufferingUpdateListener(new MediaPlayer.OnBufferingUpdateListener() {
                     @Override
                     public void onBufferingUpdate(MediaPlayer mp, int percent) {
-                        musicStatus = HXMusicStatus.BUFFERING;
 
                         // Invokes the associated listener call.
                         if (musicListener != null) {
@@ -199,17 +197,18 @@ public class HXMusic {
             // Pauses the music only if there is a music is currently playing.
             if (hxMusic.mediaPlayer != null && hxMusic.mediaPlayer.isPlaying()) {
                 hxMusic.mediaPlayer.pause(); // Pauses the music.
+                hxMusic.musicStatus = HXMusicStatus.PAUSED;  // Indicates that the music is currently paused.
+
+                // Invokes the associated listener call.
+                if (hxMusic.musicListener != null && hxMusic.musicItem != null) {
+                    hxMusic.musicListener.onMusicPause(hxMusic.musicItem);
+                }
+                Log.d(LOG_TAG, "MUSIC: pauseMusic(): Music playback has been paused.");
+                return true;
+            } else {
+                Log.e(LOG_TAG, "ERROR: pauseMusic(): Music could not be paused.");
+                return false;
             }
-
-            hxMusic.musicStatus = HXMusicStatus.PAUSED;  // Indicates that the music is currently paused.
-
-            // Invokes the associated listener call.
-            if (hxMusic.musicListener != null && hxMusic.musicItem != null) {
-                hxMusic.musicListener.onMusicPause(hxMusic.musicItem);
-            }
-
-            Log.d(LOG_TAG, "MUSIC: pauseMusic(): Music playback has been paused.");
-            return true;
         } else {
             Log.e(LOG_TAG, "ERROR: pauseMusic(): Music could not be paused.");
             return false;
@@ -225,7 +224,7 @@ public class HXMusic {
         } else if (hxMusic == null) {
             Log.e(LOG_TAG, "ERROR: resumeMusic(): Music could not be resumed.");
             return false;
-        } else {
+        } else if (hxMusic.musicStatus.equals(HXMusicStatus.PAUSED)) {
             hxMusic.playMusic(hxMusic.musicItem, hxMusic.musicPosition, hxMusic.isLooping,
                     context.getApplicationContext());
 
@@ -234,6 +233,8 @@ public class HXMusic {
                 hxMusic.musicListener.onMusicResume(hxMusic.musicItem);
             }
             return true;
+        } else {
+            return false;
         }
     }
 
