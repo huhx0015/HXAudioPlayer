@@ -103,7 +103,7 @@ public class HXSound {
 
         // GINGERBREAD: The SoundPool is released and re-initialized. This is done to minimize the
         // AudioTrack out of memory (-12) error.
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.GINGERBREAD_MR1) {
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.GINGERBREAD_MR1 && hxSound.hxSoundEngines != null) {
 
             Log.d(LOG_TAG, "RE-INITIALIZING: The HXSoundEngine instances are being re-initialized.");
 

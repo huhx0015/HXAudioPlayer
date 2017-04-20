@@ -17,7 +17,7 @@ The demo application provided with the project provides an example how the HX Au
 
 To load and play music files, simply declare the following in your code:
 
-#### Play Music:
+#### Play Music (Resource):
 
 ```
 HXMusic.music()
@@ -28,6 +28,19 @@ HXMusic.music()
        .at(5)                       // Sets the position for where the song should start. [OPTIONAL]
        .looped(true)                // Sets the song to be looped. [OPTIONAL]
        .play(this);                 // Plays the song. [REQUIRED]
+```
+
+#### Play Music (URL):
+
+```
+HXMusic.music()
+       .load("http://some-fake-url.com/song.mp3")   // Sets the URL location of the song. [REQUIRED]
+       .title("My Awesome Song")                    // Sets the title of the song. [OPTIONAL]
+       .artist("Mr. Anonymous")                     // Sets the artist of the song. [OPTIONAL]
+       .date("January 1, 1998")                     // Sets the date of the song. [OPTIONAL]
+       .at(5)                                       // Sets the position for where the song should start. [OPTIONAL]
+       .looped(true)                                // Sets the song to be looped. [OPTIONAL]
+       .play(this);                                 // Plays the song. [REQUIRED]
 ```
 
 #### Pause Music:

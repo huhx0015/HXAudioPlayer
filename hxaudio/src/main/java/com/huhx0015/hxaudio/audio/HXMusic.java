@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.util.Log;
 import com.huhx0015.hxaudio.builder.HXMusicBuilder;
 import com.huhx0015.hxaudio.interfaces.HXMusicListener;
@@ -43,6 +44,7 @@ public class HXMusic {
     private enum HXMusicStatus {
         NOT_READY,
         READY,
+        BUFFERING,
         PLAYING,
         PAUSED,
         STOPPED,
@@ -92,16 +94,30 @@ public class HXMusic {
             mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC); // Sets the audio type for the MediaPlayer object.
             Log.d(LOG_TAG, "PREPARING: playMusic(): MediaPlayer stream type set to STREAM_MUSIC.");
 
-            // Prepares the MediaPlayer object for music playback.
-            try {
-                AssetFileDescriptor asset = context.getResources().openRawResourceFd(musicItem.getMusicResource());
-                mediaPlayer.setDataSource(asset.getFileDescriptor(), asset.getStartOffset(), asset.getLength());
-                Log.d(LOG_TAG, "PREPARING: playMusic(): MediaPlayer resource was set, preparing MediaPlayer...");
-                mediaPlayer.prepareAsync(); // Prepares the MediaPlayer object asynchronously.
-            } catch (Exception e) {
-                Log.e(LOG_TAG, "ERROR: playMusic(): An error occurred while loading the music resource: " + e.getLocalizedMessage());
-                return false;
+            // Prepares the specified music URL for playback.
+            if (musicItem.getMusicUrl() != null) {
+                try {
+                    mediaPlayer.setDataSource(context, Uri.parse(musicItem.getMusicUrl()));
+                    Log.d(LOG_TAG, "PREPARING: playMusic(): MediaPlayer URL was set, preparing MediaPlayer...");
+                } catch (Exception e) {
+                    Log.e(LOG_TAG, "ERROR: playMusic(): An error occurred while loading the music from the specified URL: " + e.getLocalizedMessage());
+                    return false;
+                }
             }
+
+            // Prepares the specified music resource for playback.
+            else if (musicItem.getMusicResource() != 0) {
+                try {
+                    AssetFileDescriptor asset = context.getResources().openRawResourceFd(musicItem.getMusicResource());
+                    mediaPlayer.setDataSource(asset.getFileDescriptor(), asset.getStartOffset(), asset.getLength());
+                    Log.d(LOG_TAG, "PREPARING: playMusic(): MediaPlayer resource was set, preparing MediaPlayer...");
+                } catch (Exception e) {
+                    Log.e(LOG_TAG, "ERROR: playMusic(): An error occurred while loading the music resource: " + e.getLocalizedMessage());
+                    return false;
+                }
+            }
+
+            mediaPlayer.prepareAsync(); // Prepares the MediaPlayer object asynchronously.
 
             // Sets up the prepared listener for the MediaPlayer object. Music playback begins
             // immediately once the MediaPlayer object is ready.
@@ -109,7 +125,6 @@ public class HXMusic {
 
                 @Override
                 public void onPrepared(MediaPlayer mediaPlayer) {
-
                     if (musicPosition != 0) {
                         mediaPlayer.seekTo(musicPosition);
                         Log.d(LOG_TAG, "PREPARING: playMusic(): MediaPlayer position set to: " + position);
@@ -146,6 +161,25 @@ public class HXMusic {
                     Log.d(LOG_TAG, "MUSIC: playMusic(): Music playback has completed.");
                 }
             });
+
+            // Sets up a buffering update listener for the MediaPlayer object. This listener will
+            // be constantly invoked as the song is being buffered.
+            if (musicItem.getMusicUrl() != null) {
+                mediaPlayer.setOnBufferingUpdateListener(new MediaPlayer.OnBufferingUpdateListener() {
+                    @Override
+                    public void onBufferingUpdate(MediaPlayer mp, int percent) {
+                        musicStatus = HXMusicStatus.BUFFERING;
+
+                        // Invokes the associated listener call.
+                        if (musicListener != null) {
+                            musicListener.onMusicBufferingUpdate(musicItem, percent);
+                        }
+
+                        Log.d(LOG_TAG, "MUSIC: playMusic(): Music buffering at: " + percent);
+                    }
+                });
+            }
+
             return true;
         } else {
             Log.e(LOG_TAG, "ERROR: playMusic(): Music could not be played.");
@@ -232,8 +266,11 @@ public class HXMusic {
         if (musicStatus.equals(HXMusicStatus.DISABLED)) {
             Log.e(LOG_TAG, "ERROR: checkMusicState(): Music has been currently disabled.");
             return false;
-        } else if (music == null || music.getMusicResource() == 0) {
-            Log.e(LOG_TAG, "ERROR: checkMusicState(): Music item was null or an invalid audio resource was set.");
+        } else if (music == null) {
+            Log.e(LOG_TAG, "ERROR: checkMusicState(): Music item was null.");
+            return false;
+        } else if (music.getMusicResource() == 0 && music.getMusicUrl() == null) {
+            Log.e(LOG_TAG, "ERROR: checkMusicState(): No music resource or url was specified.");
             return false;
         } else if (musicItem != null && (musicItem.getMusicResource() == music.getMusicResource())) {
             if (mediaPlayer != null && mediaPlayer.isPlaying()) {

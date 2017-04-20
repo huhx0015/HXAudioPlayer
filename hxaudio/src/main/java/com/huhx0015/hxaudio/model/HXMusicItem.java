@@ -14,6 +14,7 @@ public class HXMusicItem {
 
     private int musicResource;
 
+    private String musicUrl;
     private String musicArtist;
     private String musicDate;
     private String musicTitle;
@@ -22,6 +23,10 @@ public class HXMusicItem {
 
     public int getMusicResource() {
         return musicResource;
+    }
+
+    public String getMusicUrl() {
+        return musicUrl;
     }
 
     public String getMusicArtist() {
@@ -40,6 +45,10 @@ public class HXMusicItem {
 
     public void setMusicResource(int musicResource) {
         this.musicResource = musicResource;
+    }
+
+    public void setMusicUrl(String musicUrl) {
+        this.musicUrl = musicUrl;
     }
 
     public void setMusicArtist(String musicArtist) {

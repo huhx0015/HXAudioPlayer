@@ -3,6 +3,8 @@
     package="com.huhx0015.hxaudiodemo"
     android:installLocation="auto">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"

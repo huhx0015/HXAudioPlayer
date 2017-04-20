@@ -85,7 +85,7 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center"
                             android:gravity="center"
-                            android:text="gamerstep-bass-triplets (clinthammer)"
+                            android:text="Gamerstep-Bass-Triplets (Clinthammer)"
                             android:textColor="@android:color/white"
                             android:textSize="14sp"
                             android:typeface="normal" />
@@ -118,7 +118,7 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center"
                             android:gravity="center"
-                            android:text="ts-digi-lead-2 (clinthammer)"
+                            android:text="TS-Drums (Clinthammer)"
                             android:textColor="@android:color/white"
                             android:textSize="14sp"
                             android:typeface="normal" />
@@ -150,7 +150,7 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center"
                             android:gravity="center"
-                            android:text="ts-drums (clinthammer)"
+                            android:text="Time Warp Mix (The Vagrance)"
                             android:textColor="@android:color/white"
                             android:textSize="14sp"
                             android:typeface="normal" />

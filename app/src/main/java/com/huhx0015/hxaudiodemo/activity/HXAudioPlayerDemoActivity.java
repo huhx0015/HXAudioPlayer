@@ -67,7 +67,6 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMu
     // state prior to destruction.
     @Override
     protected void onStop() {
-
         super.onStop();
 
         // Refreshes the SoundPool object for Android 2.3 (GINGERBREAD) devices.
@@ -133,6 +132,10 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMu
         Toast.makeText(this, "MUSIC COMPLETED: " + music.getMusicTitle(), Toast.LENGTH_SHORT).show();
     }
 
+    // onMusicBufferingUpdate(): Called when HXMusic's MediaPlayer object has called onBufferingUpdate().
+    @Override
+    public void onMusicBufferingUpdate(HXMusicItem music, int percent) {}
+
     // onMusicPause(): Called when HXMusic's pauseMusic() method has been called.
     @Override
     public void onMusicPause(HXMusicItem music) {
@@ -191,11 +194,12 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMu
 
                 // Sets the name of the song and plays the song immediately if music is enabled.
                 if (musicOn) {
-                    currentSong = "SONG 1"; // Sets the song name.
+                    currentSong = "Gamerstep Bass Triplets"; // Sets the song name.
 
                     HXMusic.music()
                             .load(R.raw.song_1_gamerstep_bass_triplets)
                             .title(currentSong)
+                            .artist("Clinthammer")
                             .looped(true)
                             .play(HXAudioPlayerDemoActivity.this);
 
@@ -212,11 +216,12 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMu
 
                 // Sets the name of the song and plays the song immediately if music is enabled.
                 if (musicOn) {
-                    currentSong = "SONG 2"; // Sets the song name.
+                    currentSong = "TS Drums"; // Sets the song name.
 
                     HXMusic.music()
                             .load(R.raw.song_2_ts_drums)
                             .title(currentSong)
+                            .artist("Clinthammer")
                             .looped(true)
                             .play(HXAudioPlayerDemoActivity.this);
 
@@ -233,11 +238,12 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMu
 
                 // Sets the name of the song and plays the song immediately if music is enabled.
                 if (musicOn) {
-                    currentSong = "SONG 3"; // Sets the song name.
+                    currentSong = "Time Warp Mix"; // Sets the song name.
 
                     HXMusic.music()
-                            .load(R.raw.song_3_ts_digi_lead_2)
+                            .load("http://ocrmirror.org/files/music/remixes/Chrono_Trigger_Corridor_of_Time_(Time_Warp_Mix)_OC_ReMix.mp3")
                             .title(currentSong)
+                            .artist("The Vagrance")
                             .looped(true)
                             .play(HXAudioPlayerDemoActivity.this);
 

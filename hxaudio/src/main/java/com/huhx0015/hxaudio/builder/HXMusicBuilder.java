@@ -45,6 +45,12 @@ public class HXMusicBuilder {
         return this;
     }
 
+    // load(): Sets the URL for this music.
+    public HXMusicBuilder load(String url) {
+        this.musicItem.setMusicUrl(url);
+        return this;
+    }
+
     // title(): Sets the title for this music.
     public HXMusicBuilder title(String title) {
         this.musicItem.setMusicTitle(title);
@@ -79,6 +85,8 @@ public class HXMusicBuilder {
     public void play(Context context) {
         if (context == null || context.getApplicationContext() == null) {
             Log.e(LOG_TAG, "ERROR: play(): Context cannot be null.");
+        } else if ( (musicItem.getMusicResource() != 0) && (musicItem.getMusicUrl() != null)) {
+            Log.e(LOG_TAG, "ERROR: play(): Cannot set both a music resource and url.");
         } else {
             HXMusic.instance().playMusic(musicItem, musicPosition, isLooped, context);
         }
