@@ -130,8 +130,6 @@ HXSound.enable(true);               // Enables/disables sound playback.
 HXSound.clear();                    // Clears the HXSound instance. Should be called when HXSound is no longer in use.
 ```
 
-pauseSounds()
-
 Voilà! Also very simple! No need to deal with SoundPool!
 
 ## Notes
