@@ -91,7 +91,8 @@ public class HXMusicBuilder {
             Thread playThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    HXMusic.instance().playMusic(musicItem, musicPosition, isLooped, context);
+                    HXMusic.instance().playMusic(musicItem, musicPosition, isLooped,
+                            context.getApplicationContext());
                 }
             });
             playThread.start();

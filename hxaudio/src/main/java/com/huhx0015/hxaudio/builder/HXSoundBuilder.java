@@ -44,7 +44,8 @@ public class HXSoundBuilder {
             Thread playThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    HXSound.instance().playSoundFx(soundResource, isLooped, context.getApplicationContext());
+                    HXSound.instance().playSoundFx(soundResource, isLooped,
+                            context.getApplicationContext());
                 }
             });
             playThread.start();
