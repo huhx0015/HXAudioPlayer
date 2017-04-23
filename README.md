@@ -147,7 +147,7 @@ Voilà! Also very simple! No need to deal with SoundPool!
 
 ## Notes
 
-- ANDROID API 9 - 10: HXSound class creates multiple instances of HXSoundEngine. This is to help minimize the SoundPool out of memory issue that is present in older versions of Android. As a suggestion to help minimize the issue, make sure that loaded sound effects are small in size and bitrate (recommended to be less than 100 KB and 64kbps or less). Please note that for devices running Android API 11 or greater, only a single instance of HXGSESoundEngine is used, as the 1 MB sound buffer limit issue is not present on newer versions of Android.
+- ANDROID API 9 - 10: HXSound class creates multiple instances of HXSoundEngine. This is to help minimize the SoundPool out of memory issue that is present in older versions of Android. As a suggestion to help minimize the issue, make sure that loaded sound effects are small in size and bitrate (recommended to be less than 100 KB and 64kbps or less). Please note that for devices running Android API 11 or greater, only a single instance of HXSoundEngine is used, as the 1 MB sound buffer limit issue is not present on newer versions of Android.
 
 - RELEASE: As HXMusic and HXSound are singleton objects, it is recommended to call HXMusic.clear() & HXSound.clear() when audio playback is no longer needed. It is recommended to call these in the onDestroy() method of your Activity or Fragment.
 
