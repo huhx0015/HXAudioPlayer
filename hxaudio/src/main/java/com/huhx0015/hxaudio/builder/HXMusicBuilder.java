@@ -82,13 +82,19 @@ public class HXMusicBuilder {
     }
 
     // play(): Calls the HXMusic playMusic() method to attempt to play the built music.
-    public void play(Context context) {
+    public void play(final Context context) {
         if (context == null || context.getApplicationContext() == null) {
             Log.e(LOG_TAG, "ERROR: play(): Context cannot be null.");
         } else if ( (musicItem.getMusicResource() != 0) && (musicItem.getMusicUrl() != null)) {
             Log.e(LOG_TAG, "ERROR: play(): Cannot set both a music resource and url.");
         } else {
-            HXMusic.instance().playMusic(musicItem, musicPosition, isLooped, context);
+            Thread playThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    HXMusic.instance().playMusic(musicItem, musicPosition, isLooped, context);
+                }
+            });
+            playThread.start();
         }
     }
 }

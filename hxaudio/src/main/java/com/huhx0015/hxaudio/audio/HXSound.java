@@ -120,7 +120,7 @@ public class HXSound {
     /** SOUND ACTION METHODS ___________________________________________________________________ **/
 
     // playSoundFx(): Attempts to play the sound effect via the HXSoundEngine instance(s).
-    public boolean playSoundFx(int resource, boolean isLooped, Context context) {
+    public synchronized boolean playSoundFx(int resource, boolean isLooped, Context context) {
 
         if (resource == 0) {
             Log.e(LOG_TAG, "ERROR: prepareSoundFx(): Invalid sound resource was set.");

@@ -37,11 +37,17 @@ public class HXSoundBuilder {
     }
 
     // play(): Calls the HXSound playSoundFx() method to attempt to play the specified sound effect.
-    public void play(Context context) {
+    public void play(final Context context) {
         if (context == null || context.getApplicationContext() == null) {
             Log.e(LOG_TAG, "ERROR: play(): Context cannot be null.");
         } else {
-            HXSound.instance().playSoundFx(soundResource, isLooped, context.getApplicationContext());
+            Thread playThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    HXSound.instance().playSoundFx(soundResource, isLooped, context.getApplicationContext());
+                }
+            });
+            playThread.start();
         }
     }
 }

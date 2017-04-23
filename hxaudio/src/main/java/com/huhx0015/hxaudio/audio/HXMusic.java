@@ -73,7 +73,8 @@ public class HXMusic {
     /** MUSIC ACTION METHODS ___________________________________________________________________ **/
 
     // playMusic(): Plays the specified music with the given position and isLooped parameters.
-    public boolean playMusic(HXMusicItem music, final int position, final boolean isLooped, Context context) {
+    public synchronized boolean playMusic(HXMusicItem music, final int position,
+                                          final boolean isLooped, Context context) {
 
         if (checkStatus(music)) {
 
