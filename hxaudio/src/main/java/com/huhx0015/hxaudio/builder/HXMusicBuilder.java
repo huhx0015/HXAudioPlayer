@@ -8,8 +8,8 @@ import com.huhx0015.hxaudio.model.HXMusicItem;
 /** -----------------------------------------------------------------------------------------------
  *  [HXMusicBuilder] CLASS
  *  DEVELOPER: Michael Yoon Huh (Huh X0015)
- *  DESCRIPTION: HXMusicBuilder class is a builder class for the HXMusic object and is used to
- *  construct an HXMusicItem and associated attributes to be used with the HXMusic object to
+ *  DESCRIPTION: HXMusicBuilder class is a builder class for the HXMusicEngine object and is used to
+ *  construct an HXMusicItem and associated attributes to be used with the HXMusicEngine object to
  *  playback specified music.
  *  -----------------------------------------------------------------------------------------------
  */
@@ -20,6 +20,7 @@ public class HXMusicBuilder {
 
     // ATTRIBUTE VARIABLES:
     private boolean isLooped;
+    private boolean isGapless;
     private int musicPosition;
 
     // MUSIC ITEM VARIABLE:
@@ -81,7 +82,13 @@ public class HXMusicBuilder {
         return this;
     }
 
-    // play(): Calls the HXMusic playMusic() method to attempt to play the built music.
+    // gapless(): Enables music gapless mode for this music.
+    public HXMusicBuilder gapless(boolean gapless) {
+        this.isGapless = gapless;
+        return this;
+    }
+
+    // play(): Calls the HXMusicEngine initMusic() method to attempt to play the built music.
     public void play(final Context context) {
         if (context == null || context.getApplicationContext() == null) {
             Log.e(LOG_TAG, "ERROR: play(): Context cannot be null.");
@@ -91,7 +98,7 @@ public class HXMusicBuilder {
             Thread playThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    HXMusic.instance().playMusic(musicItem, musicPosition, isLooped,
+                    HXMusic.instance().prepareMusic(musicItem, musicPosition, isLooped, isGapless,
                             context.getApplicationContext());
                 }
             });
