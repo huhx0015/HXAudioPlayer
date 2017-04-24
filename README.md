@@ -5,7 +5,7 @@ DEVELOPER: huhx0015
 
 ## Description
 
-The HX Audio Player is a custom audio wrapper library for Android 2.3 and above. Originally designed as an audio library for games, HX Audio Player is an easy-to-use, alternative approach to implementing music and sound playback into Android applications. HX Audio Player also implements seamless workarounds to address the bugs and shortcomings of MediaPlayer and SoundPool APIs.
+The HX Audio Player is a custom audio wrapper library for Android 2.3 and above. Originally designed as an audio library for games, HX Audio Player is an easy-to-use, alternative approach to implementing music and sound playback into Android applications. HX Audio Player also implements seamless workarounds to address the existing bugs and shortcomings of MediaPlayer and SoundPool APIs.
 
 Previous versions of this audio library was utilized in apps such as Dragon Geo, Cid's Aerial Tours, Chrono Maps, and StepBOT.
 
@@ -26,6 +26,7 @@ HXMusic.music()
        .artist("Mr. Anonymous")     // Sets the artist of the song. [OPTIONAL]
        .date("January 1, 1998")     // Sets the date of the song. [OPTIONAL]
        .at(5)                       // Sets the position for where the song should start. [OPTIONAL]
+       .gapless(true)               // Enables gapless playback for this song. [OPTIONAL]
        .looped(true)                // Sets the song to be looped. [OPTIONAL]
        .play(this);                 // Plays the song. [REQUIRED]
 ```
@@ -39,6 +40,7 @@ HXMusic.music()
        .artist("Mr. Anonymous")                     // Sets the artist of the song. [OPTIONAL]
        .date("January 1, 1998")                     // Sets the date of the song. [OPTIONAL]
        .at(5)                                       // Sets the position for where the song should start. [OPTIONAL]
+       .gapless(true)                               // Enables gapless playback for this song. [OPTIONAL]
        .looped(true)                                // Sets the song to be looped. [OPTIONAL]
        .play(this);                                 // Plays the song. [REQUIRED]
 ```
@@ -147,7 +149,9 @@ Voilà! Also very simple! No need to deal with SoundPool!
 
 ## Notes
 
-- ANDROID API 9 - 10: HXSound class creates multiple instances of HXSoundEngine. This is to help minimize the SoundPool out of memory issue that is present in older versions of Android. As a suggestion to help minimize the issue, make sure that loaded sound effects are small in size and bitrate (recommended to be less than 100 KB and 64kbps or less). Please note that for devices running Android API 11 or greater, only a single instance of HXSoundEngine is used, as the 1 MB sound buffer limit issue is not present on newer versions of Android.
+- ANDROID API 9 - 10: For devices running on Android API 9 - 10, HXSound class creates two instances of HXSoundEngine by default. This is to help minimize the SoundPool out of memory issue that is present in older versions of Android. As a suggestion to help minimize the issue, make sure that loaded sound effects are small in size and bitrate (recommended to be less than 100 KB and 64kbps or less). Please note that for devices running Android API 11 or greater, only a single instance of HXSoundEngine is used, as the 1 MB sound buffer limit issue is not present on newer versions of Android.
+
+- GAPLESS PLAYBACK: For devices running on Android 16 and above, gapless audio playback is available by adding the ```.gapless(true)``` flag. This enables a workaround for an existing issue with MediaPlayer in which noticeable gaps or audio skips are present when ```MediaPlayer.setLooping()``` is enabled.
 
 - RELEASE: As HXMusic and HXSound are singleton objects, it is recommended to call HXMusic.clear() & HXSound.clear() when audio playback is no longer needed. It is recommended to call these in the onDestroy() method of your Activity or Fragment.
 

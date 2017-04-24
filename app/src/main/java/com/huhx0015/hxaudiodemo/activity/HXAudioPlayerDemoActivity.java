@@ -10,11 +10,11 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
+import com.huhx0015.hxaudio.audio.HXMusic;
 import com.huhx0015.hxaudio.interfaces.HXMusicListener;
 import com.huhx0015.hxaudio.model.HXMusicItem;
 import com.huhx0015.hxaudiodemo.R;
 import com.huhx0015.hxaudiodemo.preferences.HXAudioPreferences;
-import com.huhx0015.hxaudio.audio.HXMusic;
 import com.huhx0015.hxaudio.audio.HXSound;
 import com.huhx0015.hxaudio.utils.HXAudioPlayerUtils;
 
@@ -200,7 +200,7 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMu
                             .load(R.raw.song_1_gamerstep_bass_triplets)
                             .title(currentSong)
                             .artist("Clinthammer")
-                            .looped(true)
+                            .gapless(true)
                             .play(HXAudioPlayerDemoActivity.this);
 
                     toggleStar(1); // Toggles the star for the first song.
