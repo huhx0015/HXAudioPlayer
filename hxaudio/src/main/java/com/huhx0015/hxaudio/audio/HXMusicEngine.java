@@ -250,7 +250,6 @@ class HXMusicEngine {
             currentPlayer.reset();
             currentPlayer.release();
             currentPlayer = null;
-            context = null;
 
             Log.d(LOG_TAG, "RELEASE: release(): MediaPlayer object has been released.");
             return true;
