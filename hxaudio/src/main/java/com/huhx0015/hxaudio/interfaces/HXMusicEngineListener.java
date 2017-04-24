@@ -1,11 +1,11 @@
 package com.huhx0015.hxaudio.interfaces;
 
-import android.media.MediaPlayer;
-
-import com.huhx0015.hxaudio.model.HXMusicItem;
-
-/**
- * Created by Michael Yoon Huh on 4/24/2017.
+/** -----------------------------------------------------------------------------------------------
+ *  [HXMusicEngineListener] CLASS
+ *  DEVELOPER: Michael Yoon Huh (Huh X0015)
+ *  DESCRIPTION: HXMusicEngineListener is an interface class used to listen for events from
+ *  HXMusicEngine.
+ *  -----------------------------------------------------------------------------------------------
  */
 
 public interface HXMusicEngineListener {
@@ -14,13 +14,13 @@ public interface HXMusicEngineListener {
 
     // onMusicEnginePrepared(): Called when HXMusicEngine's MediaPlayer object has called
     // onPrepared().
-    void onMusicEnginePrepared(MediaPlayer mp, int id);
+    void onMusicEnginePrepared();
 
     // onMusicEngineCompletion(): Called when HXMusicEngine's MediaPlayer object has called
     // onCompletion().
-    void onMusicEngineCompletion(int id);
+    void onMusicEngineCompletion();
 
     // onMusicEngineBufferingUpdate(): Called when HXMusicEngine's MediaPlayer object has called
     // onBufferingUpdate().
-    void onMusicEngineBufferingUpdate(int percent, int id);
+    void onMusicEngineBufferingUpdate(int percent);
 }

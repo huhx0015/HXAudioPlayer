@@ -79,7 +79,7 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMu
         super.onDestroy();
 
         // Releases all audio-related instances if the application is terminating.
-        //HXMusic.clear();
+        HXMusic.clear();
         HXSound.clear();
     }
 
@@ -200,7 +200,6 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMu
                             .load(R.raw.song_1_gamerstep_bass_triplets)
                             .title(currentSong)
                             .artist("Clinthammer")
-                            .looped(true)
                             .gapless(true)
                             .play(HXAudioPlayerDemoActivity.this);
 
@@ -377,7 +376,7 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMu
                 HXAudioPreferences.setMusicOn(musicOn, hxAudioPreferences);
 
                 // Sets the musicOn value in the HXGSEMusic class.
-                //HXMusic.enable(musicOn);
+                HXMusic.enable(musicOn);
             }
         });
 
@@ -468,7 +467,7 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMu
         soundOn = HXAudioPreferences.getSoundOn(hxAudioPreferences);
 
         // Assigns the retrieved preference values to the class objects.
-        //HXMusic.enable(musicOn);
+        HXMusic.enable(musicOn);
         HXSound.enable(soundOn);
     }
 }

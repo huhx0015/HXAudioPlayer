@@ -8,8 +8,8 @@ import com.huhx0015.hxaudio.model.HXMusicItem;
 /** -----------------------------------------------------------------------------------------------
  *  [HXMusicBuilder] CLASS
  *  DEVELOPER: Michael Yoon Huh (Huh X0015)
- *  DESCRIPTION: HXMusicBuilder class is a builder class for the HXMusicEngine object and is used to
- *  construct an HXMusicItem and associated attributes to be used with the HXMusicEngine object to
+ *  DESCRIPTION: HXMusicBuilder class is a builder class for the HXMusic object and is used to
+ *  construct an HXMusicItem and associated attributes to be used with the HXMusic object to
  *  playback specified music.
  *  -----------------------------------------------------------------------------------------------
  */
@@ -19,8 +19,8 @@ public class HXMusicBuilder {
     /** CLASS VARIABLES ________________________________________________________________________ **/
 
     // ATTRIBUTE VARIABLES:
-    private boolean isLooped;
     private boolean isGapless;
+    private boolean isLooped;
     private int musicPosition;
 
     // MUSIC ITEM VARIABLE:
@@ -76,19 +76,22 @@ public class HXMusicBuilder {
         return this;
     }
 
+    // gapless(): Enables music gapless audio playback for this music. Please note that this feature
+    // is only supported on devices running on Android API 16 and above. For devices running on
+    // Android API 9 - 15, the standard looped mode will be utilized.
+    public HXMusicBuilder gapless(boolean gapless) {
+        this.isGapless = gapless;
+        this.isLooped = gapless;
+        return this;
+    }
+
     // looped(): Specifies whether this music should be looped or not.
     public HXMusicBuilder looped(boolean looped) {
         this.isLooped = looped;
         return this;
     }
 
-    // gapless(): Enables music gapless mode for this music.
-    public HXMusicBuilder gapless(boolean gapless) {
-        this.isGapless = gapless;
-        return this;
-    }
-
-    // play(): Calls the HXMusicEngine initMusic() method to attempt to play the built music.
+    // play(): Calls the HXMusic initMusic() method to attempt to play the built music.
     public void play(final Context context) {
         if (context == null || context.getApplicationContext() == null) {
             Log.e(LOG_TAG, "ERROR: play(): Context cannot be null.");
@@ -98,7 +101,7 @@ public class HXMusicBuilder {
             Thread playThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    HXMusic.instance().prepareMusic(musicItem, musicPosition, isLooped, isGapless,
+                    HXMusic.instance().initMusic(musicItem, musicPosition, isGapless, isLooped,
                             context.getApplicationContext());
                 }
             });

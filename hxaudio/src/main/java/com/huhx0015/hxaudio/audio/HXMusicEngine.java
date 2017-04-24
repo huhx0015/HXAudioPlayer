@@ -1,5 +1,6 @@
 package com.huhx0015.hxaudio.audio;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.media.AudioManager;
@@ -7,58 +8,153 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
-
 import com.huhx0015.hxaudio.interfaces.HXMusicEngineListener;
 import com.huhx0015.hxaudio.model.HXMusicItem;
 
 /** -----------------------------------------------------------------------------------------------
  *  [HXMusicEngine] CLASS
  *  DEVELOPER: Michael Yoon Huh (Huh X0015)
- *  DESCRIPTION: HXMusicEngine class is a singleton and wrapper class for the MediaPlayer object and
- *  serves as a way to simplify music access for applications. HXMusicEngine is designed to play a single
- *  audio stream at a time and is ideal for applications such as games.
+ *  DESCRIPTION: HXMusicEngine class is a wrapper class for the MediaPlayer class and is used
+ *  directly by the HXMusic class to start, pause, stop, and resume music playback. HXMusicEngine is
+ *  designed to handle the full playback state of a single audio stream at a time and is ideal for
+ *  applications such as games.
  *  -----------------------------------------------------------------------------------------------
  */
 
-public class HXMusicEngine {
+class HXMusicEngine {
     
     /** CLASS VARIABLES ________________________________________________________________________ **/
 
     // AUDIO VARIABLES:
-    private boolean isLooping; // Used to determine if the current music has looping enabled or not.
-    private boolean isPrepared; // Used to determine if the MediaPlayer object has been prepared.
-    private int engineID; // Used to determine the ID value of this instance.
     private int musicPosition; // Used for tracking the current music position.
+    private Context context; // Context class used for initializing the MediaPlayer objects.
     private HXMusicItem musicItem; // References the current HXMusicItem that stores information about the current music.
-    private MediaPlayer mediaPlayer; // MediaPlayer object used for playing back the current music.
+    private MediaPlayer currentPlayer; // MediaPlayer object used for playing back the current music.
+    private MediaPlayer nextPlayer; // A secondary MediaPlayer object used when gapless playback has been enabled.
+
+    // LISTENER VARIABLES:
+    private HXMusicEngineListener musicEngineListener; // Interface for listening for events from the MediaPlayer object.
 
     // LOGGING VARIABLES:
     private static final String LOG_TAG = HXMusicEngine.class.getSimpleName(); // Used for logging output to logcat.
 
-    private HXMusicEngineListener musicEngineListener;
+    /** INITIALIZATION METHODS _________________________________________________________________ **/
 
-    public HXMusicEngine(int id) {
-        this.engineID = id;
+    // initMusicEngine(): Initializes the engine with the specified music parameters.
+    boolean initMusicEngine(HXMusicItem music, final int position, final boolean isGapless,
+                            final boolean isLooped, final Context context) {
+        this.context = context;
+        this.musicItem = music;
+        this.musicPosition = position;
+
+        // Stops any music currently playing in the background.
+        if (currentPlayer != null && currentPlayer.isPlaying()) {
+            Log.d(LOG_TAG, "PREPARING: initMusicEngine(): Song currently playing in the background. Stopping playback before switching to a new song.");
+            currentPlayer.stop();
+        }
+
+        release(); // Releases MediaPool resources.
+        currentPlayer = prepareMediaPlayer(context);
+
+        if (currentPlayer != null) {
+
+            // Sets up the prepared listener for the MediaPlayer object. Music playback begins
+            // immediately once the MediaPlayer object is ready.
+            currentPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+
+                @Override
+                public void onPrepared(MediaPlayer currentPlayer) {
+
+                    if (musicPosition != 0) {
+                        currentPlayer.seekTo(musicPosition);
+                        Log.d(LOG_TAG, "PREPARING: onPrepared(): MediaPlayer position set to: " + position);
+                    }
+
+                    // GAPLESS: If gapless mode is enabled, the secondary MediaPlayer will begin
+                    // immediate playback after playback on the current MediaPlayer has completed.
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && isGapless &&
+                            isLooped) {
+
+                        currentPlayer.setLooping(false); // Disables looping attribute.
+
+                        nextPlayer = prepareMediaPlayer(context);
+                        nextPlayer.setOnPreparedListener(nextPlayerPreparedListener);
+                        nextPlayer.setOnCompletionListener(nextPlayerCompletionListener);
+                        nextPlayer.setOnBufferingUpdateListener(playerBufferingUpdateListener);
+
+                        Log.d(LOG_TAG, "PREPARING: Gapless mode prepared.");
+                    } else {
+                        currentPlayer.setLooping(isLooped); // Sets the looping attribute.
+                        Log.d(LOG_TAG, "PREPARING: onPrepared(): MediaPlayer looping status: " + isLooped);
+                    }
+
+                    currentPlayer.start(); // Begins playing the music.
+
+                    // Invokes the associated listener call.
+                    if (musicEngineListener != null) {
+                        musicEngineListener.onMusicEnginePrepared();
+                    }
+
+                    Log.d(LOG_TAG, "MUSIC: onPrepared(): Music playback has begun.");
+                }
+            });
+
+            // Sets up a completion listener for the MediaPlayer object.
+            currentPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+
+                    // GAPLESS: Sets the current MediaPlayer object and prepares the next
+                    // MediaPlayer to be played when the current MediaPlayer playback has completed.
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && isGapless &&
+                            isLooped) {
+                        currentPlayer = nextPlayer; // Sets the current MediaPlayer.
+                        nextPlayer = prepareMediaPlayer(context); // Prepares the next MediaPlayer.
+                        nextPlayer.setOnPreparedListener(nextPlayerPreparedListener);
+                        mp.release(); // Releases the previous MediaPlayer object.
+                    } else {
+                        musicPosition = 0;
+
+                        // Invokes the associated listener call.
+                        if (musicEngineListener != null) {
+                            musicEngineListener.onMusicEngineCompletion();
+                        }
+
+                        Log.d(LOG_TAG, "MUSIC: onCompletion(): Music playback has completed.");
+                    }
+                }
+            });
+
+            // Sets up a buffering update listener for the MediaPlayer object. This listener will
+            // be constantly invoked as the song is being buffered.
+            if (musicItem.getMusicUrl() != null) {
+                currentPlayer.setOnBufferingUpdateListener(playerBufferingUpdateListener);
+            }
+
+            return true;
+        } else {
+            Log.e(LOG_TAG, "ERROR: initMusicEngine(): An error occurred while preparing the MediaPlayer object.");
+            return false;
+        }
     }
 
-    /** MUSIC ACTION METHODS ___________________________________________________________________ **/
-
-    public void prepareMusic(Context context) {
+    // prepareMediaPlayer(): Prepares a MediaPlayer object with the resource or path defined by the
+    // HXMusicItem.
+    private MediaPlayer prepareMediaPlayer(Context context) {
 
         // Sets up the MediaPlayer object for the music to be played.
-        release(); // Releases MediaPool resources.
-        mediaPlayer = new MediaPlayer(); // Initializes the MediaPlayer.
-        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC); // Sets the audio type for the MediaPlayer object.
-        Log.d(LOG_TAG, "PREPARING: initMusic(): MediaPlayer stream type set to STREAM_MUSIC.");
+        MediaPlayer player = new MediaPlayer(); // Initializes the MediaPlayer.
+        player.setAudioStreamType(AudioManager.STREAM_MUSIC); // Sets the audio type for the MediaPlayer object.
+        Log.d(LOG_TAG, "PREPARING: prepareMediaPlayer(): MediaPlayer stream type set to STREAM_MUSIC.");
 
         // Prepares the specified music URL for playback.
         if (musicItem.getMusicUrl() != null) {
             try {
-                mediaPlayer.setDataSource(context, Uri.parse(musicItem.getMusicUrl()));
-                Log.d(LOG_TAG, "PREPARING: initMusic(): MediaPlayer URL was set, preparing MediaPlayer...");
+                player.setDataSource(context, Uri.parse(musicItem.getMusicUrl()));
+                player.prepareAsync(); // Prepares the MediaPlayer object asynchronously.
+                Log.d(LOG_TAG, "PREPARING: prepareMediaPlayer(): MediaPlayer URL was set, preparing MediaPlayer...");
             } catch (Exception e) {
-                Log.e(LOG_TAG, "ERROR: initMusic(): An error occurred while loading the music from the specified URL: " + e.getLocalizedMessage());
-                //return false;
+                Log.e(LOG_TAG, "ERROR: prepareMediaPlayer(): An error occurred while loading the music from the specified URL: " + e.getLocalizedMessage());
             }
         }
 
@@ -66,266 +162,95 @@ public class HXMusicEngine {
         else if (musicItem.getMusicResource() != 0) {
             try {
                 AssetFileDescriptor asset = context.getResources().openRawResourceFd(musicItem.getMusicResource());
-                mediaPlayer.setDataSource(asset.getFileDescriptor(), asset.getStartOffset(), asset.getLength());
-                Log.d(LOG_TAG, "PREPARING: initMusic(): MediaPlayer resource was set, preparing MediaPlayer...");
+                player.setDataSource(asset.getFileDescriptor(), asset.getStartOffset(), asset.getLength());
+                player.prepareAsync(); // Prepares the MediaPlayer object asynchronously.
+                Log.d(LOG_TAG, "PREPARING: prepareMediaPlayer(): MediaPlayer resource was set, preparing MediaPlayer...");
             } catch (Exception e) {
-                Log.e(LOG_TAG, "ERROR: initMusic(): An error occurred while loading the music resource: " + e.getLocalizedMessage());
-                //return false;
+                Log.e(LOG_TAG, "ERROR: prepareMediaPlayer(): An error occurred while loading the music resource: " + e.getLocalizedMessage());
             }
         }
 
-        mediaPlayer.prepareAsync(); // Prepares the MediaPlayer object asynchronously.
+        return player;
     }
 
-    // initMusic(): Plays the specified music with the given position and isLooped parameters.
-    public synchronized boolean initMusic(HXMusicItem music, final int position,
-                                          final boolean isLooped, Context context) {
+    /** LISTENER METHODS ________________________________________________________________________**/
 
-        if (checkStatus(music)) {
+    // nextPlayerPreparedListener: Used to set the next OnPreparedListener for the
+    // nextMediaPlayer object when gapless playback mode has been enabled.
+    private MediaPlayer.OnPreparedListener nextPlayerPreparedListener = new MediaPlayer.OnPreparedListener() {
+        @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+        @Override
+        public void onPrepared(MediaPlayer mp) {
+            currentPlayer.setNextMediaPlayer(nextPlayer);
+            currentPlayer.setOnCompletionListener(nextPlayerCompletionListener);
+        }
+    };
 
-            this.musicItem = music;
-            this.musicPosition = position;
-            this.isLooping = isLooped;
+    // nextPlayerCompletionListener: Used to set the next OnCompletionListener for the
+    // nextMediaPlayer object when gapless playback mode has been enabled.
+    private MediaPlayer.OnCompletionListener nextPlayerCompletionListener = new MediaPlayer.OnCompletionListener() {
+        @Override
+        public void onCompletion(MediaPlayer mp) {
+            currentPlayer = nextPlayer; // Sets the current MediaPlayer.
+            nextPlayer = prepareMediaPlayer(context); // Prepares the next MediaPlayer.
+            nextPlayer.setOnPreparedListener(nextPlayerPreparedListener);
+            mp.release(); // Releases the previous MediaPlayer.
+            Log.d(LOG_TAG, "MUSIC: onCompletion(): Preparing next MediaPlayer object for gapless playback.");
+        }
+    };
 
-            // Stops any music currently playing in the background.
-            if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-                Log.d(LOG_TAG, "PREPARING: initMusic(): Song currently playing in the background. Stopping playback before switching to a new song.");
-                mediaPlayer.stop();
+    // playerBufferingUpdateListener: Used to set the OnBufferingUpdateListener for the MediaPlayer
+    // object.
+    private MediaPlayer.OnBufferingUpdateListener playerBufferingUpdateListener = new MediaPlayer.OnBufferingUpdateListener() {
+        @Override
+        public void onBufferingUpdate(MediaPlayer mp, int percent) {
+
+            // Invokes the associated listener call.
+            if (musicEngineListener != null) {
+                musicEngineListener.onMusicEngineBufferingUpdate(percent);
             }
 
-            prepareMusic(context);
-
-            mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                @Override
-                public void onPrepared(MediaPlayer mp) {
-                    isPrepared = true;
-
-                    if (musicEngineListener != null) {
-                        musicEngineListener.onMusicEnginePrepared(mp, engineID);
-                    }
-                }
-            });
-
-            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                @Override
-                public void onCompletion(MediaPlayer mp) {
-                    if (musicEngineListener != null) {
-                        musicEngineListener.onMusicEngineCompletion(engineID);
-                    }
-                }
-            });
-
-            mediaPlayer.setOnBufferingUpdateListener(new MediaPlayer.OnBufferingUpdateListener() {
-                @Override
-                public void onBufferingUpdate(MediaPlayer mp, int percent) {
-                    if (musicEngineListener != null) {
-                        musicEngineListener.onMusicEngineBufferingUpdate(percent, engineID);
-                    }
-                }
-            });
-
-//            // Sets up the prepared listener for the MediaPlayer object. Music playback begins
-//            // immediately once the MediaPlayer object is ready.
-//            mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-//
-//                @Override
-//                public void onPrepared(MediaPlayer mediaPlayer) {
-//                    if (musicPosition != 0) {
-//                        mediaPlayer.seekTo(musicPosition);
-//                        Log.d(LOG_TAG, "PREPARING: initMusic(): MediaPlayer position set to: " + position);
-//                    }
-//
-//                    mediaPlayer.setLooping(isLooped); // Sets the looping attribute.
-//                    Log.d(LOG_TAG, "PREPARING: initMusic(): MediaPlayer looping status: " + isLooped);
-//
-//                    mediaPlayer.start(); // Begins playing the music.
-//                    musicStatus = HXMusicStatus.PLAYING;
-//
-//                    // Invokes the associated listener call.
-//                    if (musicListener != null) {
-//                        musicListener.onMusicPrepared(musicItem);
-//                    }
-//
-//                    Log.d(LOG_TAG, "MUSIC: initMusic(): Music playback has begun.");
-//                }
-//            });
-//
-//            // Sets up a completion listener for the MediaPlayer object. Music position resets back
-//            // to 0 when music is completed.
-//            mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-//                @Override
-//                public void onCompletion(MediaPlayer mp) {
-//                    musicPosition = 0;
-//                    musicStatus = HXMusicStatus.STOPPED;
-//
-//                    // Invokes the associated listener call.
-//                    if (musicListener != null) {
-//                        musicListener.onMusicCompletion(musicItem);
-//                    }
-//
-//                    Log.d(LOG_TAG, "MUSIC: initMusic(): Music playback has completed.");
-//                }
-//            });
-//
-//            // Sets up a buffering update listener for the MediaPlayer object. This listener will
-//            // be constantly invoked as the song is being buffered.
-//            if (musicItem.getMusicUrl() != null) {
-//                mediaPlayer.setOnBufferingUpdateListener(new MediaPlayer.OnBufferingUpdateListener() {
-//                    @Override
-//                    public void onBufferingUpdate(MediaPlayer mp, int percent) {
-//
-//                        // Invokes the associated listener call.
-//                        if (musicListener != null) {
-//                            musicListener.onMusicBufferingUpdate(musicItem, percent);
-//                        }
-//
-//                        Log.d(LOG_TAG, "MUSIC: initMusic(): Music buffering at: " + percent);
-//                    }
-//                });
-//            }
-
-            return true;
-        } else {
-            Log.e(LOG_TAG, "ERROR: initMusic(): Music could not be played.");
-            return false;
+            Log.d(LOG_TAG, "MUSIC: initMusicEngine(): Music buffering at: " + percent);
         }
-    }
+    };
 
-    public boolean playMusic() {
-        if (mediaPlayer != null) {
-            mediaPlayer.start();
-            return true;
-        } else {
-            return false;
-        }
+    /** MUSIC METHODS __________________________________________________________________________ **/
+
+    // isPlaying(): Determines if a music is currently playing in the background.
+    boolean isPlaying() {
+        return currentPlayer != null && currentPlayer.isPlaying();
     }
 
     // pauseMusic(): Pauses any music playing in the background.
-    public int pauseMusic() {
+    int pauseMusic() {
 
         // Checks to see if the MediaPlayer object has been initialized first before retrieving the
         // current music position and pausing the music.
-        if (mediaPlayer != null) {
+        if (currentPlayer != null) {
 
-            musicPosition = mediaPlayer.getCurrentPosition(); // Retrieves the current music position.
+            musicPosition = currentPlayer.getCurrentPosition(); // Retrieves the current music position.
 
             // Pauses the music only if there is a music is currently playing.
-            if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-                mediaPlayer.pause(); // Pauses the music.
-
-//                // Invokes the associated listener call.
-//                if (hxMusicEngine.musicListener != null && hxMusicEngine.musicItem != null) {
-//                    hxMusicEngine.musicListener.onMusicPause(hxMusicEngine.musicItem);
-//                }
+            if (currentPlayer != null && currentPlayer.isPlaying()) {
+                currentPlayer.pause(); // Pauses the music.
 
                 Log.d(LOG_TAG, "MUSIC: pauseMusic(): Music playback has been paused.");
                 return musicPosition;
-            } else {
-                Log.e(LOG_TAG, "ERROR: pauseMusic(): Music could not be paused.");
-                return 0;
-            }
-        } else {
-            Log.e(LOG_TAG, "ERROR: pauseMusic(): Music could not be paused.");
-            return 0;
-        }
-    }
-
-    // resumeMusic(): Resumes playback of the current music.
-//    public boolean resumeMusic(Context context) {
-//
-//        if (context == null || context.getApplicationContext() == null) {
-//            Log.e(LOG_TAG, "ERROR: resumeMusic(): Context cannot be null.");
-//            return false;
-//        } else if (hxMusicEngine == null) {
-//            Log.e(LOG_TAG, "ERROR: resumeMusic(): Music could not be resumed.");
-//            return false;
-//        } else if (hxMusicEngine.musicStatus.equals(HXMusicStatus.PAUSED)) {
-//            hxMusicEngine.playMusic(hxMusicEngine.musicItem, hxMusicEngine.musicPosition, hxMusicEngine.isLooping,
-//                    context.getApplicationContext());
-//
-//            // Invokes the associated listener call.
-//            if (hxMusicEngine.musicListener != null && hxMusicEngine.musicItem != null) {
-//                hxMusicEngine.musicListener.onMusicResume(hxMusicEngine.musicItem);
-//            }
-//            return true;
-//        } else {
-//            return false;
-//        }
-//    }
-
-    //  stopMusic(): Stops any music playing in the background.
-    public boolean stopMusic() {
-
-        if (mediaPlayer != null) {
-            mediaPlayer.stop(); // Stops any music currently playing in the background.
-
-            Log.d(LOG_TAG, "MUSIC: stopMusic(): Music playback has been stopped.");
-            return true;
-        } else {
-            Log.e(LOG_TAG, "ERROR: stopMusic(): Cannot stop music, as MediaPlayer object is already null.");
-            return false;
-        }
-    }
-
-    /** MUSIC HELPER METHODS ___________________________________________________________________ **/
-
-    // checkStatus(): Verifies if the HXMusicItem object is valid and is used to determine if
-    // the specified music can be played or not.
-    private boolean checkStatus(HXMusicItem music) {
-
-//        if (musicStatus.equals(HXMusicStatus.DISABLED)) {
-//            Log.e(LOG_TAG, "ERROR: checkMusicState(): Music has been currently disabled.");
-//            return false;
-//        }
-
-        if (music == null) {
-            Log.e(LOG_TAG, "ERROR: checkMusicState(): Music item was null.");
-            return false;
-        } else if (music.getMusicResource() == 0 && music.getMusicUrl() == null) {
-            Log.e(LOG_TAG, "ERROR: checkMusicState(): No music resource or url was specified.");
-            return false;
-        } else if (musicItem != null && (musicItem.getMusicResource() == music.getMusicResource())) {
-            if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-                Log.e(LOG_TAG, "ERROR: checkMusicState(): Specified song is already playing!");
-                return false;
             }
         }
 
-        return true;
-    }
-
-    // clear(): Releases resources held by the MediaPlayer object and clears this object. This
-    // method should be called when the singleton object is no longer in use.
-//    public void clear() {
-//        if (hxMusicEngine != null) {
-//            hxMusicEngine.release();
-//            hxMusicEngine = null;
-//        }
-//    }
-
-    // enable(): Used for enabling and disabling music playback.
-    public static void enable(boolean isEnabled) {
-
-        if (isEnabled) {
-            //hxMusicEngine.musicStatus = HXMusicStatus.READY;
-        } else {
-            //hxMusicEngine.musicStatus = HXMusicStatus.DISABLED;
-        }
-    }
-
-    // isPlaying(): Determines if a music is currently playing in the background.
-    public boolean isPlaying() {
-        return mediaPlayer != null && mediaPlayer.isPlaying();
+        Log.e(LOG_TAG, "ERROR: pauseMusic(): Music could not be paused.");
+        return 0;
     }
 
     // release(): Used to release the resources being used by the MediaPlayer object.
-    public boolean release() {
-        isPrepared = false;
+    boolean release() {
 
-        if (mediaPlayer != null) {
-            mediaPlayer.reset();
-            mediaPlayer.release();
-            mediaPlayer = null;
+        if (currentPlayer != null) {
+            currentPlayer.reset();
+            currentPlayer.release();
+            currentPlayer = null;
+            context = null;
 
             Log.d(LOG_TAG, "RELEASE: release(): MediaPlayer object has been released.");
             return true;
@@ -335,63 +260,24 @@ public class HXMusicEngine {
         }
     }
 
-    /** GET METHODS ____________________________________________________________________________ **/
+    // stopMusic(): Stops any music playing in the background.
+    boolean stopMusic() {
 
-    // getPosition(): Returns the current music position.
-//    public static int getPosition() {
-//        if (hxMusicEngine != null) {
-//            return hxMusicEngine.musicPosition;
-//        } else {
-//            return 0;
-//        }
-//    }
+        if (currentPlayer != null) {
+            currentPlayer.stop(); // Stops any music currently playing in the background.
 
-    // getStatus(): Returns the current music status of this object.
-//    public static String getStatus() {
-//        if (hxMusicEngine != null) {
-//            return hxMusicEngine.musicStatus.toString();
-//        } else {
-//            return HXMusicStatus.NOT_READY.toString();
-//        }
-//    }
-
-    public MediaPlayer getMediaPlayer() {
-        return mediaPlayer;
-    }
-
-    public boolean getPrepared() {
-        return isPrepared;
+            Log.d(LOG_TAG, "MUSIC: stopMusic(): Music playback has been stopped.");
+            return true;
+        } else {
+            Log.e(LOG_TAG, "ERROR: stopMusic(): Cannot stop music, as MediaPlayer object is already null.");
+            return false;
+        }
     }
 
     /** SET METHODS ____________________________________________________________________________ **/
 
-
-
-    // setPosition(): Sets the current music position.
-    public void setPosition(int position) {
-        this.musicPosition = position;
-    }
-
-    public void setListener(HXMusicEngineListener listener) {
+    // setListener(): Sets the HXMusicEngineListener between this HXMusicEngine and HXMusic classes.
+    void setListener(HXMusicEngineListener listener) {
         this.musicEngineListener = listener;
-    }
-
-//    public void setListeners(MediaPlayer.OnPreparedListener preparedListener,
-//                             MediaPlayer.OnBufferingUpdateListener bufferingListener,
-//                             MediaPlayer.OnCompletionListener completionListener) {
-//        mediaPlayer.setOnPreparedListener(preparedListener);
-//        mediaPlayer.setOnBufferingUpdateListener(bufferingListener);
-//        mediaPlayer.setOnCompletionListener(completionListener);
-//    }
-
-    public void setNextMediaPlayer(MediaPlayer nextMediaPlayer) {
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            if (mediaPlayer != null && nextMediaPlayer != null) {
-                mediaPlayer.setNextMediaPlayer(nextMediaPlayer);
-            }
-        } else {
-            // TODO: Log output stating this is only available on API 16+.
-        }
     }
 }
