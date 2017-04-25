@@ -41,7 +41,7 @@ class HXMusicEngine {
     /** INITIALIZATION METHODS _________________________________________________________________ **/
 
     // initMusicEngine(): Initializes the engine with the specified music parameters.
-    boolean initMusicEngine(HXMusicItem music, final int position, final boolean isGapless,
+    synchronized boolean initMusicEngine(HXMusicItem music, final int position, final boolean isGapless,
                             final boolean isLooped, final Context context) {
         this.context = context;
         this.musicItem = music;
@@ -234,6 +234,11 @@ class HXMusicEngine {
             if (currentPlayer != null && currentPlayer.isPlaying()) {
                 currentPlayer.pause(); // Pauses the music.
 
+                // Invokes the associated listener call.
+                if (musicEngineListener != null) {
+                    musicEngineListener.onMusicEnginePause();
+                }
+
                 Log.d(LOG_TAG, "MUSIC: pauseMusic(): Music playback has been paused.");
                 return musicPosition;
             }
@@ -264,6 +269,11 @@ class HXMusicEngine {
 
         if (currentPlayer != null) {
             currentPlayer.stop(); // Stops any music currently playing in the background.
+
+            // Invokes the associated listener call.
+            if (musicEngineListener != null) {
+                musicEngineListener.onMusicEngineStop();
+            }
 
             Log.d(LOG_TAG, "MUSIC: stopMusic(): Music playback has been stopped.");
             return true;

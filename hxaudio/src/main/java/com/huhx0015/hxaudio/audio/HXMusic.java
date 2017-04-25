@@ -152,6 +152,28 @@ public class HXMusic implements HXMusicEngineListener {
         }
     }
 
+    // onMusicEnginePause(): Called when HXMusicEngine's pauseMusic() method has been called.
+    @Override
+    public void onMusicEnginePause() {
+        hxMusic.hxMusicStatus = HXMusicStatus.PAUSED;  // Indicates that the music is currently paused.
+
+        // Invokes the associated listener call.
+        if (hxMusic.musicListener != null && hxMusic.hxMusicItem != null) {
+            hxMusic.musicListener.onMusicPause(hxMusic.hxMusicItem);
+        }
+    }
+
+    // onMusicStop(): Called when HXMusicEngine's stopMusic() method has been called.
+    @Override
+    public void onMusicEngineStop() {
+        hxMusic.hxMusicStatus = HXMusicStatus.STOPPED;
+
+        // Invokes the associated listener call.
+        if (hxMusic.musicListener != null && hxMusic.hxMusicItem != null) {
+            hxMusic.musicListener.onMusicStop(hxMusic.hxMusicItem);
+        }
+    }
+
     /** MUSIC ACTION METHODS ___________________________________________________________________ **/
 
     // isPlaying(): Determines if a music is currently playing in the background.
@@ -163,61 +185,37 @@ public class HXMusic implements HXMusicEngineListener {
     public static void pauseMusic() {
         if (hxMusic != null && hxMusic.hxMusicEngine != null) {
             hxMusic.musicPosition = hxMusic.hxMusicEngine.pauseMusic();
-            hxMusic.hxMusicStatus = HXMusicStatus.PAUSED;  // Indicates that the music is currently paused.
-
-            // Invokes the associated listener call.
-            if (hxMusic.musicListener != null && hxMusic.hxMusicItem != null) {
-                hxMusic.musicListener.onMusicPause(hxMusic.hxMusicItem);
-            }
         }
     }
 
     // resumeMusic(): Resumes playback of the current music.
-    public static boolean resumeMusic(Context context) {
+    public static void resumeMusic(final Context context) {
 
         if (context == null || context.getApplicationContext() == null) {
             Log.e(LOG_TAG, "ERROR: resumeMusic(): Context cannot be null.");
-            return false;
         } else if (hxMusic != null && hxMusic.hxMusicStatus.equals(HXMusicStatus.PAUSED) &&
                 hxMusic.hxMusicEngine != null) {
-
-            boolean resumeMusicState = hxMusic.hxMusicEngine.initMusicEngine(hxMusic.hxMusicItem,
-                    hxMusic.musicPosition, hxMusic.isGapless, hxMusic.isLooped,
-                    context.getApplicationContext());
-
-            if (resumeMusicState) {
-
-                // Invokes the associated listener call.
-                if (hxMusic.musicListener != null && hxMusic.hxMusicItem != null) {
-                    hxMusic.musicListener.onMusicResume(hxMusic.hxMusicItem);
-                    return true;
+            Thread playThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    hxMusic.hxMusicEngine.initMusicEngine(hxMusic.hxMusicItem,
+                            hxMusic.musicPosition, hxMusic.isGapless, hxMusic.isLooped,
+                            context.getApplicationContext());
                 }
-            }
+            });
+            playThread.start();
+        } else {
+            Log.e(LOG_TAG, "ERROR: resumeMusic(): Music could not be resumed.");
         }
-
-        Log.e(LOG_TAG, "ERROR: resumeMusic(): Music could not be resumed.");
-        return false;
     }
 
     //  stopMusic(): Stops any music playing in the background.
-    public static boolean stopMusic() {
-
+    public static void stopMusic() {
         if (hxMusic != null && hxMusic.hxMusicEngine != null) {
-            boolean stopMusicState = hxMusic.hxMusicEngine.stopMusic();
-
-            if (stopMusicState) {
-                hxMusic.hxMusicStatus = HXMusicStatus.STOPPED;
-
-                // Invokes the associated listener call.
-                if (hxMusic.musicListener != null && hxMusic.hxMusicItem != null) {
-                    hxMusic.musicListener.onMusicStop(hxMusic.hxMusicItem);
-                }
-
-                return true;
-            }
+            hxMusic.hxMusicEngine.stopMusic();
+        } else {
+            Log.e(LOG_TAG, "ERROR: stopMusic(): Music could not be stopped.");
         }
-
-        return false;
     }
 
     /** MUSIC HELPER METHODS ___________________________________________________________________ **/

@@ -26,9 +26,6 @@ public interface HXMusicListener {
     // onMusicPause(): Called when HXMusic's pauseMusic() method has been called.
     void onMusicPause(HXMusicItem music);
 
-    // onMusicResume(): Called when HXMusic's resumeMusic() method has been called.
-    void onMusicResume(HXMusicItem music);
-
     // onMusicStop(): Called when HXMusic's stopMusic() method has been called.
     void onMusicStop(HXMusicItem music);
 }

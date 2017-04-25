@@ -120,19 +120,19 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMu
 
     /** INTERFACE FUNCTIONALITY ________________________________________________________________ **/
 
-    // onMusicPrepared(): Called when HXMusic's MediaPlayer object has called onPrepared().
+    // onMusicPrepared(): Called when HXMusicEngine's MediaPlayer object has called onPrepared().
     @Override
     public void onMusicPrepared(HXMusicItem music) {
-        Toast.makeText(this, "MUSIC PREPARED: " + music.getMusicTitle(), Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "MUSIC PLAYING: " + music.getMusicTitle(), Toast.LENGTH_SHORT).show();
     }
 
-    // onMusicCompletion(): Called when HXMusic's MediaPlayer object has called onCompletion().
+    // onMusicCompletion(): Called when HXMusicEngine's MediaPlayer object has called onCompletion().
     @Override
     public void onMusicCompletion(HXMusicItem music) {
         Toast.makeText(this, "MUSIC COMPLETED: " + music.getMusicTitle(), Toast.LENGTH_SHORT).show();
     }
 
-    // onMusicBufferingUpdate(): Called when HXMusic's MediaPlayer object has called onBufferingUpdate().
+    // onMusicBufferingUpdate(): Called when HXMusicEngine's MediaPlayer object has called onBufferingUpdate().
     @Override
     public void onMusicBufferingUpdate(HXMusicItem music, int percent) {}
 
@@ -140,12 +140,6 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMu
     @Override
     public void onMusicPause(HXMusicItem music) {
         Toast.makeText(this, "MUSIC PAUSED: " + music.getMusicTitle(), Toast.LENGTH_SHORT).show();
-    }
-
-    // onMusicResume(): Called when HXMusic's resumeMusic() method has been called.
-    @Override
-    public void onMusicResume(HXMusicItem music) {
-        Toast.makeText(this, "MUSIC RESUMED: " + music.getMusicTitle(), Toast.LENGTH_SHORT).show();
     }
 
     // onMusicStop(): Called when HXMusic's stopMusic() method has been called.
