@@ -23,10 +23,9 @@ public class HXSound {
     private static HXSound hxSound; // HXSound instance variable.
 
     // AUDIO VARIABLES:
-    //private boolean isEnabled; // Used for determining if the sound system is enabled or not.
+    private boolean isEnabled; // Used for determining if the sound system is enabled or not.
     private int currentEngine; // Used for determining the active HXSoundEngine instance.
     private int numberOfEngines; // Used for determining the number of HXSoundEngine instances.
-    private HXSoundStatus hxSoundStatus = HXSoundStatus.READY; // Used to determine the current status of the sound system.
     private LinkedList<HXSoundEngine> hxSoundEngines; // LinkedList object which contains the HXSoundEngine instances.
 
     // CONSTANT VARIABLES:
@@ -35,13 +34,6 @@ public class HXSound {
 
     // LOGGING VARIABLES:
     private static final String LOG_TAG = HXSound.class.getSimpleName();
-
-    /** ENUM ___________________________________________________________________________________ **/
-
-    private enum HXSoundStatus {
-        READY,
-        DISABLED
-    }
 
     /** INSTANCE METHOD ________________________________________________________________________ **/
 
@@ -90,7 +82,6 @@ public class HXSound {
             i++;
         }
 
-        hxSoundStatus = HXSoundStatus.READY;
         HXLog.d(LOG_TAG, "BUILD: All HXSoundEngines are ready.");
     }
 
@@ -126,7 +117,7 @@ public class HXSound {
             return false;
         }
 
-        if (!hxSoundStatus.equals(HXSoundStatus.DISABLED)) {
+        if (isEnabled) {
 
             if (hxSoundEngines == null) {
                 initializeSoundEngines();
@@ -195,7 +186,7 @@ public class HXSound {
     // clear(): Releases resources held by this singleton and other objects associated with this
     // object. This method should be called when the singleton object is no longer in use.
     public static void clear() {
-        if (hxSound != null) {
+        if (hxSound != null && hxSound.hxSoundEngines != null) {
             hxSound.release();
             hxSound = null;
         }
@@ -204,12 +195,7 @@ public class HXSound {
     // enable(): Used to enable or disable the HXSound system.
     public static void enable(boolean isEnabled) {
         instance();
-
-        if (isEnabled) {
-            hxSound.hxSoundStatus = HXSoundStatus.READY;
-        } else {
-            hxSound.hxSoundStatus = HXSoundStatus.DISABLED;
-        }
+        hxSound.isEnabled = isEnabled;
     }
 
     // engines(): Specifies the number of sound engine instances to be enabled. This feature is only
@@ -241,15 +227,12 @@ public class HXSound {
         HXLog.d(LOG_TAG, "RELEASE: release(): Releasing all HXSoundEngine instances...");
 
         // Releases all HXSoundEngine instances.
-        if (hxSoundEngines != null) {
-            int i = 0;
-            for (int x : new int[numberOfEngines]) {
-                hxSoundEngines.get(i).release();
-                HXLog.d(LOG_TAG, "RELEASE: release(): HXSoundEngine (" + i + ") is released.");
-                i++;
-            }
-            hxSoundEngines = null;
+        int i = 0;
+        for (int x : new int[numberOfEngines]) {
+            hxSoundEngines.get(i).release();
+            HXLog.d(LOG_TAG, "RELEASE: release(): HXSoundEngine (" + i + ") is released.");
+            i++;
         }
-        hxSound = null;
+        hxSoundEngines = null;
     }
 }

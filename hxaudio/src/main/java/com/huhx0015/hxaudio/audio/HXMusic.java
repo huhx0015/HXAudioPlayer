@@ -19,16 +19,17 @@ public class HXMusic implements HXMusicEngineListener {
 
     /** CLASS VARIABLES ________________________________________________________________________ **/
 
+    // INSTANCE VARIABLES:
+    private static HXMusic hxMusic; // Instance variable for HXMusic.
+
     // AUDIO VARIABLES:
+    private boolean isEnabled = true; // Used to determine if HXMusic has been enabled or disabled.
     private boolean isGapless; // Used to determine if gapless mode has been enabled or not.
     private boolean isLooped; // Used to determine if the current music has looping enabled or not.
     private int musicPosition; // Used for tracking the current music position.
     private HXMusicEngine hxMusicEngine; // Responsible for the control and playback of the MediaPlayer object.
     private HXMusicItem hxMusicItem; // References the current HXMusicItem that stores information about the current music.
-    private HXMusicStatus hxMusicStatus = HXMusicStatus.NOT_READY; // Used to determine the current status of the music.
-
-    // INSTANCE VARIABLES:
-    private static HXMusic hxMusic; // Instance variable for HXMusic.
+    private HXMusicStatus hxMusicStatus = HXMusicStatus.READY; // Used to determine the current status of the music.
 
     // LISTENER VARIABLES:
     private HXMusicListener musicListener; // Interface for listening for events from the MediaPlayer object.
@@ -43,8 +44,7 @@ public class HXMusic implements HXMusicEngineListener {
         READY,
         PLAYING,
         PAUSED,
-        STOPPED,
-        DISABLED
+        STOPPED
     }
 
     /** INSTANCE METHOD ________________________________________________________________________ **/
@@ -96,7 +96,7 @@ public class HXMusic implements HXMusicEngineListener {
     // specified music can be played or not.
     private boolean checkStatus(HXMusicItem music) {
 
-        if (hxMusicStatus.equals(HXMusicStatus.DISABLED)) {
+        if (!isEnabled) {
             HXLog.e(LOG_TAG, "ERROR: checkStatus(): Music has been currently disabled.");
             return false;
         } else if (music == null) {
@@ -232,12 +232,7 @@ public class HXMusic implements HXMusicEngineListener {
     // enable(): Used for enabling and disabling music playback.
     public static void enable(boolean isEnabled) {
         instance();
-
-        if (isEnabled) {
-            hxMusic.hxMusicStatus = HXMusicStatus.READY;
-        } else {
-            hxMusic.hxMusicStatus = HXMusicStatus.DISABLED;
-        }
+        hxMusic.isEnabled = isEnabled;
     }
 
     // getPosition(): Returns the current music position.
