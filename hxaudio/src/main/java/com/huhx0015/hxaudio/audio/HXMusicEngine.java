@@ -88,14 +88,18 @@ class HXMusicEngine {
                         HXLog.d(LOG_TAG, "PREPARING: onPrepared(): MediaPlayer looping status: " + isLooped);
                     }
 
-                    currentPlayer.start(); // Begins playing the music.
+                    try {
+                        currentPlayer.start(); // Begins playing the music.
 
-                    // Invokes the associated listener call.
-                    if (musicEngineListener != null) {
-                        musicEngineListener.onMusicEnginePrepared();
+                        // Invokes the associated listener call.
+                        if (musicEngineListener != null) {
+                            musicEngineListener.onMusicEnginePrepared();
+                        }
+
+                        HXLog.d(LOG_TAG, "MUSIC: onPrepared(): Music playback has begun.");
+                    } catch (Exception e) {
+                        HXLog.e(LOG_TAG, "ERROR: onPrepared(): " + e.getLocalizedMessage());
                     }
-
-                    HXLog.d(LOG_TAG, "MUSIC: onPrepared(): Music playback has begun.");
                 }
             });
 
@@ -181,8 +185,14 @@ class HXMusicEngine {
         @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
         @Override
         public void onPrepared(MediaPlayer mp) {
-            currentPlayer.setNextMediaPlayer(nextPlayer);
-            currentPlayer.setOnCompletionListener(nextPlayerCompletionListener);
+            try {
+                if (currentPlayer != null && nextPlayer != null) {
+                    currentPlayer.setNextMediaPlayer(nextPlayer);
+                    currentPlayer.setOnCompletionListener(nextPlayerCompletionListener);
+                }
+            } catch (Exception e) {
+                HXLog.e(LOG_TAG, "ERROR: onPrepared(): " + e.getLocalizedMessage());
+            }
         }
     };
 
