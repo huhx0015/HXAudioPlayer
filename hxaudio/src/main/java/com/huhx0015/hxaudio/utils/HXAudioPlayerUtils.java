@@ -29,9 +29,9 @@ public class HXAudioPlayerUtils {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 
                 if (mode) {
-                    mgr.adjustStreamVolume(AudioManager.STREAM_SYSTEM, AudioManager.ADJUST_MUTE, 0);
-                } else {
                     mgr.adjustStreamVolume(AudioManager.STREAM_SYSTEM, AudioManager.ADJUST_UNMUTE, 0);
+                } else {
+                    mgr.adjustStreamVolume(AudioManager.STREAM_SYSTEM, AudioManager.ADJUST_MUTE, 0);
                 }
             }
 
