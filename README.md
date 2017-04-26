@@ -139,6 +139,12 @@ HXSound.engines(2);                  // Specifies the number of sound engines (2
 HXSound.enable(true);               // Enables/disables sound playback.
 ```
 
+#### Re-Initialize Sound:
+
+```
+HXSound.reinitialize();             // Manual re-initialization of sound engines. Only for Android API 9 - 10. 
+```
+
 #### Clear Sound:
 
 ```
