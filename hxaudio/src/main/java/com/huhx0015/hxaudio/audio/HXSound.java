@@ -26,7 +26,7 @@ public class HXSound {
     //private boolean isEnabled; // Used for determining if the sound system is enabled or not.
     private int currentEngine; // Used for determining the active HXSoundEngine instance.
     private int numberOfEngines; // Used for determining the number of HXSoundEngine instances.
-    private HXSoundStatus hxSoundStatus = HXSoundStatus.NOT_READY; // Used to determine the current status of the sound system.
+    private HXSoundStatus hxSoundStatus = HXSoundStatus.READY; // Used to determine the current status of the sound system.
     private LinkedList<HXSoundEngine> hxSoundEngines; // LinkedList object which contains the HXSoundEngine instances.
 
     // CONSTANT VARIABLES:
@@ -39,9 +39,7 @@ public class HXSound {
     /** ENUM ___________________________________________________________________________________ **/
 
     private enum HXSoundStatus {
-        NOT_READY,
         READY,
-        RELEASED,
         DISABLED
     }
 
@@ -128,11 +126,11 @@ public class HXSound {
             return false;
         }
 
-        if (hxSoundStatus.equals(HXSoundStatus.NOT_READY) || hxSoundStatus.equals(HXSoundStatus.RELEASED)) {
-            initializeSoundEngines();
-        }
-
         if (!hxSoundStatus.equals(HXSoundStatus.DISABLED)) {
+
+            if (hxSoundEngines == null) {
+                initializeSoundEngines();
+            }
 
             HXLog.d(LOG_TAG, "SOUND: Attempting to play sound effect on HXSoundEngine (" + currentEngine + ")...");
             hxSoundEngines.get(currentEngine).prepareSoundFx(resource, isLooped, context);
@@ -243,14 +241,15 @@ public class HXSound {
         HXLog.d(LOG_TAG, "RELEASE: release(): Releasing all HXSoundEngine instances...");
 
         // Releases all HXSoundEngine instances.
-        int i = 0;
-        for (int x : new int[numberOfEngines]) {
-            hxSoundEngines.get(i).release();
-            HXLog.d(LOG_TAG, "RELEASE: release(): HXSoundEngine (" + i + ") is released.");
-            i++;
+        if (hxSoundEngines != null) {
+            int i = 0;
+            for (int x : new int[numberOfEngines]) {
+                hxSoundEngines.get(i).release();
+                HXLog.d(LOG_TAG, "RELEASE: release(): HXSoundEngine (" + i + ") is released.");
+                i++;
+            }
+            hxSoundEngines = null;
         }
-
-        hxSoundEngines = null;
-        hxSoundStatus = HXSoundStatus.RELEASED;
+        hxSound = null;
     }
 }
