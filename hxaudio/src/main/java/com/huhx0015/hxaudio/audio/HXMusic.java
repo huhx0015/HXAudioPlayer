@@ -1,11 +1,11 @@
 package com.huhx0015.hxaudio.audio;
 
 import android.content.Context;
-import android.util.Log;
 import com.huhx0015.hxaudio.builder.HXMusicBuilder;
 import com.huhx0015.hxaudio.interfaces.HXMusicEngineListener;
 import com.huhx0015.hxaudio.interfaces.HXMusicListener;
 import com.huhx0015.hxaudio.model.HXMusicItem;
+import com.huhx0015.hxaudio.utils.HXLog;
 
 /** -----------------------------------------------------------------------------------------------
  *  [HXMusic] CLASS
@@ -97,17 +97,17 @@ public class HXMusic implements HXMusicEngineListener {
     private boolean checkStatus(HXMusicItem music) {
 
         if (hxMusicStatus.equals(HXMusicStatus.DISABLED)) {
-            Log.e(LOG_TAG, "ERROR: checkStatus(): Music has been currently disabled.");
+            HXLog.e(LOG_TAG, "ERROR: checkStatus(): Music has been currently disabled.");
             return false;
         } else if (music == null) {
-            Log.e(LOG_TAG, "ERROR: checkStatus(): Music item was null.");
+            HXLog.e(LOG_TAG, "ERROR: checkStatus(): Music item was null.");
             return false;
         } else if (music.getMusicResource() == 0 && music.getMusicUrl() == null) {
-            Log.e(LOG_TAG, "ERROR: checkStatus(): No music resource or url was specified.");
+            HXLog.e(LOG_TAG, "ERROR: checkStatus(): No music resource or url was specified.");
             return false;
         } else if (hxMusicItem != null && (hxMusicItem.getMusicResource() == music.getMusicResource())) {
             if (hxMusicEngine != null && hxMusicEngine.isPlaying()) {
-                Log.e(LOG_TAG, "ERROR: checkStatus(): Specified song is already playing!");
+                HXLog.e(LOG_TAG, "ERROR: checkStatus(): Specified song is already playing!");
                 return false;
             }
         }
@@ -192,7 +192,7 @@ public class HXMusic implements HXMusicEngineListener {
     public static void resumeMusic(final Context context) {
 
         if (context == null || context.getApplicationContext() == null) {
-            Log.e(LOG_TAG, "ERROR: resumeMusic(): Context cannot be null.");
+            HXLog.e(LOG_TAG, "ERROR: resumeMusic(): Context cannot be null.");
         } else if (hxMusic != null && hxMusic.hxMusicStatus.equals(HXMusicStatus.PAUSED) &&
                 hxMusic.hxMusicEngine != null) {
             Thread playThread = new Thread(new Runnable() {
@@ -205,7 +205,7 @@ public class HXMusic implements HXMusicEngineListener {
             });
             playThread.start();
         } else {
-            Log.e(LOG_TAG, "ERROR: resumeMusic(): Music could not be resumed.");
+            HXLog.e(LOG_TAG, "ERROR: resumeMusic(): Music could not be resumed.");
         }
     }
 
@@ -214,7 +214,7 @@ public class HXMusic implements HXMusicEngineListener {
         if (hxMusic != null && hxMusic.hxMusicEngine != null) {
             hxMusic.hxMusicEngine.stopMusic();
         } else {
-            Log.e(LOG_TAG, "ERROR: stopMusic(): Music could not be stopped.");
+            HXLog.e(LOG_TAG, "ERROR: stopMusic(): Music could not be stopped.");
         }
     }
 

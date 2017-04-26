@@ -6,8 +6,8 @@ import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.SoundPool;
 import android.os.Build;
-import android.util.Log;
 import android.util.SparseIntArray;
+import com.huhx0015.hxaudio.utils.HXLog;
 
 /** -----------------------------------------------------------------------------------------------
  *  [HXSoundEngine] CLASS
@@ -54,13 +54,13 @@ class HXSoundEngine {
 
         // API 21+: Android 5.0 and above.
         if (Build.VERSION.SDK_INT > 20) {
-            Log.d(LOG_TAG, "INITIALIZING (" + engineID + "): initSoundPool(): Using Lollipop (API 21+) SoundPool initialization.");
+            HXLog.d(LOG_TAG, "INITIALIZING (" + engineID + "): initSoundPool(): Using Lollipop (API 21+) SoundPool initialization.");
             soundPool = buildSoundPool();
         }
 
         // API 9 - 20: Android 2.3 - 4.4
         else {
-            Log.d(LOG_TAG, "INITIALIZING (" + engineID + "): initSoundPool(): Using GB/HC/ICS/JB/KK (API 9 - 20) SoundPool initialization.");
+            HXLog.d(LOG_TAG, "INITIALIZING (" + engineID + "): initSoundPool(): Using GB/HC/ICS/JB/KK (API 9 - 20) SoundPool initialization.");
             soundPool = new SoundPool(MAX_SIMULTANEOUS_SOUNDS, AudioManager.STREAM_MUSIC, 0);
         }
     }
@@ -82,7 +82,7 @@ class HXSoundEngine {
                 .setMaxStreams(MAX_SIMULTANEOUS_SOUNDS) // Sets the maximum number of audio streams.
                 .build();
 
-        Log.d(LOG_TAG, "INITIALIZING (" + engineID + "): buildSoundPool(): SoundPool construction complete.");
+        HXLog.d(LOG_TAG, "INITIALIZING (" + engineID + "): buildSoundPool(): SoundPool construction complete.");
 
         return soundBuilder; // Returns the newly created SoundPool object.
     }
@@ -96,7 +96,7 @@ class HXSoundEngine {
         // AudioTrack out of memory (-12) error.
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
 
-            Log.d(LOG_TAG, "RE-INITIALIZING (" + engineID + "): reinitialize(): The SoundPool object is being re-initialized.");
+            HXLog.d(LOG_TAG, "RE-INITIALIZING (" + engineID + "): reinitialize(): The SoundPool object is being re-initialized.");
 
             release(); // Releases the SoundPool object.
             initSoundPool(); // Initializes the SoundPool object.
@@ -117,7 +117,7 @@ class HXSoundEngine {
         // counter has reached the MAX_SOUND_EVENT limit. This is to handle the AudioTrack 1 MB
         // buffer limit issue.
         if ((Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) && (soundEventCount >= MAX_SOUND_EVENTS)) {
-            Log.w(LOG_TAG, "WARNING (" + engineID + "): prepareSoundFx(): Sound event count (" + soundEventCount + ") has exceeded the maximum number of sound events. Re-initializing the engine.");
+            HXLog.w(LOG_TAG, "WARNING (" + engineID + "): prepareSoundFx(): Sound event count (" + soundEventCount + ") has exceeded the maximum number of sound events. Re-initializing the engine.");
             reinitialize();
         }
 
@@ -161,9 +161,9 @@ class HXSoundEngine {
         // effect playback.
         if (soundPool != null) {
             soundPool.autoPause(); // Pauses all sound effect playback.
-            Log.d(LOG_TAG, "SOUND (" + engineID + "): pauseSounds(): All sound playback has been paused.");
+            HXLog.d(LOG_TAG, "SOUND (" + engineID + "): pauseSounds(): All sound playback has been paused.");
         } else {
-            Log.e(LOG_TAG, "ERROR (" + engineID + "): pauseSounds(): Cannot pause sound playback due to SoundPool object being null.");
+            HXLog.e(LOG_TAG, "ERROR (" + engineID + "): pauseSounds(): Cannot pause sound playback due to SoundPool object being null.");
         }
     }
 
@@ -173,7 +173,7 @@ class HXSoundEngine {
         // Checks to see if soundPool has been initiated first before resuming sound effect playback.
         if (soundPool != null) {
             soundPool.autoResume(); // Resumes all sound effect playback.
-            Log.d(LOG_TAG, "SOUND (" + engineID + "): Resuming sound effect playback.");
+            HXLog.d(LOG_TAG, "SOUND (" + engineID + "): Resuming sound effect playback.");
         }
     }
 
@@ -191,7 +191,7 @@ class HXSoundEngine {
         if (soundEffect == -1) {
             soundEffectMap.put(resource, soundPool.load(context, resource, SOUND_PRIORITY_LEVEL));
         } else {
-            Log.d(LOG_TAG, "PREPARING (" + engineID + "): checkSoundFxList(): Sound effect already added to soundEffectMap.");
+            HXLog.d(LOG_TAG, "PREPARING (" + engineID + "): checkSoundFxList(): Sound effect already added to soundEffectMap.");
         }
     }
 
@@ -205,9 +205,9 @@ class HXSoundEngine {
 
             soundEffectMap.clear();
 
-            Log.d(LOG_TAG, "RELEASE (" + engineID + "): release(): SoundPool object has been released.");
+            HXLog.d(LOG_TAG, "RELEASE (" + engineID + "): release(): SoundPool object has been released.");
         } else {
-            Log.e(LOG_TAG, "ERROR (" + engineID + "): release(): SoundPool object is null and cannot be released.");
+            HXLog.e(LOG_TAG, "ERROR (" + engineID + "): release(): SoundPool object is null and cannot be released.");
         }
     }
 }

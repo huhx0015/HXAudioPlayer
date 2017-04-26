@@ -1,8 +1,8 @@
 package com.huhx0015.hxaudio.builder;
 
 import android.content.Context;
-import android.util.Log;
 import com.huhx0015.hxaudio.audio.HXSound;
+import com.huhx0015.hxaudio.utils.HXLog;
 
 /** -----------------------------------------------------------------------------------------------
  *  [HXSoundBuilder] CLASS
@@ -39,7 +39,7 @@ public class HXSoundBuilder {
     // play(): Calls the HXSound playSoundFx() method to attempt to play the specified sound effect.
     public void play(final Context context) {
         if (context == null || context.getApplicationContext() == null) {
-            Log.e(LOG_TAG, "ERROR: play(): Context cannot be null.");
+            HXLog.e(LOG_TAG, "ERROR: play(): Context cannot be null.");
         } else {
             Thread playThread = new Thread(new Runnable() {
                 @Override

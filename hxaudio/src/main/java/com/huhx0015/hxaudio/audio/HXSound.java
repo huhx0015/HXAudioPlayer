@@ -2,8 +2,8 @@ package com.huhx0015.hxaudio.audio;
 
 import android.content.Context;
 import android.os.Build;
-import android.util.Log;
 import com.huhx0015.hxaudio.builder.HXSoundBuilder;
+import com.huhx0015.hxaudio.utils.HXLog;
 import java.util.LinkedList;
 
 /** -----------------------------------------------------------------------------------------------
@@ -23,10 +23,10 @@ public class HXSound {
     private static HXSound hxSound; // HXSound instance variable.
 
     // AUDIO VARIABLES:
-    private boolean isEnabled; // Used for determining if the sound system is enabled or not.
+    //private boolean isEnabled; // Used for determining if the sound system is enabled or not.
     private int currentEngine; // Used for determining the active HXSoundEngine instance.
     private int numberOfEngines; // Used for determining the number of HXSoundEngine instances.
-    private HXSoundStatus soundStatus = HXSoundStatus.NOT_READY; // Used to determine the current status of the sound system.
+    private HXSoundStatus hxSoundStatus = HXSoundStatus.NOT_READY; // Used to determine the current status of the sound system.
     private LinkedList<HXSoundEngine> hxSoundEngines; // LinkedList object which contains the HXSoundEngine instances.
 
     // CONSTANT VARIABLES:
@@ -41,7 +41,8 @@ public class HXSound {
     private enum HXSoundStatus {
         NOT_READY,
         READY,
-        RELEASED
+        RELEASED,
+        DISABLED
     }
 
     /** INSTANCE METHOD ________________________________________________________________________ **/
@@ -81,7 +82,7 @@ public class HXSound {
             hxSoundEngines = new LinkedList<>();
         }
 
-        Log.d(LOG_TAG, "BUILD: Building " + numberOfEngines + " HXSoundEngine instances...");
+        HXLog.d(LOG_TAG, "BUILD: Building " + numberOfEngines + " HXSoundEngine instances...");
 
         // Initializes and adds HXSoundEngine instances to the LinkedList.
         int i = 0;
@@ -91,8 +92,8 @@ public class HXSound {
             i++;
         }
 
-        soundStatus = HXSoundStatus.READY;
-        Log.d(LOG_TAG, "BUILD: All HXSoundEngines are ready.");
+        hxSoundStatus = HXSoundStatus.READY;
+        HXLog.d(LOG_TAG, "BUILD: All HXSoundEngines are ready.");
     }
 
     // reinitialize(): This method re-initializes all SoundPool objects for devices running
@@ -105,13 +106,13 @@ public class HXSound {
         // AudioTrack out of memory (-12) error.
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.GINGERBREAD_MR1 && hxSound.hxSoundEngines != null) {
 
-            Log.d(LOG_TAG, "RE-INITIALIZING: The HXSoundEngine instances are being re-initialized.");
+            HXLog.d(LOG_TAG, "RE-INITIALIZING: The HXSoundEngine instances are being re-initialized.");
 
             // Resumes sound effect playback in all HXSoundEngine instances.
             int i = 0;
             for (int x : new int[hxSound.numberOfEngines]) {
                 hxSound.hxSoundEngines.get(i).reinitialize();
-                Log.d(LOG_TAG, "RE-INITIALIZING: HXSoundEngine (" + i + ") is re-initialized.");
+                HXLog.d(LOG_TAG, "RE-INITIALIZING: HXSoundEngine (" + i + ") is re-initialized.");
                 i++;
             }
         }
@@ -123,17 +124,17 @@ public class HXSound {
     public synchronized boolean playSoundFx(int resource, boolean isLooped, Context context) {
 
         if (resource == 0) {
-            Log.e(LOG_TAG, "ERROR: prepareSoundFx(): Invalid sound resource was set.");
+            HXLog.e(LOG_TAG, "ERROR: prepareSoundFx(): Invalid sound resource was set.");
             return false;
         }
 
-        if (soundStatus.equals(HXSoundStatus.NOT_READY) || soundStatus.equals(HXSoundStatus.RELEASED)) {
+        if (hxSoundStatus.equals(HXSoundStatus.NOT_READY) || hxSoundStatus.equals(HXSoundStatus.RELEASED)) {
             initializeSoundEngines();
         }
 
-        if (isEnabled) {
+        if (!hxSoundStatus.equals(HXSoundStatus.DISABLED)) {
 
-            Log.d(LOG_TAG, "SOUND: Attempting to play sound effect on HXSoundEngine (" + currentEngine + ")...");
+            HXLog.d(LOG_TAG, "SOUND: Attempting to play sound effect on HXSoundEngine (" + currentEngine + ")...");
             hxSoundEngines.get(currentEngine).prepareSoundFx(resource, isLooped, context);
 
             // Sets the currentEngine value to point to the next HXSoundEngine instance.
@@ -144,11 +145,11 @@ public class HXSound {
                 // engines available.
                 if (currentEngine == numberOfEngines) { currentEngine = 0; }
 
-                Log.d(LOG_TAG, "SOUND: HXSoundEngine (" + currentEngine + ") is now the active instance.");
+                HXLog.d(LOG_TAG, "SOUND: HXSoundEngine (" + currentEngine + ") is now the active instance.");
             }
             return true;
         } else {
-            Log.e(LOG_TAG, "ERROR: prepareSoundFx(): Sound is currently disabled.");
+            HXLog.e(LOG_TAG, "ERROR: prepareSoundFx(): Sound is currently disabled.");
             return false;
         }
     }
@@ -159,16 +160,16 @@ public class HXSound {
         // Pauses sound effect playback in all HXSoundEngine instances.
         if (hxSound != null && hxSound.hxSoundEngines != null) {
 
-            Log.d(LOG_TAG, "PAUSE: Pausing sound playback on all HXSoundEngine instances...");
+            HXLog.d(LOG_TAG, "PAUSE: Pausing sound playback on all HXSoundEngine instances...");
 
             int i = 0;
             for (int x : new int[hxSound.numberOfEngines]) {
                 hxSound.hxSoundEngines.get(i).pauseSounds();
-                Log.d(LOG_TAG, "PAUSE: HXSoundEngine (" + i + ") is paused.");
+                HXLog.d(LOG_TAG, "PAUSE: HXSoundEngine (" + i + ") is paused.");
                 i++;
             }
         } else {
-            Log.e(LOG_TAG, "ERROR: pauseSounds(): Could not pause sound effects.");
+            HXLog.e(LOG_TAG, "ERROR: pauseSounds(): Could not pause sound effects.");
         }
     }
 
@@ -178,16 +179,16 @@ public class HXSound {
         // Resumes sound effect playback in all HXSoundEngine instances.
         if (hxSound != null && hxSound.hxSoundEngines != null) {
 
-            Log.d(LOG_TAG, "RESUME: Resuming sound playback on all HXSoundEngine instances...");
+            HXLog.d(LOG_TAG, "RESUME: Resuming sound playback on all HXSoundEngine instances...");
 
             int i = 0;
             for (int x : new int[hxSound.numberOfEngines]) {
                 hxSound.hxSoundEngines.get(i).resumeSounds();
-                Log.d(LOG_TAG, "RESUME: HXSoundEngine (" + i + ") is resumed.");
+                HXLog.d(LOG_TAG, "RESUME: HXSoundEngine (" + i + ") is resumed.");
                 i++;
             }
         } else {
-            Log.e(LOG_TAG, "ERROR: resumeSounds(): Could not resume sound effect playback.");
+            HXLog.e(LOG_TAG, "ERROR: resumeSounds(): Could not resume sound effect playback.");
         }
     }
 
@@ -205,7 +206,12 @@ public class HXSound {
     // enable(): Used to enable or disable the HXSound system.
     public static void enable(boolean isEnabled) {
         instance();
-        hxSound.isEnabled = isEnabled;
+
+        if (isEnabled) {
+            hxSound.hxSoundStatus = HXSoundStatus.READY;
+        } else {
+            hxSound.hxSoundStatus = HXSoundStatus.DISABLED;
+        }
     }
 
     // engines(): Specifies the number of sound engine instances to be enabled. This feature is only
@@ -214,7 +220,7 @@ public class HXSound {
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.GINGERBREAD_MR1) {
 
             if (engines < 1) {
-                Log.w(LOG_TAG, "PREPARING: engines(): Invalid engine value input. 1 or more engines must be specified.");
+                HXLog.w(LOG_TAG, "PREPARING: engines(): Invalid engine value input. 1 or more engines must be specified.");
                 return;
             }
 
@@ -227,24 +233,24 @@ public class HXSound {
             hxSound.numberOfEngines = engines;
             hxSound.initializeSoundEngines();
         } else {
-            Log.w(LOG_TAG, "PREPARING: engines(): This feature is only available for devices running on Android API 10 and below.");
+            HXLog.w(LOG_TAG, "PREPARING: engines(): This feature is only available for devices running on Android API 10 and below.");
         }
     }
 
     // release(): Used to free up memory resources utilized by all HXSoundEngine instances.
     private void release() {
 
-        Log.d(LOG_TAG, "RELEASE: release(): Releasing all HXSoundEngine instances...");
+        HXLog.d(LOG_TAG, "RELEASE: release(): Releasing all HXSoundEngine instances...");
 
         // Releases all HXSoundEngine instances.
         int i = 0;
         for (int x : new int[numberOfEngines]) {
             hxSoundEngines.get(i).release();
-            Log.d(LOG_TAG, "RELEASE: release(): HXSoundEngine (" + i + ") is released.");
+            HXLog.d(LOG_TAG, "RELEASE: release(): HXSoundEngine (" + i + ") is released.");
             i++;
         }
 
         hxSoundEngines = null;
-        soundStatus = HXSoundStatus.RELEASED;
+        hxSoundStatus = HXSoundStatus.RELEASED;
     }
 }

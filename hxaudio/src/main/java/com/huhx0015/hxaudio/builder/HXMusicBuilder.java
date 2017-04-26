@@ -1,9 +1,9 @@
 package com.huhx0015.hxaudio.builder;
 
 import android.content.Context;
-import android.util.Log;
 import com.huhx0015.hxaudio.audio.HXMusic;
 import com.huhx0015.hxaudio.model.HXMusicItem;
+import com.huhx0015.hxaudio.utils.HXLog;
 
 /** -----------------------------------------------------------------------------------------------
  *  [HXMusicBuilder] CLASS
@@ -94,9 +94,9 @@ public class HXMusicBuilder {
     // play(): Calls the HXMusic initMusic() method to attempt to play the built music.
     public void play(final Context context) {
         if (context == null || context.getApplicationContext() == null) {
-            Log.e(LOG_TAG, "ERROR: play(): Context cannot be null.");
+            HXLog.e(LOG_TAG, "ERROR: play(): Context cannot be null.");
         } else if ( (musicItem.getMusicResource() != 0) && (musicItem.getMusicUrl() != null)) {
-            Log.e(LOG_TAG, "ERROR: play(): Cannot set both a music resource and url.");
+            HXLog.e(LOG_TAG, "ERROR: play(): Cannot set both a music resource and url.");
         } else {
             Thread playThread = new Thread(new Runnable() {
                 @Override
