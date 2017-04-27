@@ -4,7 +4,8 @@ import android.content.Context;
 import android.os.Build;
 import com.huhx0015.hxaudio.builder.HXSoundBuilder;
 import com.huhx0015.hxaudio.utils.HXLog;
-import java.util.LinkedList;
+import java.util.Vector;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /** -----------------------------------------------------------------------------------------------
  *  [HXSound] CLASS
@@ -24,9 +25,9 @@ public class HXSound {
 
     // AUDIO VARIABLES:
     private boolean isEnabled; // Used for determining if the sound system is enabled or not.
-    private int currentEngine; // Used for determining the active HXSoundEngine instance.
+    private volatile int currentEngine; // Used for determining the active HXSoundEngine instance.
     private int numberOfEngines; // Used for determining the number of HXSoundEngine instances.
-    private LinkedList<HXSoundEngine> hxSoundEngines; // LinkedList object which contains the HXSoundEngine instances.
+    private volatile Vector<HXSoundEngine> hxSoundEngines; // Vector which contains the HXSoundEngine instances.
 
     // CONSTANT VARIABLES:
     private static final int NUMBER_OF_ENGINES_GB = 2; // Number of sound engines for GINGERBREAD.
@@ -67,9 +68,9 @@ public class HXSound {
 
         this.currentEngine = 0; // Sets the current engine instance to 0.
 
-        // LinkedList object which contains the HXSoundEngine instances.
+        // Vector object which contains the HXSoundEngine instances.
         if (hxSoundEngines == null) {
-            hxSoundEngines = new LinkedList<>();
+            hxSoundEngines = new Vector<>();
         }
 
         HXLog.d(LOG_TAG, "BUILD: Building " + numberOfEngines + " HXSoundEngine instances...");
@@ -99,8 +100,8 @@ public class HXSound {
 
             // Resumes sound effect playback in all HXSoundEngine instances.
             int i = 0;
-            for (int x : new int[hxSound.numberOfEngines]) {
-                hxSound.hxSoundEngines.get(i).reinitialize();
+            for (HXSoundEngine engine : hxSound.hxSoundEngines) {
+                engine.reinitialize();
                 HXLog.d(LOG_TAG, "RE-INITIALIZING: HXSoundEngine (" + i + ") is re-initialized.");
                 i++;
             }
@@ -152,8 +153,8 @@ public class HXSound {
             HXLog.d(LOG_TAG, "PAUSE: Pausing sound playback on all HXSoundEngine instances...");
 
             int i = 0;
-            for (int x : new int[hxSound.numberOfEngines]) {
-                hxSound.hxSoundEngines.get(i).pauseSounds();
+            for (HXSoundEngine engine : hxSound.hxSoundEngines) {
+                engine.pauseSounds();
                 HXLog.d(LOG_TAG, "PAUSE: HXSoundEngine (" + i + ") is paused.");
                 i++;
             }
@@ -171,8 +172,8 @@ public class HXSound {
             HXLog.d(LOG_TAG, "RESUME: Resuming sound playback on all HXSoundEngine instances...");
 
             int i = 0;
-            for (int x : new int[hxSound.numberOfEngines]) {
-                hxSound.hxSoundEngines.get(i).resumeSounds();
+            for (HXSoundEngine engine : hxSound.hxSoundEngines) {
+                engine.resumeSounds();
                 HXLog.d(LOG_TAG, "RESUME: HXSoundEngine (" + i + ") is resumed.");
                 i++;
             }
@@ -233,8 +234,8 @@ public class HXSound {
 
         // Releases all HXSoundEngine instances.
         int i = 0;
-        for (int x : new int[numberOfEngines]) {
-            hxSoundEngines.get(i).release();
+        for (HXSoundEngine engine : hxSoundEngines) {
+            engine.release();
             HXLog.d(LOG_TAG, "RELEASE: release(): HXSoundEngine (" + i + ") is released.");
             i++;
         }

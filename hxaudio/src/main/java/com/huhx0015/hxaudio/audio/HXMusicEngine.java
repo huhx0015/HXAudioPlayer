@@ -144,7 +144,7 @@ class HXMusicEngine {
 
     // prepareMediaPlayer(): Prepares a MediaPlayer object with the resource or path defined by the
     // HXMusicItem.
-    private MediaPlayer prepareMediaPlayer(Context context) {
+    private synchronized MediaPlayer prepareMediaPlayer(Context context) {
 
         // Sets up the MediaPlayer object for the music to be played.
         MediaPlayer player = new MediaPlayer(); // Initializes the MediaPlayer.
@@ -259,7 +259,7 @@ class HXMusicEngine {
     }
 
     // release(): Used to release the resources being used by the MediaPlayer object.
-    boolean release() {
+    synchronized boolean release() {
 
         if (currentPlayer != null) {
             currentPlayer.reset();

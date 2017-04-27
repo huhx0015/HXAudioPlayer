@@ -94,7 +94,7 @@ public class HXMusic implements HXMusicEngineListener {
 
     // checkStatus(): Verifies if the HXMusicItem object is valid and is used to determine if the
     // specified music can be played or not.
-    private boolean checkStatus(HXMusicItem music) {
+    private synchronized boolean checkStatus(HXMusicItem music) {
 
         if (!isEnabled) {
             HXLog.e(LOG_TAG, "ERROR: checkStatus(): Music has been currently disabled.");

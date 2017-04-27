@@ -6,8 +6,8 @@ import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.SoundPool;
 import android.os.Build;
-import android.util.SparseIntArray;
 import com.huhx0015.hxaudio.utils.HXLog;
+import java.util.concurrent.ConcurrentHashMap;
 
 /** -----------------------------------------------------------------------------------------------
  *  [HXSoundEngine] CLASS
@@ -23,11 +23,10 @@ class HXSoundEngine {
 
     // AUDIO VARIABLES:
     private AudioManager soundManager; // AudioManager variable for sound effects.
+    private volatile ConcurrentHashMap<Integer, Integer> soundEffectMap; // Used for storing the sound effects.
     private SoundPool soundPool; // SoundPool variable for sound effects.
-    private SparseIntArray soundEffectMap; // Used for storing the sound effects.
-    private boolean isSoundPoolReady = false; // Used to determine if the soundPool object is ready.
     private int engineID; // Used to determine the ID value of this instance.
-    private int soundEventCount = 0; // Used to count the number of sound events that have occurred.
+    private volatile int soundEventCount = 0; // Used to count the number of sound events that have occurred.
 
     // CONSTANT VARIABLES:
     private static final int MAX_SIMULTANEOUS_SOUNDS = 8; // Can output eight sound effects simultaneously. Adjust this value accordingly.
@@ -48,9 +47,7 @@ class HXSoundEngine {
 
     // initSoundPool(): Initializes the SoundPool object. Depending on the Android version of the
     // device, the SoundPool object is created using the appropriate methods.
-    private void initSoundPool() {
-
-        isSoundPoolReady = false; // Resets the isSoundPoolReady value.
+    private synchronized void initSoundPool() {
 
         // API 21+: Android 5.0 and above.
         if (Build.VERSION.SDK_INT > 20) {
@@ -68,7 +65,7 @@ class HXSoundEngine {
     // buildSoundPool(): Builds the SoundPool object. This implementation is only used on devices
     // running Android 5.0 and later.
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private SoundPool buildSoundPool() {
+    private synchronized SoundPool buildSoundPool() {
 
         // Initializes the AudioAttributes.Builder object.
         AudioAttributes attributes = new AudioAttributes.Builder()
@@ -90,7 +87,7 @@ class HXSoundEngine {
     // reinitialize(): This method re-initializes the SoundPool object for devices running
     // on Android 2.3 (GINGERBREAD) and earlier. This is to help minimize the AudioTrack out of
     // memory error, which was limited to a small 1 MB size buffer.
-    void reinitialize() {
+    synchronized void reinitialize() {
 
         // GINGERBREAD: The SoundPool is released and re-initialized. This is done to minimize the
         // AudioTrack out of memory (-12) error.
@@ -107,7 +104,7 @@ class HXSoundEngine {
     /** SOUND METHODS __________________________________________________________________________ **/
 
     // prepareSoundFx(): Prepares the specified resource for sound playback.
-    void prepareSoundFx(final int resource, final boolean isLoop, Context context) {
+    synchronized void prepareSoundFx(final int resource, final boolean isLoop, Context context) {
 
         if (soundPool == null) {
             initSoundPool(); // Initializes the SoundPool object.
@@ -121,8 +118,9 @@ class HXSoundEngine {
             reinitialize();
         }
 
-        // Checks the sound FX list to see if the sound effect was already added or not.
-        checkSoundFxList(resource, context);
+        if (soundEffectMap == null) {
+            soundEffectMap = new ConcurrentHashMap<>();
+        }
 
         // Retrieves the current volume value.
         if (soundManager == null) {
@@ -130,18 +128,23 @@ class HXSoundEngine {
         }
         final float volume = soundManager.getStreamVolume(AudioManager.STREAM_MUSIC);
 
-        // If the soundPool object is not yet fully loaded, the listener will play the sound effect
-        // after the soundPool object has fully loaded.
-        soundPool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
-            @Override
-            public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
-                isSoundPoolReady = true;
-                playSoundFx(resource, isLoop, volume);
-            }
-        });
+        // Checks to see if the sound effect has already been added.
+        Integer soundEffect = soundEffectMap.get(resource);
+        if (soundEffect == null) {
+            soundEffectMap.put(resource, soundPool.load(context, resource, SOUND_PRIORITY_LEVEL));
 
-        // Plays the sound effect if the soundPool object is ready.
-        if (isSoundPoolReady) {
+            // If the soundPool object is not yet fully loaded, the listener will play the sound effect
+            // after the soundPool object has fully loaded.
+            soundPool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
+                @Override
+                public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
+                    HXLog.d(LOG_TAG, "READY (" + engineID + "): onLoadComplete(): The SoundPool object is ready.");
+                    playSoundFx(resource, isLoop, volume);
+                }
+            });
+
+        } else {
+            HXLog.d(LOG_TAG, "READY (" + engineID + "): checkSoundFxList(): Sound effect already added to soundEffectMap.");
             playSoundFx(resource, isLoop, volume);
         }
 
@@ -149,7 +152,7 @@ class HXSoundEngine {
     }
 
     // playSoundFx(): Plays the specified sound effect.
-    private void playSoundFx(int resource, boolean isLoop, float volume) {
+    private synchronized void playSoundFx(int resource, boolean isLoop, float volume) {
         soundPool.play(soundEffectMap.get(resource), volume, volume, SOUND_PRIORITY_LEVEL,
                 isLoop ? 1 : 0, 1.0f);
     }
@@ -181,14 +184,14 @@ class HXSoundEngine {
 
     // checkSoundFxList(): Checks to see if the resource has already been added to the sound effect
     // map.
-    private void checkSoundFxList(int resource, Context context) {
+    private synchronized void checkSoundFxList(int resource, Context context) {
         if (soundEffectMap == null) {
-            soundEffectMap = new SparseIntArray();
+            soundEffectMap = new ConcurrentHashMap<>();
         }
 
         // Checks to see if the sound effect has already been added.
-        int soundEffect = soundEffectMap.get(resource, -1);
-        if (soundEffect == -1) {
+        Integer soundEffect = soundEffectMap.get(resource);
+        if (soundEffect == null) {
             soundEffectMap.put(resource, soundPool.load(context, resource, SOUND_PRIORITY_LEVEL));
         } else {
             HXLog.d(LOG_TAG, "PREPARING (" + engineID + "): checkSoundFxList(): Sound effect already added to soundEffectMap.");
