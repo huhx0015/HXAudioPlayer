@@ -24,7 +24,7 @@ class HXSoundEngine {
     // AUDIO VARIABLES:
     private AudioManager soundManager; // AudioManager variable for sound effects.
     private volatile ConcurrentHashMap<Integer, Integer> soundEffectMap; // Used for storing the sound effects.
-    private SoundPool soundPool; // SoundPool variable for sound effects.
+    private volatile SoundPool soundPool; // SoundPool variable for sound effects.
     private int engineID; // Used to determine the ID value of this instance.
     private volatile int soundEventCount = 0; // Used to count the number of sound events that have occurred.
 

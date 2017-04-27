@@ -50,6 +50,7 @@ class HXMusicEngine {
         // Stops any music currently playing in the background.
         if (currentPlayer != null && currentPlayer.isPlaying()) {
             HXLog.d(LOG_TAG, "PREPARING: initMusicEngine(): Song currently playing in the background. Stopping playback before switching to a new song.");
+            removeNextMediaPlayer(); // Prevents nextPlayer from starting after currentPlayer has completed playback.
             currentPlayer.stop();
         }
 
@@ -177,6 +178,22 @@ class HXMusicEngine {
         return player;
     }
 
+    // removeNextMediaPlayer(): Prevents the next MediaPlayer from being played after currentPlayer
+    // playback has been completed.
+    private synchronized void removeNextMediaPlayer() {
+
+        // Removes the link between currentPlayer and nextPlayer if nextPlayer has been prepared for
+        // playback after currentPlayer completes playback.
+        if (nextPlayer != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            try {
+                currentPlayer.setNextMediaPlayer(null);
+                nextPlayer = null;
+            } catch (Exception e) {
+                HXLog.e(LOG_TAG, "ERROR: pauseMusic(): " + e.getLocalizedMessage());
+            }
+        }
+    }
+
     /** LISTENER METHODS ________________________________________________________________________**/
 
     // nextPlayerPreparedListener: Used to set the next OnPreparedListener for the
@@ -201,11 +218,15 @@ class HXMusicEngine {
     private MediaPlayer.OnCompletionListener nextPlayerCompletionListener = new MediaPlayer.OnCompletionListener() {
         @Override
         public void onCompletion(MediaPlayer mp) {
-            currentPlayer = nextPlayer; // Sets the current MediaPlayer.
-            nextPlayer = prepareMediaPlayer(context); // Prepares the next MediaPlayer.
-            nextPlayer.setOnPreparedListener(nextPlayerPreparedListener);
-            mp.release(); // Releases the previous MediaPlayer.
-            HXLog.d(LOG_TAG, "MUSIC: onCompletion(): Preparing next MediaPlayer object for gapless playback.");
+            if (nextPlayer != null) {
+                currentPlayer = nextPlayer; // Sets the current MediaPlayer.
+                nextPlayer = prepareMediaPlayer(context); // Prepares the next MediaPlayer.
+                nextPlayer.setOnPreparedListener(nextPlayerPreparedListener);
+                mp.release(); // Releases the previous MediaPlayer.
+                HXLog.d(LOG_TAG, "MUSIC: onCompletion(): Preparing next MediaPlayer object for gapless playback.");
+            } else {
+                HXLog.e(LOG_TAG, "ERROR: onCompletion(): Unable to set nextPlayer as currentPlayer as nextPlayer was null.");
+            }
         }
     };
 
@@ -242,6 +263,8 @@ class HXMusicEngine {
 
             // Pauses the music only if there is a music is currently playing.
             if (currentPlayer != null && currentPlayer.isPlaying()) {
+
+                removeNextMediaPlayer(); // Prevents nextPlayer from starting after currentPlayer has completed playback.
                 currentPlayer.pause(); // Pauses the music.
 
                 // Invokes the associated listener call.
@@ -278,6 +301,7 @@ class HXMusicEngine {
     boolean stopMusic() {
 
         if (currentPlayer != null) {
+            removeNextMediaPlayer(); // Prevents nextPlayer from starting after currentPlayer has completed playback.
             currentPlayer.stop(); // Stops any music currently playing in the background.
 
             // Invokes the associated listener call.
