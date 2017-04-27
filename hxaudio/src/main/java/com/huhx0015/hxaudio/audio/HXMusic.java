@@ -223,8 +223,12 @@ public class HXMusic implements HXMusicEngineListener {
     // clear(): Releases resources held by the MediaPlayer object and clears this object. This
     // method should be called when the singleton object is no longer in use.
     public static void clear() {
-        if (hxMusic != null && hxMusic.hxMusicEngine != null) {
-            hxMusic.hxMusicEngine.release();
+        if (hxMusic != null) {
+            if (hxMusic.hxMusicEngine != null) {
+                hxMusic.hxMusicEngine.release();
+            }
+            hxMusic.hxMusicItem = null;
+            hxMusic.musicListener = null;
         }
         hxMusic = null;
     }
@@ -233,6 +237,11 @@ public class HXMusic implements HXMusicEngineListener {
     public static void enable(boolean isEnabled) {
         instance();
         hxMusic.isEnabled = isEnabled;
+    }
+
+    // logging(): Enables logging for HXSound and HXSoundEngine events.
+    public static void logging(boolean isEnabled) {
+        HXLog.setLogging(isEnabled);
     }
 
     // getPosition(): Returns the current music position.
@@ -250,6 +259,13 @@ public class HXMusic implements HXMusicEngineListener {
             return hxMusic.hxMusicStatus.toString();
         } else {
             return HXMusicStatus.NOT_READY.toString();
+        }
+    }
+
+    // removeListener(): Removes the attached listener interface for this class.
+    public static void removeListener() {
+        if (hxMusic != null && hxMusic.musicListener != null) {
+            hxMusic.musicListener = null;
         }
     }
 

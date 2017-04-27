@@ -221,6 +221,11 @@ public class HXSound {
         }
     }
 
+    // logging(): Enables logging for HXSound and HXSoundEngine events.
+    public static void logging(boolean isEnabled) {
+        HXLog.setLogging(isEnabled);
+    }
+
     // release(): Used to free up memory resources utilized by all HXSoundEngine instances.
     private void release() {
 

@@ -94,6 +94,12 @@ HXMusic.getStatus();                // Returns a String text message regarding t
 HXMusic.enable(true);               // Enables/disables music playback.
 ```
 
+#### Logging:
+
+```
+HXMusic.logging(true);               // Enables/disables log output.
+```
+
 #### Clear Music:
 
 ```
@@ -143,6 +149,12 @@ HXSound.enable(true);               // Enables/disables sound playback.
 
 ```
 HXSound.reinitialize();             // Manual re-initialization of sound engines. Only for Android API 9 - 10. 
+```
+
+#### Logging:
+
+```
+HXSound.logging(true);               // Enables/disables log output.
 ```
 
 #### Clear Sound:
