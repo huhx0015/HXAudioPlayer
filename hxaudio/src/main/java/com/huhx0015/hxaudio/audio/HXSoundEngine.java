@@ -118,6 +118,8 @@ class HXSoundEngine {
     // prepareSoundFx(): Prepares the specified resource for sound playback.
     synchronized void prepareSoundFx(final int resource, final boolean isLoop, Context context) {
 
+        HXLog.w(LOG_TAG, "TEST (" + engineID + "): prepareSoundFx(): Sound Resource (" + resource + ")");
+
         // Initializes the SoundPool object.
         if (soundPool == null) {
             initSoundPool();
@@ -144,23 +146,20 @@ class HXSoundEngine {
                 @Override
                 public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
                     HXLog.d(LOG_TAG, "READY (" + engineID + "): onLoadComplete(): The SoundPool object is ready.");
-                    playSoundFx(resource, isLoop, volume);
-
-                    // Prevents onLoadComplete() from running again for this instance.
-                    soundPool.setOnLoadCompleteListener(null);
+                    playSoundFx(sampleId, isLoop, volume);
                 }
             });
         } else {
-            playSoundFx(resource, isLoop, volume);
+            playSoundFx(soundEffectMap.get(resource), isLoop, volume);
         }
 
         soundEventCount++;
     }
 
-    // initSound(): Plays the specified sound effect.
-    private synchronized void playSoundFx(int resource, boolean isLoop, float volume) {
+    // playSoundFx(): Plays the specified sound effect.
+    private synchronized void playSoundFx(int id, boolean isLoop, float volume) {
         if (soundEffectMap != null && !soundEffectMap.isEmpty()) {
-            soundPool.play(soundEffectMap.get(resource), volume, volume, SOUND_PRIORITY_LEVEL,
+            soundPool.play(id, volume, volume, SOUND_PRIORITY_LEVEL,
                     isLoop ? 1 : 0, 1.0f);
         }
     }
@@ -193,6 +192,7 @@ class HXSoundEngine {
     // addSoundFx(): Adds the specified sound resource to the soundEffectMap, if it has not been
     // added.
     private synchronized boolean addSoundFx(int resource, Context context) {
+
         if (soundEffectMap == null) {
             soundEffectMap = new ConcurrentHashMap<>();
         }
@@ -233,6 +233,11 @@ class HXSoundEngine {
     // loadSoundFxList(): Loads the list of sound effects into the soundEffectMap.
     synchronized void loadSoundFxList(List<Integer> soundList, Context context) {
 
+        // Removes any existing onLoadCompleteListeners for SoundPool.
+        if (soundPool != null) {
+            soundPool.setOnLoadCompleteListener(null);
+        }
+
         // Loads each resource from the soundList into the soundEffectMap and soundFxList.
         for (int resource : soundList) {
             if (resource != 0) {
@@ -249,7 +254,9 @@ class HXSoundEngine {
             soundPool.release();
             soundPool = null;
 
-            soundEffectMap.clear();
+            if (soundEffectMap != null) {
+                soundEffectMap.clear();
+            }
 
             HXLog.d(LOG_TAG, "RELEASE (" + engineID + "): release(): SoundPool object has been released.");
         } else {
