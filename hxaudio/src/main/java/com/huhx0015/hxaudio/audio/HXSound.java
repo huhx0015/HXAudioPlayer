@@ -24,7 +24,7 @@ public class HXSound {
     private static HXSound hxSound; // HXSound instance variable.
 
     // AUDIO VARIABLES:
-    private boolean isEnabled; // Used for determining if the sound system is enabled or not.
+    private boolean isEnabled = true; // Used for determining if the sound system is enabled or not.
     private volatile int currentEngine; // Used for determining the active HXSoundEngine instance.
     private int numberOfEngines; // Used for determining the number of HXSoundEngine instances.
     private Vector<HXSoundEngine> hxSoundEngines; // Vector which contains the HXSoundEngine instances.
