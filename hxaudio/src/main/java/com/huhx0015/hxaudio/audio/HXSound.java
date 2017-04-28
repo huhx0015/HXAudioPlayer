@@ -4,8 +4,8 @@ import android.content.Context;
 import android.os.Build;
 import com.huhx0015.hxaudio.builder.HXSoundBuilder;
 import com.huhx0015.hxaudio.utils.HXLog;
+import java.util.List;
 import java.util.Vector;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /** -----------------------------------------------------------------------------------------------
  *  [HXSound] CLASS
@@ -27,7 +27,7 @@ public class HXSound {
     private boolean isEnabled; // Used for determining if the sound system is enabled or not.
     private volatile int currentEngine; // Used for determining the active HXSoundEngine instance.
     private int numberOfEngines; // Used for determining the number of HXSoundEngine instances.
-    private volatile Vector<HXSoundEngine> hxSoundEngines; // Vector which contains the HXSoundEngine instances.
+    private Vector<HXSoundEngine> hxSoundEngines; // Vector which contains the HXSoundEngine instances.
 
     // CONSTANT VARIABLES:
     private static final int NUMBER_OF_ENGINES_GB = 2; // Number of sound engines for GINGERBREAD.
@@ -63,8 +63,8 @@ public class HXSound {
 
     /** INITIALIZATION METHODS _________________________________________________________________ **/
 
-    // initializeSoundEngines(): Initializes the HXSoundEngine instances.
-    private void initializeSoundEngines() {
+    // initSoundEngines(): Initializes the HXSoundEngine instances.
+    private void initSoundEngines() {
 
         this.currentEngine = 0; // Sets the current engine instance to 0.
 
@@ -89,8 +89,14 @@ public class HXSound {
     // reinitialize(): This method re-initializes all SoundPool objects for devices running
     // on Android 2.3 (GINGERBREAD) and earlier. This is to help minimize the AudioTrack out of
     // memory error, which was limited to a small 1 MB size buffer.
-    public static void reinitialize() {
-        instance();
+    public static void reinitialize(final Context context) {
+
+        // Checks if the context is null.
+        if (context == null || context.getApplicationContext() == null) {
+            HXLog.e(LOG_TAG, "ERROR: reinitialize(): Context cannot be null.");
+            return;
+        }
+        instance(); // Checks the instance to ensure that hxSound is not null.
 
         // GINGERBREAD: The SoundPool is released and re-initialized. This is done to minimize the
         // AudioTrack out of memory (-12) error.
@@ -98,11 +104,11 @@ public class HXSound {
 
             HXLog.d(LOG_TAG, "RE-INITIALIZING: The HXSoundEngine instances are being re-initialized.");
 
-            // Resumes sound effect playback in all HXSoundEngine instances.
+            // Reinitializes all HXSoundEngine instances.
             int i = 0;
-            for (HXSoundEngine engine : hxSound.hxSoundEngines) {
-                engine.reinitialize();
-                HXLog.d(LOG_TAG, "RE-INITIALIZING: HXSoundEngine (" + i + ") is re-initialized.");
+            for (int x : new int[hxSound.numberOfEngines]) {
+                hxSound.hxSoundEngines.get(i).reinitialize(context.getApplicationContext());
+                HXLog.d(LOG_TAG, "LOADING: Loading HXSoundEngine (" + i + ") with list of sound resources.");
                 i++;
             }
         }
@@ -110,8 +116,8 @@ public class HXSound {
 
     /** SOUND ACTION METHODS ___________________________________________________________________ **/
 
-    // playSoundFx(): Attempts to play the sound effect via the HXSoundEngine instance(s).
-    public synchronized boolean playSoundFx(int resource, boolean isLooped, Context context) {
+    // initSound(): Prepares the sound engines to play the specified sound effect.
+    public synchronized boolean initSound(int resource, boolean isLooped, Context context) {
 
         if (resource == 0) {
             HXLog.e(LOG_TAG, "ERROR: prepareSoundFx(): Invalid sound resource was set.");
@@ -121,7 +127,7 @@ public class HXSound {
         if (isEnabled) {
 
             if (hxSoundEngines == null) {
-                initializeSoundEngines();
+                initSoundEngines();
             }
 
             HXLog.d(LOG_TAG, "SOUND: Attempting to play sound effect on HXSoundEngine (" + currentEngine + ")...");
@@ -144,8 +150,8 @@ public class HXSound {
         }
     }
 
-    // pauseSounds(): Pauses all sound effect playback in all HXSoundEngine instances.
-    public static void pauseSounds() {
+    // pause(): Pauses all sound effect playback in all HXSoundEngine instances.
+    public static void pause() {
 
         // Pauses sound effect playback in all HXSoundEngine instances.
         if (hxSound != null && hxSound.hxSoundEngines != null) {
@@ -163,10 +169,9 @@ public class HXSound {
         }
     }
 
-    // resumeSounds(): Resumes all sound effect playback in all HXSoundEngine instances.
-    public static void resumeSounds() {
+    // resume(): Resumes all sound effect playback in all HXSoundEngine instances.
+    public static void resume() {
 
-        // Resumes sound effect playback in all HXSoundEngine instances.
         if (hxSound != null && hxSound.hxSoundEngines != null) {
 
             HXLog.d(LOG_TAG, "RESUME: Resuming sound playback on all HXSoundEngine instances...");
@@ -183,6 +188,36 @@ public class HXSound {
     }
 
     /** SOUND HELPER METHODS ___________________________________________________________________ **/
+
+    // load(): Loads the referenced list of sound resources into the HXSoundEngine(s).
+    public static void load(final List<Integer> soundResourceList, final Context context) {
+
+        // Checks if the context is null.
+        if (context == null || context.getApplicationContext() == null) {
+            HXLog.e(LOG_TAG, "ERROR: load(): Context cannot be null.");
+            return;
+        }
+
+        // Initializes hxSound and hxSoundEngines, if not already initialized.
+        instance();
+        if (hxSound.hxSoundEngines == null) {
+            hxSound.initSoundEngines();
+        }
+
+        // Loads the list of sound resources into the HXSoundEngine's SoundPool objects.
+        Thread loadingThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                int i = 0;
+                for (int x : new int[hxSound.numberOfEngines]) {
+                    hxSound.hxSoundEngines.get(i).loadSoundFxList(soundResourceList, context.getApplicationContext());
+                    HXLog.d(LOG_TAG, "LOADING: Loading HXSoundEngine (" + i + ") with list of sound resources.");
+                    i++;
+                }
+            }
+        });
+        loadingThread.start();
+    }
 
     // clear(): Releases resources held by this singleton and other objects associated with this
     // object. This method should be called when the singleton object is no longer in use.
@@ -216,7 +251,7 @@ public class HXSound {
             }
 
             hxSound.numberOfEngines = engines;
-            hxSound.initializeSoundEngines();
+            hxSound.initSoundEngines();
         } else {
             HXLog.w(LOG_TAG, "PREPARING: engines(): This feature is only available for devices running on Android API 10 and below.");
         }

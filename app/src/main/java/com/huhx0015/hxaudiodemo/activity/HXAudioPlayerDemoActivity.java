@@ -36,6 +36,7 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMu
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        HXMusic.logging(true); // Enables logging for HXAudio.
         loadPreferences(); // Loads the settings values from the main SharedPreferences object.
         initView(); // Sets up layout for the activity.
         HXMusic.setListener(this); // Sets the HXMusicListener interface to this activity.
@@ -49,7 +50,7 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMu
 
         // Checks to see if songs were playing in the background previously; this call resumes
         // the audio playback.
-        HXMusic.resumeMusic(this);
+        HXMusic.resume(this);
         HXAudioPlayerUtils.enableSystemSound(false, this); // Temporarily disables the physical button's sound effects.
     }
 
@@ -60,7 +61,7 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMu
         super.onPause();
 
         HXAudioPlayerUtils.enableSystemSound(true, this); // Re-enables the physical button's sound effects.
-        HXMusic.pauseMusic(); // Pauses any song that is playing in the background.
+        HXMusic.pause(); // Pauses any song that is playing in the background.
     }
 
     // onStop(): This function runs when screen is no longer visible and the activity is in a
@@ -70,7 +71,7 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMu
         super.onStop();
 
         // Refreshes the SoundPool object for Android 2.3 (GINGERBREAD) devices.
-        HXSound.reinitialize();
+        HXSound.reinitialize(this);
     }
 
     // onDestroy(): This function runs when the activity has terminated and is being destroyed.
@@ -136,13 +137,13 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMu
     @Override
     public void onMusicBufferingUpdate(HXMusicItem music, int percent) {}
 
-    // onMusicPause(): Called when HXMusic's pauseMusic() method has been called.
+    // onMusicPause(): Called when HXMusic's pause() method has been called.
     @Override
     public void onMusicPause(HXMusicItem music) {
         Toast.makeText(this, "MUSIC PAUSED: " + music.getMusicTitle(), Toast.LENGTH_SHORT).show();
     }
 
-    // onMusicStop(): Called when HXMusic's stopMusic() method has been called.
+    // onMusicStop(): Called when HXMusic's stop() method has been called.
     @Override
     public void onMusicStop(HXMusicItem music) {
         Toast.makeText(this, "MUSIC STOPPED: " + music.getMusicTitle(), Toast.LENGTH_SHORT).show();
@@ -304,7 +305,7 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMu
 
                 // Plays the last selected song.
                 else {
-                    HXMusic.resumeMusic(HXAudioPlayerDemoActivity.this);
+                    HXMusic.resume(HXAudioPlayerDemoActivity.this);
                 }
             }
         });
@@ -317,7 +318,7 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMu
 
                 // Pauses the song that is currently playing in the background.
                 if (HXMusic.isPlaying()) {
-                    HXMusic.pauseMusic();
+                    HXMusic.pause();
                 }
             }
         });
@@ -330,7 +331,7 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMu
 
                 // Stops the song that is currently playing in the background.
                 if (HXMusic.isPlaying()) {
-                    HXMusic.stopMusic();
+                    HXMusic.stop();
                     currentSong = "NONE"; // Indicates no song has been selected.
                     toggleStar(0); // Updates the star song toggles.
                 }
@@ -351,7 +352,7 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMu
 
                     // Stops song playback if song is currently playing.
                     if (HXMusic.isPlaying()) {
-                        HXMusic.stopMusic();
+                        HXMusic.stop();
                         currentSong  = "NONE"; // Indicates no song has been selected.
                         toggleStar(0); // Updates the song star toggles.
                     }
@@ -390,7 +391,7 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMu
                 else {
 
                     // Refreshes the SoundPool object for Android 2.3 (GINGERBREAD) devices.
-                    HXSound.reinitialize();
+                    HXSound.reinitialize(HXAudioPlayerDemoActivity.this);
 
                     soundOn = true;
                     soundEnableButton.setText("SOUND ON");

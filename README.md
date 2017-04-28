@@ -31,11 +31,11 @@ HXMusic.music()
        .play(this);                 // Plays the song. [REQUIRED]
 ```
 
-#### Play Music (URL):
+#### Play Music (Path):
 
 ```
 HXMusic.music()
-       .load("http://some-fake-url.com/song.mp3")   // Sets the URL location of the song. [REQUIRED]
+       .load("http://some-fake-url.com/song.mp3")   // Sets the path location of the song. [REQUIRED]
        .title("My Awesome Song")                    // Sets the title of the song. [OPTIONAL]
        .artist("Mr. Anonymous")                     // Sets the artist of the song. [OPTIONAL]
        .date("January 1, 1998")                     // Sets the date of the song. [OPTIONAL]
@@ -48,19 +48,19 @@ HXMusic.music()
 #### Pause Music:
 
 ```
-HXMusic.pauseMusic();               // Pauses any song that is playing in the background.
+HXMusic.pause();               // Pauses any song that is playing in the background.
 ```
 
 #### Resume Music:
 
 ```
-HXMusic.resumeMusic(this);          // Resumes playback of the last played song at the position where it left off.
+HXMusic.resume(this);          // Resumes playback of the last played song at the position where it left off.
 ```
 
 #### Stop Music:
 
 ```
-HXMusic.stopMusic();                // Stops all music playing in the background.
+HXMusic.stop();                // Stops all music playing in the background.
 ```
 
 #### Song Playing
@@ -124,14 +124,21 @@ HXSound.sound()
 #### Pause Sound:
 
 ```
-HXSound.pauseSounds();              // Pauses all looping sounds playing in the background.
+HXSound.pause();              // Pauses all looping sounds playing in the background.
 ```
 
 #### Resume Sound:
 
 ```
-HXSound.resumeSounds();              // Resumes playback of all looping sounds previously played in the background.
+HXSound.resume();              // Resumes playback of all looping sounds previously played in the background.
 ```
+
+#### Load Sound:
+
+```
+HXSound.load();                // Pre-loads a list of song resources into HXSound.
+```
+
 
 #### Enable Multiple Sound Engines:
 
@@ -148,7 +155,7 @@ HXSound.enable(true);               // Enables/disables sound playback.
 #### Re-Initialize Sound:
 
 ```
-HXSound.reinitialize();             // Manual re-initialization of sound engines. Only for Android API 9 - 10. 
+HXSound.reinitialize(this);             // Manual re-initialization of sound engines. Only for Android API 9 - 10.
 ```
 
 #### Logging:

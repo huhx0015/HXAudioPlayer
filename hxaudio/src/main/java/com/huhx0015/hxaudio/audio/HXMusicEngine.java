@@ -189,7 +189,7 @@ class HXMusicEngine {
                 currentPlayer.setNextMediaPlayer(null);
                 nextPlayer = null;
             } catch (Exception e) {
-                HXLog.e(LOG_TAG, "ERROR: pauseMusic(): " + e.getLocalizedMessage());
+                HXLog.e(LOG_TAG, "ERROR: pause(): " + e.getLocalizedMessage());
             }
         }
     }
@@ -252,7 +252,7 @@ class HXMusicEngine {
         return currentPlayer != null && currentPlayer.isPlaying();
     }
 
-    // pauseMusic(): Pauses any music playing in the background.
+    // pause(): Pauses any music playing in the background.
     int pauseMusic() {
 
         // Checks to see if the MediaPlayer object has been initialized first before retrieving the
@@ -272,12 +272,12 @@ class HXMusicEngine {
                     musicEngineListener.onMusicEnginePause();
                 }
 
-                HXLog.d(LOG_TAG, "MUSIC: pauseMusic(): Music playback has been paused.");
+                HXLog.d(LOG_TAG, "MUSIC: pause(): Music playback has been paused.");
                 return musicPosition;
             }
         }
 
-        HXLog.e(LOG_TAG, "ERROR: pauseMusic(): Music could not be paused.");
+        HXLog.e(LOG_TAG, "ERROR: pause(): Music could not be paused.");
         return 0;
     }
 
@@ -297,7 +297,7 @@ class HXMusicEngine {
         }
     }
 
-    // stopMusic(): Stops any music playing in the background.
+    // stop(): Stops any music playing in the background.
     boolean stopMusic() {
 
         if (currentPlayer != null) {
@@ -309,10 +309,10 @@ class HXMusicEngine {
                 musicEngineListener.onMusicEngineStop();
             }
 
-            HXLog.d(LOG_TAG, "MUSIC: stopMusic(): Music playback has been stopped.");
+            HXLog.d(LOG_TAG, "MUSIC: stop(): Music playback has been stopped.");
             return true;
         } else {
-            HXLog.e(LOG_TAG, "ERROR: stopMusic(): Cannot stop music, as MediaPlayer object is already null.");
+            HXLog.e(LOG_TAG, "ERROR: stop(): Cannot stop music, as MediaPlayer object is already null.");
             return false;
         }
     }

@@ -97,7 +97,7 @@ public class HXMusic implements HXMusicEngineListener {
     private synchronized boolean checkStatus(HXMusicItem music) {
 
         if (!isEnabled) {
-            HXLog.e(LOG_TAG, "ERROR: checkStatus(): Music has been currently disabled.");
+            HXLog.d(LOG_TAG, "DISABLED: checkStatus(): Music has been currently disabled.");
             return false;
         } else if (music == null) {
             HXLog.e(LOG_TAG, "ERROR: checkStatus(): Music item was null.");
@@ -107,7 +107,7 @@ public class HXMusic implements HXMusicEngineListener {
             return false;
         } else if (hxMusicItem != null && (hxMusicItem.getMusicResource() == music.getMusicResource())) {
             if (hxMusicEngine != null && hxMusicEngine.isPlaying()) {
-                HXLog.e(LOG_TAG, "ERROR: checkStatus(): Specified song is already playing!");
+                HXLog.d(LOG_TAG, "PLAYING: checkStatus(): Specified song is already playing!");
                 return false;
             }
         }
@@ -152,7 +152,7 @@ public class HXMusic implements HXMusicEngineListener {
         }
     }
 
-    // onMusicEnginePause(): Called when HXMusicEngine's pauseMusic() method has been called.
+    // onMusicEnginePause(): Called when HXMusicEngine's pause() method has been called.
     @Override
     public void onMusicEnginePause() {
         hxMusic.hxMusicStatus = HXMusicStatus.PAUSED;  // Indicates that the music is currently paused.
@@ -163,7 +163,7 @@ public class HXMusic implements HXMusicEngineListener {
         }
     }
 
-    // onMusicStop(): Called when HXMusicEngine's stopMusic() method has been called.
+    // onMusicStop(): Called when HXMusicEngine's stop() method has been called.
     @Override
     public void onMusicEngineStop() {
         hxMusic.hxMusicStatus = HXMusicStatus.STOPPED;
@@ -181,18 +181,18 @@ public class HXMusic implements HXMusicEngineListener {
         return hxMusic.hxMusicEngine != null && hxMusic.hxMusicEngine.isPlaying();
     }
 
-    // pauseMusic(): Pauses any music playing in the background.
-    public static void pauseMusic() {
+    // pause(): Pauses any music playing in the background.
+    public static void pause() {
         if (hxMusic != null && hxMusic.hxMusicEngine != null) {
             hxMusic.musicPosition = hxMusic.hxMusicEngine.pauseMusic();
         }
     }
 
-    // resumeMusic(): Resumes playback of the current music.
-    public static void resumeMusic(final Context context) {
+    // resume(): Resumes playback of the current music.
+    public static void resume(final Context context) {
 
         if (context == null || context.getApplicationContext() == null) {
-            HXLog.e(LOG_TAG, "ERROR: resumeMusic(): Context cannot be null.");
+            HXLog.e(LOG_TAG, "ERROR: resume(): Context cannot be null.");
         } else if (hxMusic != null && hxMusic.hxMusicStatus.equals(HXMusicStatus.PAUSED) &&
                 hxMusic.hxMusicEngine != null) {
             Thread playThread = new Thread(new Runnable() {
@@ -205,16 +205,16 @@ public class HXMusic implements HXMusicEngineListener {
             });
             playThread.start();
         } else {
-            HXLog.e(LOG_TAG, "ERROR: resumeMusic(): Music could not be resumed.");
+            HXLog.e(LOG_TAG, "ERROR: resume(): Music could not be resumed.");
         }
     }
 
-    //  stopMusic(): Stops any music playing in the background.
-    public static void stopMusic() {
+    //  stop(): Stops any music playing in the background.
+    public static void stop() {
         if (hxMusic != null && hxMusic.hxMusicEngine != null) {
             hxMusic.hxMusicEngine.stopMusic();
         } else {
-            HXLog.e(LOG_TAG, "ERROR: stopMusic(): Music could not be stopped.");
+            HXLog.e(LOG_TAG, "ERROR: stop(): Music could not be stopped.");
         }
     }
 

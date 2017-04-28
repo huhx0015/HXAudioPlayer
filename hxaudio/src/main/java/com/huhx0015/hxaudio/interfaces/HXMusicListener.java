@@ -23,9 +23,9 @@ public interface HXMusicListener {
     // onMusicBufferingUpdate(): Called when HXMusicEngine's MediaPlayer object has called onBufferingUpdate().
     void onMusicBufferingUpdate(HXMusicItem music, int percent);
 
-    // onMusicPause(): Called when HXMusic's pauseMusic() method has been called.
+    // onMusicPause(): Called when HXMusic's pause() method has been called.
     void onMusicPause(HXMusicItem music);
 
-    // onMusicStop(): Called when HXMusic's stopMusic() method has been called.
+    // onMusicStop(): Called when HXMusic's stop() method has been called.
     void onMusicStop(HXMusicItem music);
 }

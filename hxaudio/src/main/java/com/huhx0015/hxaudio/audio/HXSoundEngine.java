@@ -7,6 +7,8 @@ import android.media.AudioManager;
 import android.media.SoundPool;
 import android.os.Build;
 import com.huhx0015.hxaudio.utils.HXLog;
+import java.util.List;
+import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
 /** -----------------------------------------------------------------------------------------------
@@ -23,7 +25,8 @@ class HXSoundEngine {
 
     // AUDIO VARIABLES:
     private AudioManager soundManager; // AudioManager variable for sound effects.
-    private volatile ConcurrentHashMap<Integer, Integer> soundEffectMap; // Used for storing the sound effects.
+    private volatile ConcurrentHashMap<Integer, Integer> soundEffectMap; // Used for storing the loaded sound effects.
+    private volatile Vector<Integer> soundFxList; // Used for storing the referenced sound effects.
     private volatile SoundPool soundPool; // SoundPool variable for sound effects.
     private int engineID; // Used to determine the ID value of this instance.
     private volatile int soundEventCount = 0; // Used to count the number of sound events that have occurred.
@@ -87,7 +90,7 @@ class HXSoundEngine {
     // reinitialize(): This method re-initializes the SoundPool object for devices running
     // on Android 2.3 (GINGERBREAD) and earlier. This is to help minimize the AudioTrack out of
     // memory error, which was limited to a small 1 MB size buffer.
-    synchronized void reinitialize() {
+    synchronized void reinitialize(Context context) {
 
         // GINGERBREAD: The SoundPool is released and re-initialized. This is done to minimize the
         // AudioTrack out of memory (-12) error.
@@ -97,6 +100,15 @@ class HXSoundEngine {
 
             release(); // Releases the SoundPool object.
             initSoundPool(); // Initializes the SoundPool object.
+
+            // Re-generates the soundEffectMap.
+            if (soundFxList != null && !soundFxList.isEmpty()) {
+                for (int i = 0; i < soundFxList.size(); i++) {
+                    addSoundFx(soundFxList.get(i), context);
+                }
+                HXLog.d(LOG_TAG, "RE-INITIALIZING (" + engineID + "): reinitialize(): Re-generated sound effect map.");
+            }
+
             soundEventCount = 0; // Resets the sound event counter.
         }
     }
@@ -106,8 +118,9 @@ class HXSoundEngine {
     // prepareSoundFx(): Prepares the specified resource for sound playback.
     synchronized void prepareSoundFx(final int resource, final boolean isLoop, Context context) {
 
+        // Initializes the SoundPool object.
         if (soundPool == null) {
-            initSoundPool(); // Initializes the SoundPool object.
+            initSoundPool();
         }
 
         // ANDROID 2.3 (GINGERBREAD): The SoundPool object is re-initialized if the sound event
@@ -115,46 +128,41 @@ class HXSoundEngine {
         // buffer limit issue.
         if ((Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) && (soundEventCount >= MAX_SOUND_EVENTS)) {
             HXLog.w(LOG_TAG, "WARNING (" + engineID + "): prepareSoundFx(): Sound event count (" + soundEventCount + ") has exceeded the maximum number of sound events. Re-initializing the engine.");
-            reinitialize();
+            reinitialize(context);
         }
 
-        if (soundEffectMap == null) {
-            soundEffectMap = new ConcurrentHashMap<>();
-        }
+        final float volume = getCurrentVolume(context); // Gets the current volume value.
 
-        // Retrieves the current volume value.
-        if (soundManager == null) {
-            soundManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-        }
-        final float volume = soundManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+        // Checks to see if the sound effect has been already added. If not it is added to the list
+        // the sound effect is prepared in SoundPool.
+        boolean isAdded = addSoundFx(resource, context);
 
-        // Checks to see if the sound effect has already been added.
-        Integer soundEffect = soundEffectMap.get(resource);
-        if (soundEffect == null) {
-            soundEffectMap.put(resource, soundPool.load(context, resource, SOUND_PRIORITY_LEVEL));
-
-            // If the soundPool object is not yet fully loaded, the listener will play the sound effect
-            // after the soundPool object has fully loaded.
+        // If the soundPool object is not yet fully loaded, the listener will play the sound effect
+        // after the soundPool object has fully loaded.
+        if (isAdded) {
             soundPool.setOnLoadCompleteListener(new SoundPool.OnLoadCompleteListener() {
                 @Override
                 public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
                     HXLog.d(LOG_TAG, "READY (" + engineID + "): onLoadComplete(): The SoundPool object is ready.");
                     playSoundFx(resource, isLoop, volume);
+
+                    // Prevents onLoadComplete() from running again for this instance.
+                    soundPool.setOnLoadCompleteListener(null);
                 }
             });
-
         } else {
-            HXLog.d(LOG_TAG, "READY (" + engineID + "): checkSoundFxList(): Sound effect already added to soundEffectMap.");
             playSoundFx(resource, isLoop, volume);
         }
 
         soundEventCount++;
     }
 
-    // playSoundFx(): Plays the specified sound effect.
+    // initSound(): Plays the specified sound effect.
     private synchronized void playSoundFx(int resource, boolean isLoop, float volume) {
-        soundPool.play(soundEffectMap.get(resource), volume, volume, SOUND_PRIORITY_LEVEL,
-                isLoop ? 1 : 0, 1.0f);
+        if (soundEffectMap != null && !soundEffectMap.isEmpty()) {
+            soundPool.play(soundEffectMap.get(resource), volume, volume, SOUND_PRIORITY_LEVEL,
+                    isLoop ? 1 : 0, 1.0f);
+        }
     }
 
     // pauseSounds(): Pauses all sound effects playing in the background.
@@ -182,9 +190,9 @@ class HXSoundEngine {
 
     /** SOUND HELPER METHODS ___________________________________________________________________ **/
 
-    // checkSoundFxList(): Checks to see if the resource has already been added to the sound effect
-    // map.
-    private synchronized void checkSoundFxList(int resource, Context context) {
+    // addSoundFx(): Adds the specified sound resource to the soundEffectMap, if it has not been
+    // added.
+    private synchronized boolean addSoundFx(int resource, Context context) {
         if (soundEffectMap == null) {
             soundEffectMap = new ConcurrentHashMap<>();
         }
@@ -192,9 +200,44 @@ class HXSoundEngine {
         // Checks to see if the sound effect has already been added.
         Integer soundEffect = soundEffectMap.get(resource);
         if (soundEffect == null) {
+
+            // Initializes the SoundPool object.
+            if (soundPool == null) {
+                initSoundPool();
+            }
+
             soundEffectMap.put(resource, soundPool.load(context, resource, SOUND_PRIORITY_LEVEL));
+
+            // Stores the reference for the added sound resource into soundFxList.
+            if (soundFxList == null) {
+                soundFxList = new Vector<>();
+            }
+            soundFxList.add(resource);
+
+            HXLog.d(LOG_TAG, "PREPARING (" + engineID + "): addSoundFx(): New sound effect has been added.");
+            return true;
         } else {
-            HXLog.d(LOG_TAG, "PREPARING (" + engineID + "): checkSoundFxList(): Sound effect already added to soundEffectMap.");
+            HXLog.d(LOG_TAG, "PREPARING (" + engineID + "): addSoundFx(): Sound effect already added to soundEffectMap.");
+            return false;
+        }
+    }
+
+    // getCurrentVolume(): Retrieves the current volume value.
+    private synchronized float getCurrentVolume(Context context) {
+        if (soundManager == null) {
+            soundManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+        }
+        return soundManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+    }
+
+    // loadSoundFxList(): Loads the list of sound effects into the soundEffectMap.
+    synchronized void loadSoundFxList(List<Integer> soundList, Context context) {
+
+        // Loads each resource from the soundList into the soundEffectMap and soundFxList.
+        for (int resource : soundList) {
+            if (resource != 0) {
+                addSoundFx(resource, context);
+            }
         }
     }
 
