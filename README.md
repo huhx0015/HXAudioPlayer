@@ -7,7 +7,7 @@ DEVELOPER: huhx0015
 
 The HX Audio Player is a custom audio wrapper library for Android 2.3 and above. Originally designed as an audio library for games, HX Audio Player is an easy-to-use, alternative approach to implementing music and sound playback into Android applications. HX Audio Player also implements seamless workarounds to address the existing bugs and shortcomings of MediaPlayer and SoundPool APIs.
 
-Previous versions of this audio library was utilized in apps such as Dragon Geo, Cid's Aerial Tours, Chrono Maps, and StepBOT.
+HX Audio Player has been utilized in apps such as Dragon Geo, Cid's Aerial Tours, and Chrono Maps.
 
 The demo application provided with the project provides an example how the HX Audio Player library works.
 
