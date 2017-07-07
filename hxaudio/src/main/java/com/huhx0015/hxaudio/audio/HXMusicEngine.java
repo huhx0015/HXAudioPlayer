@@ -26,6 +26,7 @@ class HXMusicEngine {
     /** CLASS VARIABLES ________________________________________________________________________ **/
 
     // AUDIO VARIABLES:
+    private boolean isInitialized; // Used to keep track of the initialization state of the current player.
     private int musicPosition; // Used for tracking the current music position.
     private Context context; // Context class used for initializing the MediaPlayer objects.
     private HXMusicItem musicItem; // References the current HXMusicItem that stores information about the current music.
@@ -157,6 +158,7 @@ class HXMusicEngine {
             try {
                 player.setDataSource(context, Uri.parse(musicItem.getMusicUrl()));
                 player.prepareAsync(); // Prepares the MediaPlayer object asynchronously.
+                isInitialized = true;
                 HXLog.d(LOG_TAG, "PREPARING: prepareMediaPlayer(): MediaPlayer URL was set, preparing MediaPlayer...");
             } catch (Exception e) {
                 HXLog.e(LOG_TAG, "ERROR: prepareMediaPlayer(): An error occurred while loading the music from the specified URL: " + e.getLocalizedMessage());
@@ -169,6 +171,7 @@ class HXMusicEngine {
                 AssetFileDescriptor asset = context.getResources().openRawResourceFd(musicItem.getMusicResource());
                 player.setDataSource(asset.getFileDescriptor(), asset.getStartOffset(), asset.getLength());
                 player.prepareAsync(); // Prepares the MediaPlayer object asynchronously.
+                isInitialized = true;
                 HXLog.d(LOG_TAG, "PREPARING: prepareMediaPlayer(): MediaPlayer resource was set, preparing MediaPlayer...");
             } catch (Exception e) {
                 HXLog.e(LOG_TAG, "ERROR: prepareMediaPlayer(): An error occurred while loading the music resource: " + e.getLocalizedMessage());
@@ -249,7 +252,7 @@ class HXMusicEngine {
 
     // isPlaying(): Determines if a music is currently playing in the background.
     boolean isPlaying() {
-        return currentPlayer != null && currentPlayer.isPlaying();
+        return currentPlayer != null && isInitialized && currentPlayer.isPlaying();
     }
 
     // pause(): Pauses any music playing in the background.
@@ -257,12 +260,12 @@ class HXMusicEngine {
 
         // Checks to see if the MediaPlayer object has been initialized first before retrieving the
         // current music position and pausing the music.
-        if (currentPlayer != null) {
+        if (currentPlayer != null && isInitialized) {
 
             musicPosition = currentPlayer.getCurrentPosition(); // Retrieves the current music position.
 
             // Pauses the music only if there is a music is currently playing.
-            if (currentPlayer != null && currentPlayer.isPlaying()) {
+            if (currentPlayer.isPlaying()) {
 
                 removeNextMediaPlayer(); // Prevents nextPlayer from starting after currentPlayer has completed playback.
                 currentPlayer.pause(); // Pauses the music.
@@ -283,12 +286,12 @@ class HXMusicEngine {
 
     // release(): Used to release the resources being used by the MediaPlayer object.
     synchronized boolean release() {
+        isInitialized = false;
 
         if (currentPlayer != null) {
             currentPlayer.reset();
             currentPlayer.release();
             currentPlayer = null;
-
             HXLog.d(LOG_TAG, "RELEASE: release(): MediaPlayer object has been released.");
             return true;
         } else {
