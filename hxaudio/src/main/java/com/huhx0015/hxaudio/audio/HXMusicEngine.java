@@ -265,7 +265,7 @@ class HXMusicEngine {
             musicPosition = currentPlayer.getCurrentPosition(); // Retrieves the current music position.
 
             // Pauses the music only if there is a music is currently playing.
-            if (currentPlayer.isPlaying()) {
+            if (currentPlayer != null && currentPlayer.isPlaying()) {
 
                 removeNextMediaPlayer(); // Prevents nextPlayer from starting after currentPlayer has completed playback.
                 currentPlayer.pause(); // Pauses the music.

@@ -3,7 +3,6 @@ package com.huhx0015.hxaudio.utils;
 import android.content.Context;
 import android.media.AudioManager;
 import android.os.Build;
-import android.util.Log;
 
 /** -----------------------------------------------------------------------------------------------
  *  [HXAudioPlayerUtils] CLASS
@@ -23,32 +22,33 @@ public class HXAudioPlayerUtils {
 
     // enableSystemSound(): Enables or disables the device's system sound effects. This is most
     // commonly used if physical button's sound effects need to be enabled/disabled.
-    // NOTE: Android 7.0 and above requires "android.permission.ACCESS_NOTIFICATION_POLICY".
+    // NOTE 1: Android 7.0 and above requires "android.permission.ACCESS_NOTIFICATION_POLICY".
+    // NOTE 2: This method has been marked as deprecated and will be removed in the next major
+    // release of HXAudioPlayer.
+    @Deprecated
     public static void enableSystemSound(boolean mode, Context context) {
+        try {
+            AudioManager manager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
 
-        // ANDROID 2.3 - ANDROID 6.0:
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-            try {
-                AudioManager manager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-                if (manager != null) {
-
-                    // ANDROID 6.0+:
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        if (mode) {
-                            manager.adjustStreamVolume(AudioManager.STREAM_SYSTEM, AudioManager.ADJUST_UNMUTE, 0);
-                        } else {
-                            manager.adjustStreamVolume(AudioManager.STREAM_SYSTEM, AudioManager.ADJUST_MUTE, 0);
-                        }
-                    }
-
-                    // ANDROID 2.3 - ANDROID 5.1:
-                    else {
-                        manager.setStreamMute(AudioManager.STREAM_SYSTEM, mode);
-                    }
+            // ANDROID 6.0+:
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (mode) {
+                    manager.adjustStreamVolume(AudioManager.STREAM_SYSTEM, AudioManager.ADJUST_UNMUTE, 0);
+                } else {
+                    manager.adjustStreamVolume(AudioManager.STREAM_SYSTEM, AudioManager.ADJUST_MUTE, 0);
                 }
-            } catch (Exception e) {
-                Log.e(LOG_TAG, "ERROR: An exception occurred while attempting to access the AudioManager: " + e.getLocalizedMessage());
             }
+
+            // ANDROID 2.3 - ANDROID 5.1:
+            else {
+                manager.setStreamMute(AudioManager.STREAM_SYSTEM, mode);
+            }
+        } catch (NullPointerException e) {
+            HXLog.e(LOG_TAG, "ERROR: An null pointer exception occurred while attempting to access the AudioManager: " + e.getLocalizedMessage());
+        } catch (SecurityException e) {
+            HXLog.e(LOG_TAG, "ERROR: An security exception occurred while attempting to access the AudioManager: " + e.getLocalizedMessage());
+        } catch (Exception e) {
+            HXLog.e(LOG_TAG, "ERROR: An exception occurred while attempting to access the AudioManager: " + e.getLocalizedMessage());
         }
     }
 }
