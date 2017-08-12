@@ -49,13 +49,19 @@ class HXMusicEngine {
         this.musicPosition = position;
 
         // Stops any music currently playing in the background.
-        if (currentPlayer != null && currentPlayer.isPlaying()) {
-            HXLog.d(LOG_TAG, "PREPARING: initMusicEngine(): Song currently playing in the background. Stopping playback before switching to a new song.");
-            removeNextMediaPlayer(); // Prevents nextPlayer from starting after currentPlayer has completed playback.
-            currentPlayer.stop();
+        if (currentPlayer != null) {
+            try {
+                if (currentPlayer.isPlaying()) {
+                    HXLog.d(LOG_TAG, "PREPARING: initMusicEngine(): Song currently playing in the background. Stopping playback before switching to a new song.");
+                    removeNextMediaPlayer(); // Prevents nextPlayer from starting after currentPlayer has completed playback.
+                    currentPlayer.stop();
+                }
+                release(); // Releases MediaPool resources.
+            } catch (Exception e) {
+                HXLog.e(LOG_TAG, "ERROR: initMusicEngine(): An exception occurred while attempting to stop & release the existing MediaPlayer object. ");
+            }
         }
 
-        release(); // Releases MediaPool resources.
         currentPlayer = prepareMediaPlayer(context);
 
         if (currentPlayer != null) {
