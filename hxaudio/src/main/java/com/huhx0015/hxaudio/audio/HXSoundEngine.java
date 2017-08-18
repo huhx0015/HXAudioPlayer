@@ -160,7 +160,7 @@ class HXSoundEngine {
     private synchronized void playSoundFx(int id, boolean isLoop, float volume) {
         if (soundEffectMap != null && !soundEffectMap.isEmpty()) {
             soundPool.play(id, volume, volume, SOUND_PRIORITY_LEVEL,
-                    isLoop ? 1 : 0, 1.0f);
+                    isLoop ? -1 : 0, 1.0f);
         }
     }
 
