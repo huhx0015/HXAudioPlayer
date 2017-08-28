@@ -310,16 +310,24 @@ class HXMusicEngine {
     boolean stopMusic() {
 
         if (currentPlayer != null) {
-            removeNextMediaPlayer(); // Prevents nextPlayer from starting after currentPlayer has completed playback.
-            currentPlayer.stop(); // Stops any music currently playing in the background.
+            try {
+                if (currentPlayer.isPlaying()) {
+                    removeNextMediaPlayer(); // Prevents nextPlayer from starting after currentPlayer has completed playback.
+                    currentPlayer.stop(); // Stops any music currently playing in the background.
+                }
+                release(); // Releases MediaPool resources.
 
-            // Invokes the associated listener call.
-            if (musicEngineListener != null) {
-                musicEngineListener.onMusicEngineStop();
+                // Invokes the associated listener call.
+                if (musicEngineListener != null) {
+                    musicEngineListener.onMusicEngineStop();
+                }
+
+                HXLog.d(LOG_TAG, "MUSIC: stop(): Music playback has been stopped.");
+                return true;
+            } catch (Exception e) {
+                HXLog.e(LOG_TAG, "ERROR: stopMusic(): An exception occurred while attempting to stop & release the existing MediaPlayer object. ");
+                return false;
             }
-
-            HXLog.d(LOG_TAG, "MUSIC: stop(): Music playback has been stopped.");
-            return true;
         } else {
             HXLog.e(LOG_TAG, "ERROR: stop(): Cannot stop music, as MediaPlayer object is already null.");
             return false;
