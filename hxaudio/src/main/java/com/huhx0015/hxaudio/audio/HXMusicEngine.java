@@ -268,21 +268,25 @@ class HXMusicEngine {
         // current music position and pausing the music.
         if (currentPlayer != null && isInitialized) {
 
-            musicPosition = currentPlayer.getCurrentPosition(); // Retrieves the current music position.
+            try {
+                musicPosition = currentPlayer.getCurrentPosition(); // Retrieves the current music position.
 
-            // Pauses the music only if there is a music is currently playing.
-            if (currentPlayer != null && currentPlayer.isPlaying()) {
+                // Pauses the music only if there is a music is currently playing.
+                if (currentPlayer != null && currentPlayer.isPlaying()) {
 
-                removeNextMediaPlayer(); // Prevents nextPlayer from starting after currentPlayer has completed playback.
-                currentPlayer.pause(); // Pauses the music.
+                    removeNextMediaPlayer(); // Prevents nextPlayer from starting after currentPlayer has completed playback.
+                    currentPlayer.pause(); // Pauses the music.
 
-                // Invokes the associated listener call.
-                if (musicEngineListener != null) {
-                    musicEngineListener.onMusicEnginePause();
+                    // Invokes the associated listener call.
+                    if (musicEngineListener != null) {
+                        musicEngineListener.onMusicEnginePause();
+                    }
+
+                    HXLog.d(LOG_TAG, "MUSIC: pause(): Music playback has been paused.");
+                    return musicPosition;
                 }
-
-                HXLog.d(LOG_TAG, "MUSIC: pause(): Music playback has been paused.");
-                return musicPosition;
+            } catch (Exception e) {
+                HXLog.e(LOG_TAG, "ERROR: pause(): An exception occurred while attempting to pause the existing MediaPlayer object.");
             }
         }
 
