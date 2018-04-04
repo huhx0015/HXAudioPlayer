@@ -72,31 +72,31 @@ class HXMusicEngine {
 
                 @Override
                 public void onPrepared(MediaPlayer currentPlayer) {
-
-                    if (musicPosition != 0) {
-                        currentPlayer.seekTo(musicPosition);
-                        HXLog.d(LOG_TAG, "PREPARING: onPrepared(): MediaPlayer position set to: " + position);
-                    }
-
-                    // GAPLESS: If gapless mode is enabled, the secondary MediaPlayer will begin
-                    // immediate playback after playback on the current MediaPlayer has completed.
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && isGapless &&
-                            isLooped) {
-
-                        currentPlayer.setLooping(false); // Disables looping attribute.
-
-                        nextPlayer = prepareMediaPlayer(context);
-                        nextPlayer.setOnPreparedListener(nextPlayerPreparedListener);
-                        nextPlayer.setOnCompletionListener(nextPlayerCompletionListener);
-                        nextPlayer.setOnBufferingUpdateListener(playerBufferingUpdateListener);
-
-                        HXLog.d(LOG_TAG, "PREPARING: Gapless mode prepared.");
-                    } else {
-                        currentPlayer.setLooping(isLooped); // Sets the looping attribute.
-                        HXLog.d(LOG_TAG, "PREPARING: onPrepared(): MediaPlayer looping status: " + isLooped);
-                    }
-
                     try {
+
+                        if (musicPosition != 0) {
+                            currentPlayer.seekTo(musicPosition);
+                            HXLog.d(LOG_TAG, "PREPARING: onPrepared(): MediaPlayer position set to: " + position);
+                        }
+
+                        // GAPLESS: If gapless mode is enabled, the secondary MediaPlayer will begin
+                        // immediate playback after playback on the current MediaPlayer has completed.
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && isGapless &&
+                                isLooped) {
+
+                            currentPlayer.setLooping(false); // Disables looping attribute.
+
+                            nextPlayer = prepareMediaPlayer(context);
+                            nextPlayer.setOnPreparedListener(nextPlayerPreparedListener);
+                            nextPlayer.setOnCompletionListener(nextPlayerCompletionListener);
+                            nextPlayer.setOnBufferingUpdateListener(playerBufferingUpdateListener);
+
+                            HXLog.d(LOG_TAG, "PREPARING: Gapless mode prepared.");
+                        } else {
+                            currentPlayer.setLooping(isLooped); // Sets the looping attribute.
+                            HXLog.d(LOG_TAG, "PREPARING: onPrepared(): MediaPlayer looping status: " + isLooped);
+                        }
+
                         currentPlayer.start(); // Begins playing the music.
 
                         // Invokes the associated listener call.
@@ -258,7 +258,12 @@ class HXMusicEngine {
 
     // isPlaying(): Determines if a music is currently playing in the background.
     boolean isPlaying() {
-        return currentPlayer != null && isInitialized && currentPlayer.isPlaying();
+        try {
+            return currentPlayer != null && isInitialized && currentPlayer.isPlaying();
+        } catch (Exception e) {
+            HXLog.e(LOG_TAG, "ERROR: isPlaying(): " + e.getLocalizedMessage());
+            return false;
+        }
     }
 
     // pause(): Pauses any music playing in the background.
