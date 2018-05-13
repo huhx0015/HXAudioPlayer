@@ -42,8 +42,9 @@ class HXMusicEngine {
     /** INITIALIZATION METHODS _________________________________________________________________ **/
 
     // initMusicEngine(): Initializes the engine with the specified music parameters.
-    synchronized boolean initMusicEngine(HXMusicItem music, final int position, final boolean isGapless,
-                            final boolean isLooped, final Context context) {
+    synchronized boolean initMusicEngine(HXMusicItem music, final int position,
+                                         final boolean isGapless, final boolean isLooped,
+                                         final Context context) {
         this.context = context;
         this.musicItem = music;
         this.musicPosition = position;
