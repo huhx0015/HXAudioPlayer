@@ -213,8 +213,14 @@ class HXMusicEngine {
         public void onPrepared(MediaPlayer mp) {
             try {
                 if (currentPlayer != null && nextPlayer != null) {
-                    currentPlayer.setNextMediaPlayer(nextPlayer);
-                    currentPlayer.setOnCompletionListener(nextPlayerCompletionListener);
+                    Thread preparePlayerThread = new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            currentPlayer.setNextMediaPlayer(nextPlayer);
+                            currentPlayer.setOnCompletionListener(nextPlayerCompletionListener);
+                        }
+                    });
+                    preparePlayerThread.start();
                 }
             } catch (Exception e) {
                 HXLog.e(LOG_TAG, "ERROR: onPrepared(): " + e.getLocalizedMessage());
@@ -226,13 +232,19 @@ class HXMusicEngine {
     // nextMediaPlayer object when gapless playback mode has been enabled.
     private MediaPlayer.OnCompletionListener nextPlayerCompletionListener = new MediaPlayer.OnCompletionListener() {
         @Override
-        public void onCompletion(MediaPlayer mp) {
+        public void onCompletion(final MediaPlayer mp) {
             if (nextPlayer != null) {
-                currentPlayer = nextPlayer; // Sets the current MediaPlayer.
-                nextPlayer = prepareMediaPlayer(context); // Prepares the next MediaPlayer.
-                nextPlayer.setOnPreparedListener(nextPlayerPreparedListener);
-                mp.release(); // Releases the previous MediaPlayer.
-                HXLog.d(LOG_TAG, "MUSIC: onCompletion(): Preparing next MediaPlayer object for gapless playback.");
+                Thread preparePlayerThread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        currentPlayer = nextPlayer; // Sets the current MediaPlayer.
+                        nextPlayer = prepareMediaPlayer(context); // Prepares the next MediaPlayer.
+                        nextPlayer.setOnPreparedListener(nextPlayerPreparedListener);
+                        mp.release(); // Releases the previous MediaPlayer.
+                        HXLog.d(LOG_TAG, "MUSIC: onCompletion(): Preparing next MediaPlayer object for gapless playback.");
+                    }
+                });
+                preparePlayerThread.start();
             } else {
                 HXLog.e(LOG_TAG, "ERROR: onCompletion(): Unable to set nextPlayer as currentPlayer as nextPlayer was null.");
             }
