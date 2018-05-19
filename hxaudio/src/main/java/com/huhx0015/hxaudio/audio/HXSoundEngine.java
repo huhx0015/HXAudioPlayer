@@ -35,6 +35,7 @@ class HXSoundEngine {
     private static final int MAX_SIMULTANEOUS_SOUNDS = 8; // Can output eight sound effects simultaneously. Adjust this value accordingly.
     private static final int MAX_SOUND_EVENTS = 4; // Maximum number of sound events before the SoundPool object is reset. Adjust this value based on sound sample sizes. Android 2.3 (GINGERBREAD) only.
     private static final int SOUND_PRIORITY_LEVEL = 1; // Used for setting the sound priority level.
+    private static final float SOUND_VOLUME_LEVEL = 1.0f; // Used for setting the left and right volume levels.
 
     // LOGGING VARIABLES:
     private static final String LOG_TAG = HXSoundEngine.class.getSimpleName();
@@ -73,7 +74,8 @@ class HXSoundEngine {
         // Initializes the AudioAttributes.Builder object.
         AudioAttributes attributes = new AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_GAME) // Sets the audio type to USAGE_GAME.
-                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                .setFlags(AudioAttributes.FLAG_LOW_LATENCY)
                 .build();
 
         // Initializes the SoundPool.Builder object.
@@ -133,8 +135,6 @@ class HXSoundEngine {
             reinitialize(context);
         }
 
-        final float volume = getCurrentVolume(context); // Gets the current volume value.
-
         // Checks to see if the sound effect has been already added. If not it is added to the list
         // the sound effect is prepared in SoundPool.
         boolean isAdded = addSoundFx(resource, context);
@@ -146,20 +146,20 @@ class HXSoundEngine {
                 @Override
                 public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
                     HXLog.d(LOG_TAG, "READY (" + engineID + "): onLoadComplete(): The SoundPool object is ready.");
-                    playSoundFx(sampleId, isLoop, volume);
+                    playSoundFx(sampleId, isLoop);
                 }
             });
         } else {
-            playSoundFx(soundEffectMap.get(resource), isLoop, volume);
+            playSoundFx(soundEffectMap.get(resource), isLoop);
         }
 
         soundEventCount++;
     }
 
     // playSoundFx(): Plays the specified sound effect.
-    private synchronized void playSoundFx(int id, boolean isLoop, float volume) {
+    private synchronized void playSoundFx(int id, boolean isLoop) {
         if (soundEffectMap != null && !soundEffectMap.isEmpty()) {
-            soundPool.play(id, volume, volume, SOUND_PRIORITY_LEVEL,
+            soundPool.play(id, SOUND_VOLUME_LEVEL, SOUND_VOLUME_LEVEL, SOUND_PRIORITY_LEVEL,
                     isLoop ? -1 : 0, 1.0f);
         }
     }
