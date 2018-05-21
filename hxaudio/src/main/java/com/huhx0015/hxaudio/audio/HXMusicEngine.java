@@ -74,7 +74,6 @@ class HXMusicEngine {
                 @Override
                 public void onPrepared(MediaPlayer currentPlayer) {
                     try {
-
                         if (musicPosition != 0) {
                             currentPlayer.seekTo(musicPosition);
                             HXLog.d(LOG_TAG, "PREPARING: onPrepared(): MediaPlayer position set to: " + position);
@@ -206,26 +205,26 @@ class HXMusicEngine {
 
     /** LISTENER METHODS ________________________________________________________________________**/
 
-    // nextPlayerPreparedListener: Used to set the next OnPreparedListener for the
-    // nextMediaPlayer object when gapless playback mode has been enabled.
+    // nextPlayerPreparedListener: Used to set the next OnPreparedListener for the nextMediaPlayer
+    // object when gapless playback mode has been enabled.
     private MediaPlayer.OnPreparedListener nextPlayerPreparedListener = new MediaPlayer.OnPreparedListener() {
         @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
         @Override
         public void onPrepared(MediaPlayer mp) {
-            try {
-                if (currentPlayer != null && nextPlayer != null) {
-                    Thread preparePlayerThread = new Thread(new Runnable() {
-                        @Override
-                        public void run() {
+            Thread preparePlayerThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    if (currentPlayer != null && nextPlayer != null) {
+                        try {
                             currentPlayer.setNextMediaPlayer(nextPlayer);
                             currentPlayer.setOnCompletionListener(nextPlayerCompletionListener);
+                        } catch (Exception e) {
+                            HXLog.e(LOG_TAG, "ERROR: onPrepared(): " + e.getLocalizedMessage());
                         }
-                    });
-                    preparePlayerThread.start();
+                    }
                 }
-            } catch (Exception e) {
-                HXLog.e(LOG_TAG, "ERROR: onPrepared(): " + e.getLocalizedMessage());
-            }
+            });
+            preparePlayerThread.start();
         }
     };
 
@@ -234,21 +233,21 @@ class HXMusicEngine {
     private MediaPlayer.OnCompletionListener nextPlayerCompletionListener = new MediaPlayer.OnCompletionListener() {
         @Override
         public void onCompletion(final MediaPlayer mp) {
-            if (nextPlayer != null) {
-                Thread preparePlayerThread = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
+            Thread preparePlayerThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    if (nextPlayer != null) {
                         currentPlayer = nextPlayer; // Sets the current MediaPlayer.
                         nextPlayer = prepareMediaPlayer(context); // Prepares the next MediaPlayer.
                         nextPlayer.setOnPreparedListener(nextPlayerPreparedListener);
                         mp.release(); // Releases the previous MediaPlayer.
                         HXLog.d(LOG_TAG, "MUSIC: onCompletion(): Preparing next MediaPlayer object for gapless playback.");
+                    } else {
+                        HXLog.e(LOG_TAG, "ERROR: onCompletion(): Unable to set nextPlayer as currentPlayer as nextPlayer was null.");
                     }
-                });
-                preparePlayerThread.start();
-            } else {
-                HXLog.e(LOG_TAG, "ERROR: onCompletion(): Unable to set nextPlayer as currentPlayer as nextPlayer was null.");
-            }
+                }
+            });
+            preparePlayerThread.start();
         }
     };
 
@@ -272,7 +271,8 @@ class HXMusicEngine {
     // isPlaying(): Determines if a music is currently playing in the background.
     boolean isPlaying() {
         try {
-            return currentPlayer != null && isInitialized && currentPlayer.isPlaying();
+            boolean isPlaying = currentPlayer != null && isInitialized && currentPlayer.isPlaying();
+            return isPlaying;
         } catch (Exception e) {
             HXLog.e(LOG_TAG, "ERROR: isPlaying(): " + e.getLocalizedMessage());
             return false;
