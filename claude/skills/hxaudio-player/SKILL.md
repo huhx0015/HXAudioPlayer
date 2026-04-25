@@ -5,7 +5,7 @@ description: HX Audio Player for music and sound playback. Use when implementing
 
 # HX Audio Player
 
-Use HX Audio Player for music and sound in HXAudioPlayer. The library is in the `hxaudio` module. Supports Android 2.3+ with workarounds for MediaPlayer/SoundPool bugs.
+Use HX Audio Player for music and sound in HXAudioPlayer. The library is in the `hxaudio` module. Targets Android 5.0+ (API 21) and uses modern MediaPlayer/SoundPool initialization paths.
 
 **Audio files:** Place in `res/raw/` (e.g. `res/raw/my_song.mp3` → `R.raw.my_song`).
 
@@ -18,10 +18,17 @@ HXMusic.music()
     .title("My Awesome Song")    // [OPTIONAL]
     .artist("Mr. Anonymous")     // [OPTIONAL]
     .date("January 1, 1998")     // [OPTIONAL]
-    .at(5)                       // Start position (seconds)
-    .gapless(true)               // Gapless playback (API 16+)
+    .at(5000)                    // Start position (milliseconds)
+    .gapless(true)               // Gapless loop playback
     .looped(true)                // Loop
     .play(this);                 // [REQUIRED]
+```
+
+**Shortcut helpers (optional):**
+```java
+HXMusic.play(this, R.raw.my_song_name);            // Play once
+HXMusic.play(this, R.raw.my_song_name, true);      // Loop
+HXMusic.playGaplessLoop(this, R.raw.my_song_name); // Gapless loop
 ```
 
 **Play from path/URL:**
@@ -37,12 +44,20 @@ HXMusic.music()
 - `HXMusic.resume(this)` — Resume
 - `HXMusic.stop()` — Stop all
 - `HXMusic.isPlaying()` — Boolean
-- `HXMusic.getPosition()` — Current position (seconds)
+- `HXMusic.getPosition()` — Current position (milliseconds)
 - `HXMusic.setListener(this)` — HXMusicListener
 - `HXMusic.getStatus()` — Status string
 - `HXMusic.enable(true)` — Enable/disable
 - `HXMusic.logging(true)` — Log output
 - `HXMusic.clear()` — Clear when app is terminating
+
+**Optional error callback (`HXMusicListener`):**
+```java
+@Override
+public void onMusicError(HXMusicItem music, int what, int extra) {
+    // Optional: monitor MediaPlayer failures for diagnostics/recovery logic.
+}
+```
 
 **Lifecycle (Activity/Fragment):**
 - `onPause()` → `HXMusic.pause()` — Pause when backgrounded
@@ -59,13 +74,19 @@ HXSound.sound()
     .play(this);                  // [REQUIRED]
 ```
 
+**Shortcut helpers (optional):**
+```java
+HXSound.play(this, R.raw.my_sound_effect);        // Play once
+HXSound.play(this, R.raw.my_sound_effect, true);  // Loop
+```
+
 **Control:**
 - `HXSound.pause()` — Pause looping sounds
 - `HXSound.resume()` — Resume
 - `HXSound.load(soundResourceList, context)` — Pre-load resources
-- `HXSound.engines(2)` — Multiple sound engines (API 9–10 only)
+- `HXSound.engines(2)` — Retained for compatibility, ignored on API 21+
 - `HXSound.enable(true)` — Enable/disable
-- `HXSound.reinitialize(this)` — Re-init (API 9–10)
+- `HXSound.reinitialize(this)` — Deprecated compatibility API for explicit SoundPool reset
 - `HXSound.logging(true)` — Log output
 - `HXSound.clear()` — Clear when no longer needed
 
@@ -78,6 +99,7 @@ implementation project(':hxaudio')
 
 ## Notes
 
-- **API 9–10:** HXSound creates 2 HXSoundEngine instances by default to work around SoundPool buffer limits. Keep sound effects small (<100 KB, 64 kbps or less).
-- **Gapless:** `.gapless(true)` only on API 16+; falls back to standard loop on older devices.
+- **Min SDK:** `hxaudio` targets API 21+; legacy Gingerbread/Honeycomb compatibility branches are removed.
+- **Gapless:** `.gapless(true)` enables seamless loop behavior for looped tracks in the modern playback path.
+- **Threading:** `HXMusic.play()/resume()` and `HXSound.play()/load()/reinitialize()` are dispatched on serialized background executors.
 - **Release:** Call `HXMusic.clear()` and `HXSound.clear()` in `onDestroy()` when audio is no longer needed.

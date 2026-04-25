@@ -1,12 +1,10 @@
 package com.huhx0015.hxaudio.audio;
 
-import android.annotation.TargetApi;
 import android.content.Context;
+import android.media.AudioAttributes;
 import android.content.res.AssetFileDescriptor;
-import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
-import android.os.Build;
 import com.huhx0015.hxaudio.interfaces.HXMusicEngineListener;
 import com.huhx0015.hxaudio.model.HXMusicItem;
 import com.huhx0015.hxaudio.utils.HXLog;
@@ -45,6 +43,7 @@ class HXMusicEngine {
     synchronized boolean initMusicEngine(HXMusicItem music, final int position,
                                          final boolean isGapless, final boolean isLooped,
                                          final Context context) {
+        isInitialized = false;
         this.context = context;
         this.musicItem = music;
         this.musicPosition = position;
@@ -74,6 +73,7 @@ class HXMusicEngine {
                 @Override
                 public void onPrepared(MediaPlayer currentPlayer) {
                     try {
+                        isInitialized = true;
                         if (musicPosition != 0) {
                             currentPlayer.seekTo(musicPosition);
                             HXLog.d(LOG_TAG, "PREPARING: onPrepared(): MediaPlayer position set to: " + position);
@@ -81,15 +81,20 @@ class HXMusicEngine {
 
                         // GAPLESS: If gapless mode is enabled, the secondary MediaPlayer will begin
                         // immediate playback after playback on the current MediaPlayer has completed.
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && isGapless &&
-                                isLooped) {
+                        if (isGapless && isLooped) {
 
                             currentPlayer.setLooping(false); // Disables looping attribute.
 
                             nextPlayer = prepareMediaPlayer(context);
-                            nextPlayer.setOnPreparedListener(nextPlayerPreparedListener);
-                            nextPlayer.setOnCompletionListener(nextPlayerCompletionListener);
-                            nextPlayer.setOnBufferingUpdateListener(playerBufferingUpdateListener);
+                            if (nextPlayer != null) {
+                                nextPlayer.setOnPreparedListener(nextPlayerPreparedListener);
+                                nextPlayer.setOnCompletionListener(nextPlayerCompletionListener);
+                                nextPlayer.setOnBufferingUpdateListener(playerBufferingUpdateListener);
+                            } else {
+                                // Fall back to standard looping when the secondary player cannot be prepared.
+                                currentPlayer.setLooping(true);
+                                HXLog.w(LOG_TAG, "PREPARING: Gapless secondary player unavailable. Falling back to MediaPlayer loop mode.");
+                            }
 
                             HXLog.d(LOG_TAG, "PREPARING: Gapless mode prepared.");
                         } else {
@@ -118,12 +123,18 @@ class HXMusicEngine {
 
                     // GAPLESS: Sets the current MediaPlayer object and prepares the next
                     // MediaPlayer to be played when the current MediaPlayer playback has completed.
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && isGapless &&
-                            isLooped) {
+                    if (isGapless && isLooped) {
                         currentPlayer = nextPlayer; // Sets the current MediaPlayer.
                         nextPlayer = prepareMediaPlayer(context); // Prepares the next MediaPlayer.
-                        nextPlayer.setOnPreparedListener(nextPlayerPreparedListener);
-                        mp.release(); // Releases the previous MediaPlayer object.
+                        if (nextPlayer != null) {
+                            nextPlayer.setOnPreparedListener(nextPlayerPreparedListener);
+                            nextPlayer.setOnCompletionListener(nextPlayerCompletionListener);
+                            nextPlayer.setOnBufferingUpdateListener(playerBufferingUpdateListener);
+                        } else if (currentPlayer != null) {
+                            currentPlayer.setLooping(true);
+                            HXLog.w(LOG_TAG, "MUSIC: onCompletion(): Next gapless player unavailable. Continuing with standard loop mode.");
+                        }
+                        releasePlayer(mp); // Releases the previous MediaPlayer object.
                     } else {
                         musicPosition = 0;
 
@@ -153,18 +164,24 @@ class HXMusicEngine {
     // prepareMediaPlayer(): Prepares a MediaPlayer object with the resource or path defined by the
     // HXMusicItem.
     private synchronized MediaPlayer prepareMediaPlayer(Context context) {
+        boolean hasValidDataSource = false;
 
         // Sets up the MediaPlayer object for the music to be played.
         MediaPlayer player = new MediaPlayer(); // Initializes the MediaPlayer.
-        player.setAudioStreamType(AudioManager.STREAM_MUSIC); // Sets the audio type for the MediaPlayer object.
-        HXLog.d(LOG_TAG, "PREPARING: prepareMediaPlayer(): MediaPlayer stream type set to STREAM_MUSIC.");
+        AudioAttributes attributes = new AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_MEDIA)
+                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                .build();
+        player.setAudioAttributes(attributes);
+        HXLog.d(LOG_TAG, "PREPARING: prepareMediaPlayer(): MediaPlayer audio attributes configured.");
 
         // Prepares the specified music URL for playback.
         if (musicItem.getMusicUrl() != null) {
             try {
                 player.setDataSource(context, Uri.parse(musicItem.getMusicUrl()));
+                player.setOnErrorListener(playerErrorListener);
                 player.prepareAsync(); // Prepares the MediaPlayer object asynchronously.
-                isInitialized = true;
+                hasValidDataSource = true;
                 HXLog.d(LOG_TAG, "PREPARING: prepareMediaPlayer(): MediaPlayer URL was set, preparing MediaPlayer...");
             } catch (Exception e) {
                 HXLog.e(LOG_TAG, "ERROR: prepareMediaPlayer(): An error occurred while loading the music from the specified URL: " + e.getLocalizedMessage());
@@ -174,14 +191,26 @@ class HXMusicEngine {
         // Prepares the specified music resource for playback.
         else if (musicItem.getMusicResource() != 0) {
             try {
-                AssetFileDescriptor asset = context.getResources().openRawResourceFd(musicItem.getMusicResource());
-                player.setDataSource(asset.getFileDescriptor(), asset.getStartOffset(), asset.getLength());
+                try (AssetFileDescriptor asset = context.getResources().openRawResourceFd(musicItem.getMusicResource())) {
+                    if (asset == null) {
+                        HXLog.e(LOG_TAG, "ERROR: prepareMediaPlayer(): Failed to open AssetFileDescriptor for music resource.");
+                        player.release();
+                        return null;
+                    }
+                    player.setDataSource(asset.getFileDescriptor(), asset.getStartOffset(), asset.getLength());
+                }
+                player.setOnErrorListener(playerErrorListener);
                 player.prepareAsync(); // Prepares the MediaPlayer object asynchronously.
-                isInitialized = true;
+                hasValidDataSource = true;
                 HXLog.d(LOG_TAG, "PREPARING: prepareMediaPlayer(): MediaPlayer resource was set, preparing MediaPlayer...");
             } catch (Exception e) {
                 HXLog.e(LOG_TAG, "ERROR: prepareMediaPlayer(): An error occurred while loading the music resource: " + e.getLocalizedMessage());
             }
+        }
+
+        if (!hasValidDataSource) {
+            player.release();
+            return null;
         }
 
         return player;
@@ -193,9 +222,12 @@ class HXMusicEngine {
 
         // Removes the link between currentPlayer and nextPlayer if nextPlayer has been prepared for
         // playback after currentPlayer completes playback.
-        if (nextPlayer != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+        if (nextPlayer != null) {
             try {
-                currentPlayer.setNextMediaPlayer(null);
+                if (currentPlayer != null) {
+                    currentPlayer.setNextMediaPlayer(null);
+                }
+                releasePlayer(nextPlayer);
                 nextPlayer = null;
             } catch (Exception e) {
                 HXLog.e(LOG_TAG, "ERROR: pause(): " + e.getLocalizedMessage());
@@ -208,23 +240,16 @@ class HXMusicEngine {
     // nextPlayerPreparedListener: Used to set the next OnPreparedListener for the nextMediaPlayer
     // object when gapless playback mode has been enabled.
     private MediaPlayer.OnPreparedListener nextPlayerPreparedListener = new MediaPlayer.OnPreparedListener() {
-        @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
         @Override
         public void onPrepared(MediaPlayer mp) {
-            Thread preparePlayerThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    if (currentPlayer != null && nextPlayer != null) {
-                        try {
-                            currentPlayer.setNextMediaPlayer(nextPlayer);
-                            currentPlayer.setOnCompletionListener(nextPlayerCompletionListener);
-                        } catch (Exception e) {
-                            HXLog.e(LOG_TAG, "ERROR: onPrepared(): " + e.getLocalizedMessage());
-                        }
-                    }
+            if (currentPlayer != null && nextPlayer != null) {
+                try {
+                    currentPlayer.setNextMediaPlayer(nextPlayer);
+                    currentPlayer.setOnCompletionListener(nextPlayerCompletionListener);
+                } catch (Exception e) {
+                    HXLog.e(LOG_TAG, "ERROR: onPrepared(): " + e.getLocalizedMessage());
                 }
-            });
-            preparePlayerThread.start();
+            }
         }
     };
 
@@ -233,21 +258,19 @@ class HXMusicEngine {
     private MediaPlayer.OnCompletionListener nextPlayerCompletionListener = new MediaPlayer.OnCompletionListener() {
         @Override
         public void onCompletion(final MediaPlayer mp) {
-            Thread preparePlayerThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    if (nextPlayer != null) {
-                        currentPlayer = nextPlayer; // Sets the current MediaPlayer.
-                        nextPlayer = prepareMediaPlayer(context); // Prepares the next MediaPlayer.
-                        nextPlayer.setOnPreparedListener(nextPlayerPreparedListener);
-                        mp.release(); // Releases the previous MediaPlayer.
-                        HXLog.d(LOG_TAG, "MUSIC: onCompletion(): Preparing next MediaPlayer object for gapless playback.");
-                    } else {
-                        HXLog.e(LOG_TAG, "ERROR: onCompletion(): Unable to set nextPlayer as currentPlayer as nextPlayer was null.");
-                    }
+            if (nextPlayer != null) {
+                currentPlayer = nextPlayer; // Sets the current MediaPlayer.
+                nextPlayer = prepareMediaPlayer(context); // Prepares the next MediaPlayer.
+                if (nextPlayer != null) {
+                    nextPlayer.setOnPreparedListener(nextPlayerPreparedListener);
+                    nextPlayer.setOnCompletionListener(nextPlayerCompletionListener);
+                    nextPlayer.setOnBufferingUpdateListener(playerBufferingUpdateListener);
                 }
-            });
-            preparePlayerThread.start();
+                releasePlayer(mp); // Releases the previous MediaPlayer.
+                HXLog.d(LOG_TAG, "MUSIC: onCompletion(): Preparing next MediaPlayer object for gapless playback.");
+            } else {
+                HXLog.e(LOG_TAG, "ERROR: onCompletion(): Unable to set nextPlayer as currentPlayer as nextPlayer was null.");
+            }
         }
     };
 
@@ -263,6 +286,17 @@ class HXMusicEngine {
             }
 
             HXLog.d(LOG_TAG, "MUSIC: initMusicEngine(): Music buffering at: " + percent);
+        }
+    };
+
+    private MediaPlayer.OnErrorListener playerErrorListener = new MediaPlayer.OnErrorListener() {
+        @Override
+        public boolean onError(MediaPlayer mp, int what, int extra) {
+            HXLog.e(LOG_TAG, "ERROR: playerErrorListener(): MediaPlayer error detected. what=" + what + ", extra=" + extra);
+            if (musicEngineListener != null) {
+                musicEngineListener.onMusicEngineError(what, extra);
+            }
+            return false;
         }
     };
 
@@ -316,10 +350,21 @@ class HXMusicEngine {
     synchronized boolean release() {
         isInitialized = false;
 
+        boolean released = false;
+
         if (currentPlayer != null) {
-            currentPlayer.reset();
-            currentPlayer.release();
+            releasePlayer(currentPlayer);
             currentPlayer = null;
+            released = true;
+        }
+
+        if (nextPlayer != null) {
+            releasePlayer(nextPlayer);
+            nextPlayer = null;
+            released = true;
+        }
+
+        if (released) {
             HXLog.d(LOG_TAG, "RELEASE: release(): MediaPlayer object has been released.");
             return true;
         } else {
@@ -353,6 +398,24 @@ class HXMusicEngine {
         } else {
             HXLog.e(LOG_TAG, "ERROR: stop(): Cannot stop music, as MediaPlayer object is already null.");
             return false;
+        }
+    }
+
+    private void releasePlayer(MediaPlayer player) {
+        if (player == null) {
+            return;
+        }
+
+        try {
+            player.reset();
+        } catch (Exception e) {
+            HXLog.e(LOG_TAG, "ERROR: releasePlayer(): Error while resetting MediaPlayer. " + e.getLocalizedMessage());
+        }
+
+        try {
+            player.release();
+        } catch (Exception e) {
+            HXLog.e(LOG_TAG, "ERROR: releasePlayer(): Error while releasing MediaPlayer. " + e.getLocalizedMessage());
         }
     }
 

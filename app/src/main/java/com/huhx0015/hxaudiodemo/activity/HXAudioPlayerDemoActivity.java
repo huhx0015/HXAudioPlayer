@@ -18,6 +18,7 @@ import com.huhx0015.hxaudiodemo.preferences.HXAudioPreferences;
 import com.huhx0015.hxaudio.audio.HXSound;
 import com.huhx0015.hxaudio.utils.HXAudioPlayerUtils;
 
+@SuppressWarnings("deprecation")
 public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMusicListener {
 
     /** CLASS VARIABLES ________________________________________________________________________ **/
@@ -64,16 +65,6 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMu
         HXMusic.pause(); // Pauses any song that is playing in the background.
     }
 
-    // onStop(): This function runs when screen is no longer visible and the activity is in a
-    // state prior to destruction.
-    @Override
-    protected void onStop() {
-        super.onStop();
-
-        // Refreshes the SoundPool object for Android 2.3 (GINGERBREAD) devices.
-        HXSound.reinitialize(this);
-    }
-
     // onDestroy(): This function runs when the activity has terminated and is being destroyed.
     @Override
     protected void onDestroy() {
@@ -92,9 +83,7 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMu
     public void onBackPressed() {
 
         // Plays the sound effect.
-        HXSound.sound()
-                .load(R.raw.sfx_3_digital_life_1)
-                .play(HXAudioPlayerDemoActivity.this);
+        HXSound.play(HXAudioPlayerDemoActivity.this, R.raw.sfx_3_digital_life_1);
 
         finish(); // Finishes the activity.
     }
@@ -108,9 +97,7 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMu
         if (keyCode == KeyEvent.KEYCODE_MENU ) {
 
             // Plays the sound effect.
-            HXSound.sound()
-                    .load(R.raw.sfx_2_machine)
-                    .play(this);
+            HXSound.play(this, R.raw.sfx_2_machine);
 
             return true; // Returns true to prevent further propagation of the key event.
         }
@@ -147,6 +134,14 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMu
     @Override
     public void onMusicStop(HXMusicItem music) {
         Toast.makeText(this, "MUSIC STOPPED: " + music.getMusicTitle(), Toast.LENGTH_SHORT).show();
+    }
+
+    // onMusicError(): Called when HXMusicEngine's MediaPlayer reports an error.
+    @Override
+    public void onMusicError(HXMusicItem music, int what, int extra) {
+        String musicTitle = music != null && music.getMusicTitle() != null ? music.getMusicTitle() : "Unknown";
+        Toast.makeText(this, "MUSIC ERROR: " + musicTitle + " (" + what + ", " + extra + ")",
+                Toast.LENGTH_SHORT).show();
     }
 
     /** LAYOUT FUNCTIONALITY ___________________________________________________________________ **/
@@ -198,6 +193,7 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMu
                             .gapless(true)
                             .play(HXAudioPlayerDemoActivity.this);
 
+
                     toggleStar(1); // Toggles the star for the first song.
                 }
             }
@@ -219,6 +215,7 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMu
                             .artist("Clinthammer")
                             .looped(true)
                             .play(HXAudioPlayerDemoActivity.this);
+
 
                     toggleStar(2); // Toggles the star for the second song.
                 }
@@ -257,9 +254,7 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMu
             public void onClick(View v) {
 
                 // Plays the sound effect.
-                HXSound.sound()
-                        .load(R.raw.sfx_1_sci_fi_5)
-                        .play(HXAudioPlayerDemoActivity.this);
+                HXSound.play(HXAudioPlayerDemoActivity.this, R.raw.sfx_1_sci_fi_5);
             }
         });
 
@@ -270,9 +265,7 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMu
             public void onClick(View v) {
 
                 // Plays the sound effect.
-                HXSound.sound()
-                        .load(R.raw.sfx_2_machine)
-                        .play(HXAudioPlayerDemoActivity.this);
+                HXSound.play(HXAudioPlayerDemoActivity.this, R.raw.sfx_2_machine);
             }
         });
 
@@ -283,9 +276,7 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMu
             public void onClick(View v) {
 
                 // Plays the sound effect.
-                HXSound.sound()
-                        .load(R.raw.sfx_3_digital_life_1)
-                        .play(HXAudioPlayerDemoActivity.this);
+                HXSound.play(HXAudioPlayerDemoActivity.this, R.raw.sfx_3_digital_life_1);
             }
         });
 
@@ -389,10 +380,6 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMu
 
                 // Enables sound playback.
                 else {
-
-                    // Refreshes the SoundPool object for Android 2.3 (GINGERBREAD) devices.
-                    HXSound.reinitialize(HXAudioPlayerDemoActivity.this);
-
                     soundOn = true;
                     soundEnableButton.setText("SOUND ON");
                 }
