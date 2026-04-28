@@ -1,8 +1,15 @@
 package com.huhx0015.hxaudiodemo.activity;
 
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.os.Build;
 import android.os.Bundle;
+import android.view.Window;
+import android.view.WindowManager;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
@@ -37,6 +44,7 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMu
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        initSystemBar();
         HXMusic.logging(true); // Enables logging for HXAudio.
         loadPreferences(); // Loads the settings values from the main SharedPreferences object.
         initView(); // Sets up layout for the activity.
@@ -145,6 +153,31 @@ public class HXAudioPlayerDemoActivity extends AppCompatActivity implements HXMu
     }
 
     /** LAYOUT FUNCTIONALITY ___________________________________________________________________ **/
+
+    // initSystemBar(): Sets the appearance of the system bar in this activity. Makes
+    // adjustments for devices running on Android API 15 and greater.
+    private void initSystemBar() {
+        Window window = getWindow();
+        WindowCompat.setDecorFitsSystemWindows(window, true);
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+        window.setBackgroundDrawable(new ColorDrawable(Color.BLACK));
+        window.getDecorView().setBackgroundColor(Color.BLACK);
+        window.setStatusBarColor(Color.BLACK);
+        window.setNavigationBarColor(Color.BLACK);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.setStatusBarContrastEnforced(false);
+            window.setNavigationBarContrastEnforced(false);
+        }
+
+        WindowInsetsControllerCompat insetsController = WindowCompat.getInsetsController(window, window.getDecorView());
+        if (insetsController != null) {
+            insetsController.setAppearanceLightStatusBars(false);
+            insetsController.setAppearanceLightNavigationBars(false);
+        }
+    }
 
     // initView(): Sets up the layout for the activity.
     public void initView() {

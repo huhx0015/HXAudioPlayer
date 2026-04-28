@@ -43,7 +43,7 @@ HXMusic.playGaplessLoop(this, R.raw.my_song_name);   // Gapless loop helper.
 
 ```
 HXMusic.music()
-       .load("http://some-fake-url.com/song.mp3")   // Sets the path location of the song. [REQUIRED]
+       .load("https://some-fake-url.com/song.mp3")  // Sets the path location of the song. [REQUIRED]
        .title("My Awesome Song")                    // Sets the title of the song. [OPTIONAL]
        .artist("Mr. Anonymous")                     // Sets the artist of the song. [OPTIONAL]
        .date("January 1, 1998")                     // Sets the date of the song. [OPTIONAL]
@@ -203,6 +203,8 @@ Voilà! Also very simple! No need to deal with SoundPool!
 
 - THREADING: Builder `play()` and `resume()` calls are queued onto a serialized background executor so network/resource setup does not block the main thread.
 
+- NETWORK SECURITY (TARGET SDK 37): Remote streaming should use **HTTPS** URLs. On modern targets, cleartext `http://` traffic is blocked by default unless explicitly allowed via `android:usesCleartextTraffic` or a `networkSecurityConfig` domain exception.
+
 - RELEASE: As HXMusic and HXSound are singleton objects, it is recommended to call HXMusic.clear() & HXSound.clear() when audio playback is no longer needed. It is recommended to call these in the onDestroy() method of your Activity or Fragment.
 
 ## Migrating from HXAudio 3.x to HXAudio 4.x
@@ -212,9 +214,15 @@ This project is currently evolving toward a 4.x release line. Use this checklist
 ### 1) Android SDK Baseline
 - `hxaudio` now requires **minSdk 21+**.
 - Any consuming app/module using HXAudio must also set `minSdk` to at least 21.
+- The demo/app is configured for **targetSdk 37**.
 - HXAudio 4.x supports **API 21 (Lollipop) and above**.
 - Support for **API 9-20** (including Gingerbread, Honeycomb, Ice Cream Sandwich, Jelly Bean, and KitKat) has been dropped.
 - If you require compatibility with API 9-20, use the last HXAudio **3.x.x** release.
+
+### 1.1) Remote URL Playback on Modern Targets
+- Prefer `https://` media URLs for streaming.
+- `http://` URLs may fail on targetSdk 37 unless cleartext traffic is explicitly enabled.
+- If a legacy endpoint is HTTP-only, add a scoped `networkSecurityConfig` entry (preferred) or set `android:usesCleartextTraffic="true"` (broader, less secure).
 
 ### 2) Legacy Compatibility APIs
 - `HXSound.engines(int)` is now a compatibility-only API and is ignored on API 21+.

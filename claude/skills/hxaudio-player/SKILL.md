@@ -34,7 +34,7 @@ HXMusic.playGaplessLoop(this, R.raw.my_song_name); // Gapless loop
 **Play from path/URL:**
 ```java
 HXMusic.music()
-    .load("http://example.com/song.mp3")
+    .load("https://example.com/song.mp3")
     .title("My Awesome Song")
     .play(this);
 ```
@@ -100,6 +100,8 @@ implementation project(':hxaudio')
 ## Notes
 
 - **Min SDK:** `hxaudio` targets API 21+; legacy Gingerbread/Honeycomb compatibility branches are removed.
+- **Target SDK:** Current integration targets API 37.
 - **Gapless:** `.gapless(true)` enables seamless loop behavior for looped tracks in the modern playback path.
 - **Threading:** `HXMusic.play()/resume()` and `HXSound.play()/load()/reinitialize()` are dispatched on serialized background executors.
+- **Network security:** For URL playback, prefer `https://` endpoints. On modern targets, cleartext `http://` is blocked unless explicitly enabled via `usesCleartextTraffic` or a `networkSecurityConfig` exception.
 - **Release:** Call `HXMusic.clear()` and `HXSound.clear()` in `onDestroy()` when audio is no longer needed.
