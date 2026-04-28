@@ -6,6 +6,8 @@ import com.huhx0015.hxaudio.interfaces.HXMusicEngineListener;
 import com.huhx0015.hxaudio.interfaces.HXMusicListener;
 import com.huhx0015.hxaudio.model.HXMusicItem;
 import com.huhx0015.hxaudio.utils.HXLog;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /** -----------------------------------------------------------------------------------------------
  *  [HXMusic] CLASS
@@ -20,7 +22,7 @@ public class HXMusic implements HXMusicEngineListener {
     /** CLASS VARIABLES ________________________________________________________________________ **/
 
     // INSTANCE VARIABLES:
-    private static HXMusic hxMusic; // Instance variable for HXMusic.
+    private static volatile HXMusic hxMusic; // Instance variable for HXMusic.
 
     // AUDIO VARIABLES:
     private boolean isEnabled = true; // Used to determine if HXMusic has been enabled or disabled.
@@ -30,6 +32,7 @@ public class HXMusic implements HXMusicEngineListener {
     private HXMusicEngine hxMusicEngine; // Responsible for the control and playback of the MediaPlayer object.
     private HXMusicItem hxMusicItem; // References the current HXMusicItem that stores information about the current music.
     private HXMusicStatus hxMusicStatus = HXMusicStatus.READY; // Used to determine the current status of the music.
+    private ExecutorService operationExecutor; // Serializes music engine operations off the caller thread.
 
     // LISTENER VARIABLES:
     private HXMusicListener musicListener; // Interface for listening for events from the MediaPlayer object.
@@ -52,7 +55,11 @@ public class HXMusic implements HXMusicEngineListener {
     // instance(): Returns the hxMusic instance.
     public static HXMusic instance() {
         if (hxMusic == null) {
-            hxMusic = new HXMusic();
+            synchronized (HXMusic.class) {
+                if (hxMusic == null) {
+                    hxMusic = new HXMusic();
+                }
+            }
         }
         return hxMusic;
     }
@@ -68,8 +75,7 @@ public class HXMusic implements HXMusicEngineListener {
 
     /** INITIALIZATION METHODS _________________________________________________________________ **/
 
-    // initMusic(): Prepares the MediaPlayer objects for music playback with the specified music
-    // parameters.
+    // initMusic(): Prepares MediaPlayer objects for music playback with the specified parameters.
     public synchronized void initMusic(HXMusicItem music, int position, boolean isGapless,
                                        boolean isLooped, Context context) {
 
@@ -92,8 +98,18 @@ public class HXMusic implements HXMusicEngineListener {
         }
     }
 
-    // checkStatus(): Verifies if the HXMusicItem object is valid and is used to determine if the
-    // specified music can be played or not.
+    // initMusicAsync(): Schedules initMusic() on the audio operations executor.
+    public void initMusicAsync(final HXMusicItem music, final int position, final boolean isGapless,
+                               final boolean isLooped, final Context context) {
+        submitOperation(new Runnable() {
+            @Override
+            public void run() {
+                initMusic(music, position, isGapless, isLooped, context);
+            }
+        });
+    }
+
+    // checkStatus(): Verifies the HXMusicItem input and whether playback can proceed.
     private synchronized boolean checkStatus(HXMusicItem music) {
 
         if (!isEnabled) {
@@ -155,22 +171,30 @@ public class HXMusic implements HXMusicEngineListener {
     // onMusicEnginePause(): Called when HXMusicEngine's pause() method has been called.
     @Override
     public void onMusicEnginePause() {
-        hxMusic.hxMusicStatus = HXMusicStatus.PAUSED;  // Indicates that the music is currently paused.
+        hxMusicStatus = HXMusicStatus.PAUSED;  // Indicates that the music is currently paused.
 
         // Invokes the associated listener call.
-        if (hxMusic.musicListener != null && hxMusic.hxMusicItem != null) {
-            hxMusic.musicListener.onMusicPause(hxMusic.hxMusicItem);
+        if (musicListener != null && hxMusicItem != null) {
+            musicListener.onMusicPause(hxMusicItem);
         }
     }
 
     // onMusicStop(): Called when HXMusicEngine's stop() method has been called.
     @Override
     public void onMusicEngineStop() {
-        hxMusic.hxMusicStatus = HXMusicStatus.STOPPED;
+        hxMusicStatus = HXMusicStatus.STOPPED;
 
         // Invokes the associated listener call.
-        if (hxMusic.musicListener != null && hxMusic.hxMusicItem != null) {
-            hxMusic.musicListener.onMusicStop(hxMusic.hxMusicItem);
+        if (musicListener != null && hxMusicItem != null) {
+            musicListener.onMusicStop(hxMusicItem);
+        }
+    }
+
+    @Override
+    public void onMusicEngineError(int what, int extra) {
+        hxMusicStatus = HXMusicStatus.STOPPED;
+        if (musicListener != null && hxMusicItem != null) {
+            musicListener.onMusicError(hxMusicItem, what, extra);
         }
     }
 
@@ -178,7 +202,7 @@ public class HXMusic implements HXMusicEngineListener {
 
     // isPlaying(): Determines if a music is currently playing in the background.
     public static boolean isPlaying() {
-        return hxMusic.hxMusicEngine != null && hxMusic.hxMusicEngine.isPlaying();
+        return hxMusic != null && hxMusic.hxMusicEngine != null && hxMusic.hxMusicEngine.isPlaying();
     }
 
     // pause(): Pauses any music playing in the background.
@@ -195,15 +219,8 @@ public class HXMusic implements HXMusicEngineListener {
             HXLog.e(LOG_TAG, "ERROR: resume(): Context cannot be null.");
         } else if (hxMusic != null && hxMusic.hxMusicStatus.equals(HXMusicStatus.PAUSED) &&
                 hxMusic.hxMusicEngine != null) {
-            Thread playThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    hxMusic.hxMusicEngine.initMusicEngine(hxMusic.hxMusicItem,
-                            hxMusic.musicPosition, hxMusic.isGapless, hxMusic.isLooped,
-                            context.getApplicationContext());
-                }
-            });
-            playThread.start();
+            hxMusic.initMusicAsync(hxMusic.hxMusicItem, hxMusic.musicPosition, hxMusic.isGapless,
+                    hxMusic.isLooped, context.getApplicationContext());
         } else {
             HXLog.e(LOG_TAG, "ERROR: resume(): Music could not be resumed.");
         }
@@ -220,6 +237,52 @@ public class HXMusic implements HXMusicEngineListener {
 
     /** MUSIC HELPER METHODS ___________________________________________________________________ **/
 
+    // play(): Convenience helper for one-shot resource playback.
+    public static void play(Context context, int resource) {
+        HXMusic.music()
+                .load(resource)
+                .play(context);
+    }
+
+    // play(): Convenience helper for looped/non-looped resource playback.
+    public static void play(Context context, int resource, boolean looped) {
+        HXMusic.music()
+                .load(resource)
+                .looped(looped)
+                .play(context);
+    }
+
+    // play(): Convenience helper for one-shot URL playback.
+    public static void play(Context context, String url) {
+        HXMusic.music()
+                .load(url)
+                .play(context);
+    }
+
+    // play(): Convenience helper for looped/non-looped URL playback.
+    public static void play(Context context, String url, boolean looped) {
+        HXMusic.music()
+                .load(url)
+                .looped(looped)
+                .play(context);
+    }
+
+    // playGaplessLoop(): Convenience helper for gapless loop playback.
+    public static void playGaplessLoop(Context context, int resource) {
+        HXMusic.music()
+                .load(resource)
+                .gapless(true)
+                .play(context);
+    }
+
+    // playGaplessLoop(): Convenience helper for gapless loop playback from URL.
+    public static void playGaplessLoop(Context context, String url) {
+        HXMusic.music()
+                .load(url)
+                .gapless(true)
+                .play(context);
+    }
+
     // clear(): Releases resources held by the MediaPlayer object and clears this object. This
     // method should be called when the singleton object is no longer in use.
     public static void clear() {
@@ -227,6 +290,7 @@ public class HXMusic implements HXMusicEngineListener {
             if (hxMusic.hxMusicEngine != null) {
                 hxMusic.hxMusicEngine.release();
             }
+            hxMusic.shutdownExecutor();
             hxMusic.hxMusicItem = null;
             hxMusic.musicListener = null;
         }
@@ -239,12 +303,12 @@ public class HXMusic implements HXMusicEngineListener {
         hxMusic.isEnabled = isEnabled;
     }
 
-    // logging(): Enables logging for HXSound and HXSoundEngine events.
+    // logging(): Enables logging for HXMusic and HXMusicEngine events.
     public static void logging(boolean isEnabled) {
         HXLog.setLogging(isEnabled);
     }
 
-    // getPosition(): Returns the current music position.
+    // getPosition(): Returns the current music position in milliseconds.
     public static int getPosition() {
         if (hxMusic != null) {
             return hxMusic.musicPosition;
@@ -273,5 +337,23 @@ public class HXMusic implements HXMusicEngineListener {
     public static void setListener(HXMusicListener listener) {
         instance();
         hxMusic.musicListener = listener;
+    }
+
+    private synchronized void submitOperation(Runnable operation) {
+        ensureExecutor();
+        operationExecutor.execute(operation);
+    }
+
+    private synchronized void ensureExecutor() {
+        if (operationExecutor == null || operationExecutor.isShutdown()) {
+            operationExecutor = Executors.newSingleThreadExecutor();
+        }
+    }
+
+    private synchronized void shutdownExecutor() {
+        if (operationExecutor != null) {
+            operationExecutor.shutdownNow();
+            operationExecutor = null;
+        }
     }
 }

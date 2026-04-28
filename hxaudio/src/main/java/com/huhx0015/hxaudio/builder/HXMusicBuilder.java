@@ -70,15 +70,13 @@ public class HXMusicBuilder {
         return this;
     }
 
-    // at(): Sets the starting position of the music.
+    // at(): Sets the starting position of the music in milliseconds.
     public HXMusicBuilder at(int position) {
         this.musicPosition = position;
         return this;
     }
 
-    // gapless(): Enables music gapless audio playback for this music. Please note that this feature
-    // is only supported on devices running on Android API 16 and above. For devices running on
-    // Android API 9 - 15, the standard looped mode will be utilized.
+    // gapless(): Enables seamless loop playback for this music.
     public HXMusicBuilder gapless(boolean gapless) {
         this.isGapless = gapless;
         this.isLooped = gapless;
@@ -98,14 +96,8 @@ public class HXMusicBuilder {
         } else if ( (musicItem.getMusicResource() != 0) && (musicItem.getMusicUrl() != null)) {
             HXLog.e(LOG_TAG, "ERROR: play(): Cannot set both a music resource and url.");
         } else {
-            Thread playThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    HXMusic.instance().initMusic(musicItem, musicPosition, isGapless, isLooped,
-                            context.getApplicationContext());
-                }
-            });
-            playThread.start();
+            HXMusic.instance().initMusicAsync(musicItem, musicPosition, isGapless, isLooped,
+                    context.getApplicationContext());
         }
     }
 }

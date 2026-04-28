@@ -29,4 +29,7 @@ public interface HXMusicEngineListener {
 
     // onMusicStop(): Called when HXMusicEngine's stop() method has been called.
     void onMusicEngineStop();
+
+    // onMusicEngineError(): Called when the MediaPlayer reports an error.
+    default void onMusicEngineError(int what, int extra) {}
 }

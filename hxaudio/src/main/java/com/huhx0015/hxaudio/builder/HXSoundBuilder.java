@@ -41,14 +41,8 @@ public class HXSoundBuilder {
         if (context == null || context.getApplicationContext() == null) {
             HXLog.e(LOG_TAG, "ERROR: play(): Context cannot be null.");
         } else {
-            Thread playThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    HXSound.instance().initSound(soundResource, isLooped,
-                            context.getApplicationContext());
-                }
-            });
-            playThread.start();
+            HXSound.instance().initSoundAsync(soundResource, isLooped,
+                    context.getApplicationContext());
         }
     }
 }
