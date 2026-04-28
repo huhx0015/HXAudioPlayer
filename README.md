@@ -209,7 +209,7 @@ Voilà! Also very simple! No need to deal with SoundPool!
 
 ## Migrating from HXAudio 3.x to HXAudio 4.x
 
-This project is currently evolving toward a 4.x release line. Use this checklist when migrating from 3.x code.
+Use this checklist when migrating from 3.x code.
 
 ### 1) Android SDK Baseline
 - `hxaudio` now requires **minSdk 21+**.
