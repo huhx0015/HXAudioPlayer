@@ -11,6 +11,9 @@ import android.net.Uri;
 import com.huhx0015.hxaudio.interfaces.HXMusicEngineListener;
 import com.huhx0015.hxaudio.model.HXMusicItem;
 import com.huhx0015.hxaudio.utils.HXLog;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 /** -----------------------------------------------------------------------------------------------
  *  [HXMusicEngine] CLASS
@@ -28,6 +31,8 @@ class HXMusicEngine {
 
     // AUDIO VARIABLES:
     private boolean isInitialized; // Used to keep track of the initialization state of the current player.
+    private boolean isGapless; // Used to determine if gapless playback mode has been enabled or not.
+    private boolean isLooped; // Used to determine if the current music has looping enabled or not.
     private int musicPosition; // Used for tracking the current music position.
     private Context context; // Context class used for initializing the MediaPlayer objects.
     private HXMusicItem musicItem; // References the current HXMusicItem that stores information about the current music.
@@ -39,6 +44,13 @@ class HXMusicEngine {
     private boolean shouldResumeAfterFocusGain; // Tracks whether playback should auto-resume after transient focus loss.
     private float playbackVolume = 1.0f; // Tracks active playback volume for ducking/focus restoration.
 
+    // CONCURRENCY VARIABLES:
+    // Guards every read and write of the MediaPlayer references and their associated playback
+    // state. MediaPlayer callbacks, audio focus changes, and the HXMusic operation executor all
+    // reach this class from different threads.
+    private final Object playerLock = new Object();
+    private ScheduledThreadPoolExecutor teardownExecutor; // Performs the deferred teardown of unlinked players.
+
     // LISTENER VARIABLES:
     private HXMusicEngineListener musicEngineListener; // Interface for listening for events from the MediaPlayer object.
 
@@ -48,126 +60,53 @@ class HXMusicEngine {
     private static final float FULL_VOLUME = 1.0f;
     private static final float DUCK_VOLUME = 0.2f;
 
+    // Grace period granted to a MediaPlayer that has been unlinked from a gapless chain, before it
+    // is reset and released. See scheduleArmedPlayerTeardown().
+    private static final long ARMED_PLAYER_TEARDOWN_DELAY_MS = 750L;
+    private static final long TEARDOWN_THREAD_KEEP_ALIVE_MS = 5000L;
+    private static final String TEARDOWN_THREAD_NAME = "HXMusicEngine-teardown";
+
     /** INITIALIZATION METHODS _________________________________________________________________ **/
 
     // initMusicEngine(): Initializes the engine with the specified music parameters.
-    synchronized boolean initMusicEngine(HXMusicItem music, final int position,
-                                         final boolean isGapless, final boolean isLooped,
-                                         final Context context) {
-        isInitialized = false;
-        this.context = context;
-        this.musicItem = music;
-        this.musicPosition = position;
+    boolean initMusicEngine(HXMusicItem music, int position, boolean isGapless, boolean isLooped,
+                            Context context) {
+        synchronized (playerLock) {
+            isInitialized = false;
+            this.context = context;
+            this.musicItem = music;
+            this.musicPosition = position;
+            this.isGapless = isGapless;
+            this.isLooped = isLooped;
 
-        // Stops any music currently playing in the background.
-        if (currentPlayer != null) {
-            try {
-                if (currentPlayer.isPlaying()) {
-                    HXLog.d(LOG_TAG, "PREPARING: initMusicEngine(): Song currently playing in the background. Stopping playback before switching to a new song.");
-                    removeNextMediaPlayer(); // Prevents nextPlayer from starting after currentPlayer has completed playback.
-                    currentPlayer.stop();
-                }
-                release(); // Releases MediaPool resources.
-            } catch (Exception e) {
-                HXLog.e(LOG_TAG, "ERROR: initMusicEngine(): An exception occurred while attempting to stop & release the existing MediaPlayer object. ");
-            }
-        }
-
-        currentPlayer = prepareMediaPlayer(context);
-
-        if (currentPlayer != null) {
-
-            // Sets up the prepared listener for the MediaPlayer object. Music playback begins
-            // immediately once the MediaPlayer object is ready.
-            currentPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-
-                @Override
-                public void onPrepared(MediaPlayer currentPlayer) {
+            // Stops any music currently playing in the background. currentPlayer is stopped before
+            // release() unlinks nextPlayer, as the native media framework will otherwise hand
+            // playback off to nextPlayer while it is being torn down.
+            if (currentPlayer != null || nextPlayer != null) {
+                if (currentPlayer != null) {
                     try {
-                        isInitialized = true;
-                        if (musicPosition != 0) {
-                            currentPlayer.seekTo(musicPosition);
-                            HXLog.d(LOG_TAG, "PREPARING: onPrepared(): MediaPlayer position set to: " + position);
+                        if (currentPlayer.isPlaying()) {
+                            HXLog.d(LOG_TAG, "PREPARING: initMusicEngine(): Song currently playing in the background. Stopping playback before switching to a new song.");
+                            currentPlayer.stop();
                         }
-
-                        // GAPLESS: If gapless mode is enabled, the secondary MediaPlayer will begin
-                        // immediate playback after playback on the current MediaPlayer has completed.
-                        if (isGapless && isLooped) {
-
-                            currentPlayer.setLooping(false); // Disables looping attribute.
-
-                            nextPlayer = prepareMediaPlayer(context);
-                            if (nextPlayer != null) {
-                                nextPlayer.setOnPreparedListener(nextPlayerPreparedListener);
-                                nextPlayer.setOnCompletionListener(nextPlayerCompletionListener);
-                                nextPlayer.setOnBufferingUpdateListener(playerBufferingUpdateListener);
-                            } else {
-                                // Fall back to standard looping when the secondary player cannot be prepared.
-                                currentPlayer.setLooping(true);
-                                HXLog.w(LOG_TAG, "PREPARING: Gapless secondary player unavailable. Falling back to MediaPlayer loop mode.");
-                            }
-
-                            HXLog.d(LOG_TAG, "PREPARING: Gapless mode prepared.");
-                        } else {
-                            currentPlayer.setLooping(isLooped); // Sets the looping attribute.
-                            HXLog.d(LOG_TAG, "PREPARING: onPrepared(): MediaPlayer looping status: " + isLooped);
-                        }
-
-                        if (!requestAudioFocus(buildPlaybackAudioAttributes())) {
-                            HXLog.e(LOG_TAG, "ERROR: onPrepared(): Audio focus request failed. Playback start cancelled.");
-                            if (musicEngineListener != null) {
-                                musicEngineListener.onMusicEngineError(AudioManager.AUDIOFOCUS_REQUEST_FAILED, 0);
-                            }
-                            return;
-                        }
-
-                        setPlaybackVolume(FULL_VOLUME);
-                        currentPlayer.start(); // Begins playing the music.
-
-                        // Invokes the associated listener call.
-                        if (musicEngineListener != null) {
-                            musicEngineListener.onMusicEnginePrepared();
-                        }
-
-                        HXLog.d(LOG_TAG, "MUSIC: onPrepared(): Music playback has begun.");
                     } catch (Exception e) {
-                        HXLog.e(LOG_TAG, "ERROR: onPrepared(): " + e.getLocalizedMessage());
+                        HXLog.e(LOG_TAG, "ERROR: initMusicEngine(): An exception occurred while attempting to stop the existing MediaPlayer object.");
                     }
                 }
-            });
 
-            // Sets up a completion listener for the MediaPlayer object.
-            currentPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                @Override
-                public void onCompletion(MediaPlayer mp) {
+                release(); // Releases MediaPool resources.
+            }
 
-                    // GAPLESS: Sets the current MediaPlayer object and prepares the next
-                    // MediaPlayer to be played when the current MediaPlayer playback has completed.
-                    if (isGapless && isLooped) {
-                        currentPlayer = nextPlayer; // Sets the current MediaPlayer.
-                        nextPlayer = prepareMediaPlayer(context); // Prepares the next MediaPlayer.
-                        if (nextPlayer != null) {
-                            nextPlayer.setOnPreparedListener(nextPlayerPreparedListener);
-                            nextPlayer.setOnCompletionListener(nextPlayerCompletionListener);
-                            nextPlayer.setOnBufferingUpdateListener(playerBufferingUpdateListener);
-                        } else if (currentPlayer != null) {
-                            currentPlayer.setLooping(true);
-                            HXLog.w(LOG_TAG, "MUSIC: onCompletion(): Next gapless player unavailable. Continuing with standard loop mode.");
-                        }
-                        releasePlayer(mp); // Releases the previous MediaPlayer object.
-                    } else {
-                        musicPosition = 0;
-                        abandonAudioFocus();
+            currentPlayer = prepareMediaPlayer(context);
 
-                        // Invokes the associated listener call.
-                        if (musicEngineListener != null) {
-                            musicEngineListener.onMusicEngineCompletion();
-                        }
+            if (currentPlayer == null) {
+                HXLog.e(LOG_TAG, "ERROR: initMusicEngine(): An error occurred while preparing the MediaPlayer object.");
+                return false;
+            }
 
-                        HXLog.d(LOG_TAG, "MUSIC: onCompletion(): Music playback has completed.");
-                    }
-                }
-            });
+            // Music playback begins immediately once the MediaPlayer object is ready.
+            currentPlayer.setOnPreparedListener(playerPreparedListener);
+            currentPlayer.setOnCompletionListener(playerCompletionListener);
 
             // Sets up a buffering update listener for the MediaPlayer object. This listener will
             // be constantly invoked as the song is being buffered.
@@ -176,15 +115,12 @@ class HXMusicEngine {
             }
 
             return true;
-        } else {
-            HXLog.e(LOG_TAG, "ERROR: initMusicEngine(): An error occurred while preparing the MediaPlayer object.");
-            return false;
         }
     }
 
     // prepareMediaPlayer(): Prepares a MediaPlayer object with the resource or path defined by the
-    // HXMusicItem.
-    private synchronized MediaPlayer prepareMediaPlayer(Context context) {
+    // HXMusicItem. Callers must hold playerLock.
+    private MediaPlayer prepareMediaPlayer(Context context) {
         boolean hasValidDataSource = false;
 
         // Sets up the MediaPlayer object for the music to be played.
@@ -234,39 +170,41 @@ class HXMusicEngine {
         return player;
     }
 
-    private synchronized boolean requestAudioFocus(AudioAttributes attributes) {
-        Context appContext = context != null ? context.getApplicationContext() : null;
-        if (appContext == null) {
-            HXLog.e(LOG_TAG, "ERROR: requestAudioFocus(): Context was null.");
-            return false;
-        }
+    private boolean requestAudioFocus(AudioAttributes attributes) {
+        synchronized (playerLock) {
+            Context appContext = context != null ? context.getApplicationContext() : null;
+            if (appContext == null) {
+                HXLog.e(LOG_TAG, "ERROR: requestAudioFocus(): Context was null.");
+                return false;
+            }
 
-        if (audioManager == null) {
-            audioManager = (AudioManager) appContext.getSystemService(Context.AUDIO_SERVICE);
-        }
+            if (audioManager == null) {
+                audioManager = (AudioManager) appContext.getSystemService(Context.AUDIO_SERVICE);
+            }
 
-        if (audioManager == null) {
-            HXLog.e(LOG_TAG, "ERROR: requestAudioFocus(): AudioManager unavailable.");
-            return false;
-        }
+            if (audioManager == null) {
+                HXLog.e(LOG_TAG, "ERROR: requestAudioFocus(): AudioManager unavailable.");
+                return false;
+            }
 
-        int result;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            audioFocusRequest = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
-                    .setAudioAttributes(attributes)
-                    .setAcceptsDelayedFocusGain(false)
-                    .setOnAudioFocusChangeListener(audioFocusChangeListener)
-                    .build();
-            result = audioManager.requestAudioFocus(audioFocusRequest);
-        } else {
-            result = audioManager.requestAudioFocus(audioFocusChangeListener,
-                    AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
-        }
+            int result;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                audioFocusRequest = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+                        .setAudioAttributes(attributes)
+                        .setAcceptsDelayedFocusGain(false)
+                        .setOnAudioFocusChangeListener(audioFocusChangeListener)
+                        .build();
+                result = audioManager.requestAudioFocus(audioFocusRequest);
+            } else {
+                result = audioManager.requestAudioFocus(audioFocusChangeListener,
+                        AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+            }
 
-        hasAudioFocus = result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
-        shouldResumeAfterFocusGain = false;
-        HXLog.d(LOG_TAG, "AUDIO_FOCUS: requestAudioFocus(): result=" + result + ", granted=" + hasAudioFocus);
-        return hasAudioFocus;
+            hasAudioFocus = result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
+            shouldResumeAfterFocusGain = false;
+            HXLog.d(LOG_TAG, "AUDIO_FOCUS: requestAudioFocus(): result=" + result + ", granted=" + hasAudioFocus);
+            return hasAudioFocus;
+        }
     }
 
     private AudioAttributes buildPlaybackAudioAttributes() {
@@ -276,83 +214,279 @@ class HXMusicEngine {
                 .build();
     }
 
-    private synchronized void abandonAudioFocus() {
-        if (!hasAudioFocus && audioManager == null) {
+    private void abandonAudioFocus() {
+        synchronized (playerLock) {
+            if (!hasAudioFocus && audioManager == null) {
+                return;
+            }
+
+            if (audioManager != null) {
+                try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && audioFocusRequest != null) {
+                        audioManager.abandonAudioFocusRequest(audioFocusRequest);
+                    } else {
+                        audioManager.abandonAudioFocus(audioFocusChangeListener);
+                    }
+                } catch (Exception e) {
+                    HXLog.e(LOG_TAG, "ERROR: abandonAudioFocus(): " + e.getLocalizedMessage());
+                }
+            }
+
+            hasAudioFocus = false;
+            shouldResumeAfterFocusGain = false;
+            audioFocusRequest = null;
+            setPlaybackVolume(FULL_VOLUME);
+        }
+    }
+
+    // removeNextMediaPlayer(): Unlinks the queued MediaPlayer so that it is not auto-started once
+    // currentPlayer has completed playback. Callers must hold playerLock and must have already
+    // stopped or paused currentPlayer, as unlinking alone cannot undo a handoff that the native
+    // media framework has already performed.
+    private void removeNextMediaPlayer() {
+        synchronized (playerLock) {
+            if (nextPlayer == null) {
+                return;
+            }
+
+            MediaPlayer unlinkedPlayer = nextPlayer;
+            nextPlayer = null;
+
+            if (currentPlayer != null) {
+                try {
+                    currentPlayer.setNextMediaPlayer(null);
+                } catch (Exception e) {
+                    HXLog.e(LOG_TAG, "ERROR: removeNextMediaPlayer(): " + e.getLocalizedMessage());
+                }
+            }
+
+            scheduleArmedPlayerTeardown(unlinkedPlayer);
+        }
+    }
+
+    // scheduleArmedPlayerTeardown(): Silences a MediaPlayer that was armed through
+    // setNextMediaPlayer() and defers its teardown. When the native media framework promotes an
+    // armed player it calls start() on it from a detached thread that has no exception handler, so
+    // resetting or releasing the player before that call lands raises an IllegalStateException that
+    // terminates the process. Muting the player keeps an unavoidable auto-start inaudible, and the
+    // delay lets the pending call complete against a still-valid object.
+    private void scheduleArmedPlayerTeardown(final MediaPlayer player) {
+        if (player == null) {
             return;
         }
 
-        if (audioManager != null) {
-            try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && audioFocusRequest != null) {
-                    audioManager.abandonAudioFocusRequest(audioFocusRequest);
-                } else {
-                    audioManager.abandonAudioFocus(audioFocusChangeListener);
-                }
-            } catch (Exception e) {
-                HXLog.e(LOG_TAG, "ERROR: abandonAudioFocus(): " + e.getLocalizedMessage());
-            }
+        try {
+            player.setVolume(0f, 0f);
+        } catch (Exception e) {
+            HXLog.e(LOG_TAG, "ERROR: scheduleArmedPlayerTeardown(): Unable to silence the queued MediaPlayer. " + e.getLocalizedMessage());
         }
 
-        hasAudioFocus = false;
-        shouldResumeAfterFocusGain = false;
-        audioFocusRequest = null;
-        setPlaybackVolume(FULL_VOLUME);
+        try {
+            ensureTeardownExecutor().schedule(new Runnable() {
+                @Override
+                public void run() {
+                    releasePlayer(player);
+                    HXLog.d(LOG_TAG, "RELEASE: scheduleArmedPlayerTeardown(): Queued MediaPlayer has been released.");
+                }
+            }, ARMED_PLAYER_TEARDOWN_DELAY_MS, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            HXLog.e(LOG_TAG, "ERROR: scheduleArmedPlayerTeardown(): Deferred teardown was unavailable, releasing immediately. " + e.getLocalizedMessage());
+            releasePlayer(player);
+        }
     }
 
-    // removeNextMediaPlayer(): Prevents the next MediaPlayer from being played after currentPlayer
-    // playback has been completed.
-    private synchronized void removeNextMediaPlayer() {
+    private ScheduledThreadPoolExecutor ensureTeardownExecutor() {
+        synchronized (playerLock) {
+            if (teardownExecutor == null || teardownExecutor.isShutdown()) {
+                ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1, new ThreadFactory() {
+                    @Override
+                    public Thread newThread(Runnable runnable) {
+                        Thread thread = new Thread(runnable, TEARDOWN_THREAD_NAME);
+                        thread.setDaemon(true);
+                        return thread;
+                    }
+                });
 
-        // Removes the link between currentPlayer and nextPlayer if nextPlayer has been prepared for
-        // playback after currentPlayer completes playback.
+                // Lets the worker expire while idle so a released engine does not keep a thread open.
+                executor.setKeepAliveTime(TEARDOWN_THREAD_KEEP_ALIVE_MS, TimeUnit.MILLISECONDS);
+                executor.allowCoreThreadTimeOut(true);
+                teardownExecutor = executor;
+            }
+
+            return teardownExecutor;
+        }
+    }
+
+    // promoteNextPlayer(): Promotes the queued MediaPlayer once gapless playback has handed off to
+    // it, then queues its replacement. Callers must hold playerLock.
+    private void promoteNextPlayer(MediaPlayer completedPlayer) {
+        if (nextPlayer == null) {
+            HXLog.e(LOG_TAG, "ERROR: promoteNextPlayer(): Unable to set nextPlayer as currentPlayer as nextPlayer was null.");
+            return;
+        }
+
+        // Only the player that is currently driving playback can hand off to the queued player. A
+        // completion reported by a superseded player would otherwise promote the queued player
+        // while a different track is playing.
+        if (completedPlayer != null && completedPlayer != currentPlayer) {
+            HXLog.d(LOG_TAG, "MUSIC: promoteNextPlayer(): Ignoring completion from a MediaPlayer that is no longer current.");
+            return;
+        }
+
+        currentPlayer = nextPlayer; // Sets the current MediaPlayer.
+        nextPlayer = prepareMediaPlayer(context); // Prepares the next MediaPlayer.
+
         if (nextPlayer != null) {
+            nextPlayer.setOnPreparedListener(nextPlayerPreparedListener);
+            nextPlayer.setOnCompletionListener(playerCompletionListener);
+            nextPlayer.setOnBufferingUpdateListener(playerBufferingUpdateListener);
+        } else {
             try {
-                if (currentPlayer != null) {
-                    currentPlayer.setNextMediaPlayer(null);
-                }
-                releasePlayer(nextPlayer);
-                nextPlayer = null;
+                currentPlayer.setLooping(true);
+                HXLog.w(LOG_TAG, "MUSIC: promoteNextPlayer(): Next gapless player unavailable. Continuing with standard loop mode.");
             } catch (Exception e) {
-                HXLog.e(LOG_TAG, "ERROR: pause(): " + e.getLocalizedMessage());
+                HXLog.e(LOG_TAG, "ERROR: promoteNextPlayer(): " + e.getLocalizedMessage());
             }
         }
+
+        setPlaybackVolume(playbackVolume);
+
+        // The completed player is no longer armed for auto-start, so it can be torn down at once.
+        if (completedPlayer != null && completedPlayer != currentPlayer) {
+            releasePlayer(completedPlayer);
+        }
+
+        HXLog.d(LOG_TAG, "MUSIC: promoteNextPlayer(): Preparing next MediaPlayer object for gapless playback.");
     }
 
     /** LISTENER METHODS ________________________________________________________________________**/
 
-    // nextPlayerPreparedListener: Used to set the next OnPreparedListener for the nextMediaPlayer
-    // object when gapless playback mode has been enabled.
-    private MediaPlayer.OnPreparedListener nextPlayerPreparedListener = new MediaPlayer.OnPreparedListener() {
+    // playerPreparedListener: Starts playback once the current MediaPlayer object is ready, and
+    // queues the secondary MediaPlayer when gapless playback mode has been enabled.
+    private MediaPlayer.OnPreparedListener playerPreparedListener = new MediaPlayer.OnPreparedListener() {
+
         @Override
         public void onPrepared(MediaPlayer mp) {
-            if (currentPlayer != null && nextPlayer != null) {
+            boolean focusDenied = false;
+            boolean started = false;
+
+            synchronized (playerLock) {
+
+                // Discards callbacks belonging to a player that has since been replaced, so that a
+                // superseded track cannot start playing.
+                if (mp != currentPlayer) {
+                    HXLog.d(LOG_TAG, "PREPARING: onPrepared(): Ignoring callback from a MediaPlayer that is no longer current.");
+                    return;
+                }
+
                 try {
-                    currentPlayer.setNextMediaPlayer(nextPlayer);
-                    currentPlayer.setOnCompletionListener(nextPlayerCompletionListener);
+                    isInitialized = true;
+                    if (musicPosition != 0) {
+                        currentPlayer.seekTo(musicPosition);
+                        HXLog.d(LOG_TAG, "PREPARING: onPrepared(): MediaPlayer position set to: " + musicPosition);
+                    }
+
+                    // GAPLESS: If gapless mode is enabled, the secondary MediaPlayer will begin
+                    // immediate playback after playback on the current MediaPlayer has completed.
+                    if (isGapless && isLooped) {
+
+                        currentPlayer.setLooping(false); // Disables looping attribute.
+
+                        nextPlayer = prepareMediaPlayer(context);
+                        if (nextPlayer != null) {
+                            nextPlayer.setOnPreparedListener(nextPlayerPreparedListener);
+                            nextPlayer.setOnCompletionListener(playerCompletionListener);
+                            nextPlayer.setOnBufferingUpdateListener(playerBufferingUpdateListener);
+                        } else {
+                            // Fall back to standard looping when the secondary player cannot be prepared.
+                            currentPlayer.setLooping(true);
+                            HXLog.w(LOG_TAG, "PREPARING: Gapless secondary player unavailable. Falling back to MediaPlayer loop mode.");
+                        }
+
+                        HXLog.d(LOG_TAG, "PREPARING: Gapless mode prepared.");
+                    } else {
+                        currentPlayer.setLooping(isLooped); // Sets the looping attribute.
+                        HXLog.d(LOG_TAG, "PREPARING: onPrepared(): MediaPlayer looping status: " + isLooped);
+                    }
+
+                    if (!requestAudioFocus(buildPlaybackAudioAttributes())) {
+                        focusDenied = true;
+                    } else {
+                        setPlaybackVolume(FULL_VOLUME);
+                        currentPlayer.start(); // Begins playing the music.
+                        started = true;
+                    }
                 } catch (Exception e) {
                     HXLog.e(LOG_TAG, "ERROR: onPrepared(): " + e.getLocalizedMessage());
                 }
             }
+
+            // Invokes the associated listener calls outside of playerLock, as they reach into
+            // application code that may call back into HXMusic.
+            if (focusDenied) {
+                HXLog.e(LOG_TAG, "ERROR: onPrepared(): Audio focus request failed. Playback start cancelled.");
+                if (musicEngineListener != null) {
+                    musicEngineListener.onMusicEngineError(AudioManager.AUDIOFOCUS_REQUEST_FAILED, 0);
+                }
+            } else if (started) {
+                if (musicEngineListener != null) {
+                    musicEngineListener.onMusicEnginePrepared();
+                }
+                HXLog.d(LOG_TAG, "MUSIC: onPrepared(): Music playback has begun.");
+            }
         }
     };
 
-    // nextPlayerCompletionListener: Used to set the next OnCompletionListener for the
-    // nextMediaPlayer object when gapless playback mode has been enabled.
-    private MediaPlayer.OnCompletionListener nextPlayerCompletionListener = new MediaPlayer.OnCompletionListener() {
+    // playerCompletionListener: Handles playback completion for the current MediaPlayer object. In
+    // gapless playback mode, the queued MediaPlayer is promoted and a replacement is prepared.
+    private MediaPlayer.OnCompletionListener playerCompletionListener = new MediaPlayer.OnCompletionListener() {
+
         @Override
-        public void onCompletion(final MediaPlayer mp) {
-            if (nextPlayer != null) {
-                currentPlayer = nextPlayer; // Sets the current MediaPlayer.
-                nextPlayer = prepareMediaPlayer(context); // Prepares the next MediaPlayer.
-                if (nextPlayer != null) {
-                    nextPlayer.setOnPreparedListener(nextPlayerPreparedListener);
-                    nextPlayer.setOnCompletionListener(nextPlayerCompletionListener);
-                    nextPlayer.setOnBufferingUpdateListener(playerBufferingUpdateListener);
+        public void onCompletion(MediaPlayer mp) {
+            boolean isCompleted = false;
+
+            synchronized (playerLock) {
+                if (isGapless && isLooped) {
+                    promoteNextPlayer(mp);
+                } else {
+                    musicPosition = 0;
+                    isCompleted = true;
                 }
-                releasePlayer(mp); // Releases the previous MediaPlayer.
-                HXLog.d(LOG_TAG, "MUSIC: onCompletion(): Preparing next MediaPlayer object for gapless playback.");
-            } else {
-                HXLog.e(LOG_TAG, "ERROR: onCompletion(): Unable to set nextPlayer as currentPlayer as nextPlayer was null.");
+            }
+
+            if (isCompleted) {
+                abandonAudioFocus();
+
+                // Invokes the associated listener call.
+                if (musicEngineListener != null) {
+                    musicEngineListener.onMusicEngineCompletion();
+                }
+
+                HXLog.d(LOG_TAG, "MUSIC: onCompletion(): Music playback has completed.");
+            }
+        }
+    };
+
+    // nextPlayerPreparedListener: Arms the gapless handoff once the secondary MediaPlayer object
+    // has been prepared.
+    private MediaPlayer.OnPreparedListener nextPlayerPreparedListener = new MediaPlayer.OnPreparedListener() {
+        @Override
+        public void onPrepared(MediaPlayer mp) {
+            synchronized (playerLock) {
+
+                // Only arms the handoff when this callback belongs to the player that is still
+                // queued. A superseded player is already scheduled for teardown and chaining it
+                // would hand playback to a player that is about to be released.
+                if (mp != nextPlayer || currentPlayer == null) {
+                    HXLog.d(LOG_TAG, "PREPARING: onPrepared(): Ignoring callback from a MediaPlayer that is no longer queued.");
+                    return;
+                }
+
+                try {
+                    currentPlayer.setNextMediaPlayer(nextPlayer);
+                } catch (Exception e) {
+                    HXLog.e(LOG_TAG, "ERROR: onPrepared(): " + e.getLocalizedMessage());
+                }
             }
         }
     };
@@ -387,48 +521,54 @@ class HXMusicEngine {
     private AudioManager.OnAudioFocusChangeListener audioFocusChangeListener = new AudioManager.OnAudioFocusChangeListener() {
         @Override
         public void onAudioFocusChange(int focusChange) {
-            if (currentPlayer == null) {
-                return;
-            }
 
             switch (focusChange) {
                 case AudioManager.AUDIOFOCUS_GAIN:
-                    setPlaybackVolume(FULL_VOLUME);
-                    if (shouldResumeAfterFocusGain && isInitialized && !currentPlayer.isPlaying()) {
-                        try {
-                            currentPlayer.start();
-                            shouldResumeAfterFocusGain = false;
-                            HXLog.d(LOG_TAG, "AUDIO_FOCUS: onAudioFocusChange(): Focus regained, resumed playback.");
-                        } catch (Exception e) {
-                            HXLog.e(LOG_TAG, "ERROR: onAudioFocusChange(): Unable to resume after focus gain. " + e.getLocalizedMessage());
+                    synchronized (playerLock) {
+                        setPlaybackVolume(FULL_VOLUME);
+                        if (currentPlayer != null && shouldResumeAfterFocusGain && isInitialized
+                                && !currentPlayer.isPlaying()) {
+                            try {
+                                currentPlayer.start();
+                                shouldResumeAfterFocusGain = false;
+                                HXLog.d(LOG_TAG, "AUDIO_FOCUS: onAudioFocusChange(): Focus regained, resumed playback.");
+                            } catch (Exception e) {
+                                HXLog.e(LOG_TAG, "ERROR: onAudioFocusChange(): Unable to resume after focus gain. " + e.getLocalizedMessage());
+                            }
                         }
                     }
                     break;
 
                 case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
-                    if (isInitialized && currentPlayer.isPlaying()) {
-                        try {
-                            shouldResumeAfterFocusGain = true;
-                            currentPlayer.pause();
-                            HXLog.d(LOG_TAG, "AUDIO_FOCUS: onAudioFocusChange(): Transient loss, paused playback.");
-                        } catch (Exception e) {
-                            HXLog.e(LOG_TAG, "ERROR: onAudioFocusChange(): Unable to pause on transient loss. " + e.getLocalizedMessage());
+                    synchronized (playerLock) {
+                        if (currentPlayer != null && isInitialized && currentPlayer.isPlaying()) {
+                            try {
+                                shouldResumeAfterFocusGain = true;
+                                currentPlayer.pause();
+                                HXLog.d(LOG_TAG, "AUDIO_FOCUS: onAudioFocusChange(): Transient loss, paused playback.");
+                            } catch (Exception e) {
+                                HXLog.e(LOG_TAG, "ERROR: onAudioFocusChange(): Unable to pause on transient loss. " + e.getLocalizedMessage());
+                            }
                         }
                     }
                     break;
 
                 case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
-                    setPlaybackVolume(DUCK_VOLUME);
+                    synchronized (playerLock) {
+                        setPlaybackVolume(DUCK_VOLUME);
+                    }
                     HXLog.d(LOG_TAG, "AUDIO_FOCUS: onAudioFocusChange(): Ducking playback volume.");
                     break;
 
                 case AudioManager.AUDIOFOCUS_LOSS:
-                    shouldResumeAfterFocusGain = false;
-                    if (isInitialized && currentPlayer.isPlaying()) {
-                        try {
-                            currentPlayer.pause();
-                        } catch (Exception e) {
-                            HXLog.e(LOG_TAG, "ERROR: onAudioFocusChange(): Unable to pause on full loss. " + e.getLocalizedMessage());
+                    synchronized (playerLock) {
+                        shouldResumeAfterFocusGain = false;
+                        if (currentPlayer != null && isInitialized && currentPlayer.isPlaying()) {
+                            try {
+                                currentPlayer.pause();
+                            } catch (Exception e) {
+                                HXLog.e(LOG_TAG, "ERROR: onAudioFocusChange(): Unable to pause on full loss. " + e.getLocalizedMessage());
+                            }
                         }
                     }
                     abandonAudioFocus();
@@ -445,43 +585,55 @@ class HXMusicEngine {
 
     // isPlaying(): Determines if a music is currently playing in the background.
     boolean isPlaying() {
-        try {
-            boolean isPlaying = currentPlayer != null && isInitialized && currentPlayer.isPlaying();
-            return isPlaying;
-        } catch (Exception e) {
-            HXLog.e(LOG_TAG, "ERROR: isPlaying(): " + e.getLocalizedMessage());
-            return false;
+        synchronized (playerLock) {
+            try {
+                return currentPlayer != null && isInitialized && currentPlayer.isPlaying();
+            } catch (Exception e) {
+                HXLog.e(LOG_TAG, "ERROR: isPlaying(): " + e.getLocalizedMessage());
+                return false;
+            }
         }
     }
 
     // pause(): Pauses any music playing in the background.
     int pauseMusic() {
+        boolean isPaused = false;
+        int position = 0;
 
-        // Checks to see if the MediaPlayer object has been initialized first before retrieving the
-        // current music position and pausing the music.
-        if (currentPlayer != null && isInitialized) {
+        synchronized (playerLock) {
 
-            try {
-                musicPosition = currentPlayer.getCurrentPosition(); // Retrieves the current music position.
+            // Checks to see if the MediaPlayer object has been initialized first before retrieving
+            // the current music position and pausing the music.
+            if (currentPlayer != null && isInitialized) {
+                try {
+                    musicPosition = currentPlayer.getCurrentPosition(); // Retrieves the current music position.
+                    position = musicPosition;
 
-                // Pauses the music only if there is a music is currently playing.
-                if (currentPlayer != null && currentPlayer.isPlaying()) {
-
-                    removeNextMediaPlayer(); // Prevents nextPlayer from starting after currentPlayer has completed playback.
-                    currentPlayer.pause(); // Pauses the music.
-                    abandonAudioFocus();
-
-                    // Invokes the associated listener call.
-                    if (musicEngineListener != null) {
-                        musicEngineListener.onMusicEnginePause();
+                    // Pauses the music only if there is a music is currently playing. currentPlayer
+                    // is paused before nextPlayer is unlinked, as the native media framework will
+                    // otherwise hand playback off to nextPlayer while it is being torn down.
+                    if (currentPlayer.isPlaying()) {
+                        currentPlayer.pause(); // Pauses the music.
+                        isPaused = true;
                     }
 
-                    HXLog.d(LOG_TAG, "MUSIC: pause(): Music playback has been paused.");
-                    return musicPosition;
+                    removeNextMediaPlayer(); // Prevents nextPlayer from starting after currentPlayer has completed playback.
+                } catch (Exception e) {
+                    HXLog.e(LOG_TAG, "ERROR: pause(): An exception occurred while attempting to pause the existing MediaPlayer object.");
                 }
-            } catch (Exception e) {
-                HXLog.e(LOG_TAG, "ERROR: pause(): An exception occurred while attempting to pause the existing MediaPlayer object.");
             }
+        }
+
+        if (isPaused) {
+            abandonAudioFocus();
+
+            // Invokes the associated listener call.
+            if (musicEngineListener != null) {
+                musicEngineListener.onMusicEnginePause();
+            }
+
+            HXLog.d(LOG_TAG, "MUSIC: pause(): Music playback has been paused.");
+            return position;
         }
 
         HXLog.e(LOG_TAG, "ERROR: pause(): Music could not be paused.");
@@ -489,25 +641,49 @@ class HXMusicEngine {
     }
 
     // release(): Used to release the resources being used by the MediaPlayer object.
-    synchronized boolean release() {
-        isInitialized = false;
+    boolean release() {
+        MediaPlayer playerToRelease;
+        MediaPlayer armedPlayer;
+
+        synchronized (playerLock) {
+            isInitialized = false;
+            playerToRelease = currentPlayer;
+            armedPlayer = nextPlayer;
+            currentPlayer = null;
+            nextPlayer = null;
+
+            // Unlinks the gapless chain before either player is torn down. Playback is halted first,
+            // as the native media framework will otherwise hand playback off to the queued player
+            // while it is being torn down.
+            if (playerToRelease != null && armedPlayer != null) {
+                try {
+                    if (playerToRelease.isPlaying()) {
+                        playerToRelease.pause();
+                    }
+                    playerToRelease.setNextMediaPlayer(null);
+                } catch (Exception e) {
+                    HXLog.e(LOG_TAG, "ERROR: release(): Unable to unlink the queued MediaPlayer. " + e.getLocalizedMessage());
+                }
+            }
+        }
+
         abandonAudioFocus();
 
-        boolean released = false;
+        boolean isReleased = false;
 
-        if (currentPlayer != null) {
-            releasePlayer(currentPlayer);
-            currentPlayer = null;
-            released = true;
+        if (playerToRelease != null) {
+            releasePlayer(playerToRelease);
+            isReleased = true;
         }
 
-        if (nextPlayer != null) {
-            releasePlayer(nextPlayer);
-            nextPlayer = null;
-            released = true;
+        // The queued player may already have been promoted by the native media framework, so its
+        // teardown has to be deferred rather than performed inline.
+        if (armedPlayer != null) {
+            scheduleArmedPlayerTeardown(armedPlayer);
+            isReleased = true;
         }
 
-        if (released) {
+        if (isReleased) {
             HXLog.d(LOG_TAG, "RELEASE: release(): MediaPlayer object has been released.");
             return true;
         } else {
@@ -518,31 +694,37 @@ class HXMusicEngine {
 
     // stop(): Stops any music playing in the background.
     boolean stopMusic() {
-
-        if (currentPlayer != null) {
-            try {
-                if (currentPlayer.isPlaying()) {
-                    removeNextMediaPlayer(); // Prevents nextPlayer from starting after currentPlayer has completed playback.
-                    currentPlayer.stop(); // Stops any music currently playing in the background.
-                }
-                abandonAudioFocus();
-                release(); // Releases MediaPool resources.
-
-                // Invokes the associated listener call.
-                if (musicEngineListener != null) {
-                    musicEngineListener.onMusicEngineStop();
-                }
-
-                HXLog.d(LOG_TAG, "MUSIC: stop(): Music playback has been stopped.");
-                return true;
-            } catch (Exception e) {
-                HXLog.e(LOG_TAG, "ERROR: stopMusic(): An exception occurred while attempting to stop & release the existing MediaPlayer object. ");
+        synchronized (playerLock) {
+            if (currentPlayer == null) {
+                HXLog.e(LOG_TAG, "ERROR: stop(): Cannot stop music, as MediaPlayer object is already null.");
                 return false;
             }
-        } else {
-            HXLog.e(LOG_TAG, "ERROR: stop(): Cannot stop music, as MediaPlayer object is already null.");
-            return false;
+
+            try {
+                // currentPlayer is stopped before nextPlayer is unlinked, as the native media
+                // framework will otherwise hand playback off to nextPlayer while it is being torn
+                // down.
+                if (currentPlayer.isPlaying()) {
+                    currentPlayer.stop(); // Stops any music currently playing in the background.
+                }
+
+                removeNextMediaPlayer(); // Prevents nextPlayer from starting after currentPlayer has completed playback.
+            } catch (Exception e) {
+                HXLog.e(LOG_TAG, "ERROR: stopMusic(): An exception occurred while attempting to stop the existing MediaPlayer object. ");
+                return false;
+            }
+
+            abandonAudioFocus();
+            release(); // Releases MediaPool resources.
         }
+
+        // Invokes the associated listener call.
+        if (musicEngineListener != null) {
+            musicEngineListener.onMusicEngineStop();
+        }
+
+        HXLog.d(LOG_TAG, "MUSIC: stop(): Music playback has been stopped.");
+        return true;
     }
 
     private void releasePlayer(MediaPlayer player) {
@@ -563,20 +745,22 @@ class HXMusicEngine {
         }
     }
 
-    private synchronized void setPlaybackVolume(float volume) {
-        playbackVolume = volume;
-        if (currentPlayer != null) {
-            try {
-                currentPlayer.setVolume(volume, volume);
-            } catch (Exception e) {
-                HXLog.e(LOG_TAG, "ERROR: setPlaybackVolume(): " + e.getLocalizedMessage());
+    private void setPlaybackVolume(float volume) {
+        synchronized (playerLock) {
+            playbackVolume = volume;
+            if (currentPlayer != null) {
+                try {
+                    currentPlayer.setVolume(volume, volume);
+                } catch (Exception e) {
+                    HXLog.e(LOG_TAG, "ERROR: setPlaybackVolume(): " + e.getLocalizedMessage());
+                }
             }
-        }
-        if (nextPlayer != null) {
-            try {
-                nextPlayer.setVolume(volume, volume);
-            } catch (Exception e) {
-                HXLog.e(LOG_TAG, "ERROR: setPlaybackVolume(): " + e.getLocalizedMessage());
+            if (nextPlayer != null) {
+                try {
+                    nextPlayer.setVolume(volume, volume);
+                } catch (Exception e) {
+                    HXLog.e(LOG_TAG, "ERROR: setPlaybackVolume(): " + e.getLocalizedMessage());
+                }
             }
         }
     }
